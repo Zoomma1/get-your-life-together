@@ -51,7 +51,7 @@ vault/
 ├── [HOBBIES_FOLDER]/        ← projets hobby
 ├── [KNOWLEDGE_FOLDER]/      ← base de connaissances capitalisée
 ├── [PROJECTS_FOLDER]/       ← projets actifs (kanban, tickets, README)
-├── 05 - ISEP/               ← (optionnel) études
+├── 05 - Studies/             ← (optionnel) études
 ├── 06 - Work/               ← (optionnel) travail
 ├── [INBOX_FOLDER]/          ← capture temporaire
 └── 99 - Claude Code/
