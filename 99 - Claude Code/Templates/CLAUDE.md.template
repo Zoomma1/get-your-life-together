@@ -1,0 +1,55 @@
+# CLAUDE.md — {{NOM}}
+
+## Mode de travail
+
+{{MODE_TRAVAIL}}
+
+## Règles absolues
+
+- **Vault** : toujours demander confirmation avant chaque modification dans le vault. Afficher le changement prévu, attendre la validation explicite avant d'agir.
+- **Commandes bash** : afficher la commande complète + expliquer ce qu'elle fait en une phrase + attendre confirmation.
+- **Hors vault** : ne jamais créer, modifier ou supprimer de fichiers en dehors du vault.
+
+## Préférences de réponse
+
+{{STYLE_REPONSE}}
+Langue : {{LANGUE}}
+
+## Workflow Claude Code
+
+### Début de session
+Lire `{{PERSONAL_FOLDER}}/{{NOM}}.md` pour charger le contexte personnel.
+Lire `99 - Claude Code/config/vault-settings.md` pour connaître le format de date et le dossier des daily notes — utiliser ces valeurs dans tous les skills.
+Si le profil n'existe pas → signaler et proposer de lancer `/setup`.
+
+### Skills — règles d'invocation
+
+| Situation | Skill |
+|-----------|-------|
+| Plan de journée | `/today` |
+| Travailler sur un sujet précis | `/workon` |
+| Synthèse rapide du vault | `/recall` |
+| Traiter un lien / article | `/process` |
+| Capitaliser les notes récentes | `/harvest` |
+| Créer des liens entre les notes | `/link` |
+| Bilan de fin de journée | `/closeday` |
+| Bilan journée d'hier | `/closeyesterday` |
+| Bilan hebdomadaire | `/closeweek` |
+
+### Capitalisation en fin de session
+`/closeday` ou `/recapsession`
+
+## Règles de rangement vault
+
+```
+99 - Claude Code/
+  Skills/              ← skills Claude Code
+  Sessions/            ← recaps de session
+  config/              ← configuration (calendar-url.md, digest-sources.md...)
+  memory/              ← fichiers mémoire individuels
+  CLAUDE.md            ← ce fichier
+{{PERSONAL_FOLDER}}/
+  {{NOM}}.md           ← profil personnel généré par /setup
+  MEMORY.md            ← index mémoire persistante
+  command-tracker.md   ← suivi des commandes récurrentes
+```
