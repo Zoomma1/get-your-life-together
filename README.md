@@ -1,63 +1,117 @@
-# Vault Claude Code
+# Get Your Life Together
 
-Un vault Obsidian prêt à l'emploi, piloté par Claude Code. Fournit un système de second cerveau avec journalisation quotidienne, gestion de projets, capitalisation des connaissances et analyse de structure — le tout via des skills (commandes) invoquées depuis Claude Code.
-
----
-
-## Prérequis
-
-- [Obsidian](https://obsidian.md) — pour visualiser et naviguer dans le vault
-- [Claude Code](https://claude.ai/code) — CLI ou extension IDE (le moteur de tous les skills)
-- [Node.js](https://nodejs.org) ≥ 18 — requis pour les hooks Claude Code
+> An Obsidian vault driven by Claude Code — for brains that don't work the way systems expect.
 
 ---
 
-## Installation
+## What is it?
+
+A second brain, ready to use. Open the vault in Obsidian, connect it to Claude Code, and you get a personal assistant that knows your life, your projects, your ideas.
+
+Every morning, `/today` generates a day plan around your energy and schedule. Every evening, `/closeday` wraps it up. In between: notes, captures, things delegated to Claude.
+
+Who it's for:
+- Atypical brain (ADHD, autism, high cognitive load) and standard systems never stick
+- Someone who forgets what they wanted to do ten minutes after thinking it
+- Projects everywhere, notes scattered, a head that moves too fast
+- Or just: Someone who wants to stop carrying everything alone inside their head
+
+No coding required.
+
+---
+
+## How to use
+
+### 1. Install Obsidian
+
+[Obsidian](https://obsidian.md) is the app that displays and organizes your vault. Free.
+
+### 2. Install Claude Code
+
+[Claude Code](https://claude.ai/code) runs the commands. Available as a CLI and as a VS Code/JetBrains extension. Once installed, open it in the vault folder.
+
+### 3. Clone the vault
+
+Simply run this command in your terminal to get the vault files, run it from the directory where you want to create the vault, if you are lost navigating within a terminal check this: [How to navigate the terminal](https://medium.com/@twkriege/navigating-your-computer-using-the-terminal-the-first-intimidating-lesson-in-learning-to-code-ed81601f5389). You can name the folder whatever you want (here, `my-vault`):
 
 ```bash
-# 1. Cloner le vault
-git clone <repo-url> mon-vault
-cd mon-vault
-
-# 2. Ouvrir le vault dans Obsidian
-#    File > Open Vault > sélectionner le dossier mon-vault/
-
-# 3. Ouvrir Claude Code dans le dossier du vault
-claude
+git clone https://github.com/Zoomma1/get-your-life-together my-vault
 ```
 
-Puis, dans Claude Code :
+Open the `my-vault/` folder in Obsidian: **File > Open Vault > select the folder**.
+
+### 4. Run `/setup`
+
+In Claude Code, from inside the vault folder:
 
 ```
 /setup
 ```
 
-Le skill `/setup` configure automatiquement :
-- Ton profil personnel (`[ME_FOLDER]/[NOM].md`)
-- Le `CLAUDE.md` personnalisé
-- Le fichier `99 - Claude Code/config/vault-settings.md` (noms de dossiers, format de date)
-- Les hooks Claude Code (récap de session automatique, etc.)
+`/setup` configures the vault to your situation: your name, your folders, your habits. Run it once.
 
-**C'est la seule configuration nécessaire.** Tous les autres skills lisent `vault-settings.md` et s'adaptent à ta configuration.
+### 5. Your first command
+
+```
+/today
+```
+
+Loads your day's context: agenda, active projects, pending tasks. Run it every morning.
 
 ---
 
-## Structure du vault
+## What's inside
+
+Skills are commands you invoke from Claude Code. The ones you'll use first:
+
+| Skill | When |
+|-------|------|
+| `/today` | Every morning. Day plan adapted to your energy |
+| `/my-world` | When you've lost track. Big picture, no planning |
+| `/closeday` | Every evening. Recap and carry-over |
+| `/create-ticket` | Capture an idea or task without breaking your focus |
+| `/recall` | Find something in the vault without digging manually |
+| `/workon` | Load a project's context and get to work |
+| `/stranger` | See yourself from the outside. Based only on what you've written |
+
+There are about forty more, covering vault analysis, introspection, knowledge management, project tracking.
+
+---
+
+## Philosophy
+
+Most productivity systems assume a certain kind of brain. GTD, time-blocking, todo apps: designed for people who don't forget things mid-sentence, who don't stall from cognitive overload, who can hold a plan together for more than twenty minutes.
+
+This vault doesn't make that assumption.
+
+The idea is simple: don't carry things in your head. Capture them, let Claude hold them, get them back when you need them. It sounds obvious, but it's surprisingly hard to find a setup that actually works that way without requiring a week of configuration first.
+
+---
+
+## Reference
+
+### Prerequisites
+
+- [Obsidian](https://obsidian.md) — to visualize and navigate the vault
+- [Claude Code](https://claude.ai/code) — CLI or IDE extension (the engine behind all skills)
+- [Node.js](https://nodejs.org) ≥ 18 — required for Claude Code hooks
+
+### Vault structure
 
 ```
 vault/
-├── [NOTES_FOLDER]/          ← journal quotidien (configurable via /setup)
-├── [ME_FOLDER]/             ← notes personnelles, profil
-├── [HOBBIES_FOLDER]/        ← projets hobby
-├── [KNOWLEDGE_FOLDER]/      ← base de connaissances capitalisée
-├── [PROJECTS_FOLDER]/       ← projets actifs (kanban, tickets, README)
-├── 05 - Studies/             ← (optionnel) études
-├── 06 - Work/               ← (optionnel) travail
-├── [INBOX_FOLDER]/          ← capture temporaire
+├── [NOTES_FOLDER]/          ← daily journal (configurable via /setup)
+├── [ME_FOLDER]/             ← personal notes, profile
+├── [HOBBIES_FOLDER]/        ← hobby projects
+├── [KNOWLEDGE_FOLDER]/      ← capitalized knowledge base
+├── [PROJECTS_FOLDER]/       ← active projects (kanban, tickets, README)
+├── 05 - Studies/            ← (optional) studies
+├── 06 - Work/               ← (optional) work
+├── [INBOX_FOLDER]/          ← temporary capture
 └── 99 - Claude Code/
     ├── Skills/
     ├── config/
-    │   ├── vault-settings.md   ← tous les paramètres (dossiers + format date)
+    │   ├── vault-settings.md   ← all parameters (folders + date format)
     │   └── digest-sources.md
     ├── ADR/
     ├── Sessions/
@@ -65,104 +119,98 @@ vault/
     └── MEMORY.md
 ```
 
----
+### All skills
 
-## Skills disponibles
-
-### Quotidien
+#### Daily
 
 | Skill | Description |
 |-------|-------------|
-| `/today` | Charge le contexte du jour — daily note, emails, projets actifs, commandes en retard |
-| `/my-world` | Charge le contexte global — 5 dernières daily notes, sessions récentes, sans planification |
-| `/closeday` | Ferme la journée — récap, transfert des tâches, mise à jour du kanban |
-| `/closeyesterday` | Clôture la journée d'hier — quand `/closeday` n'a pas été lancé le soir |
+| `/today` | Loads the day's context — daily note, emails, active projects, overdue commands |
+| `/my-world` | Loads the global context — last 5 daily notes, recent sessions, no planning |
+| `/closeday` | Closes the day — recap, task transfer, kanban update |
+| `/closeyesterday` | Closes yesterday — when `/closeday` wasn't run the night before |
 
-### Hebdomadaire / Mensuel
-
-| Skill | Description |
-|-------|-------------|
-| `/closeweek` | Bilan de la semaine depuis les daily notes et sessions |
-| `/closemonth` | Bilan mensuel — projets, apprentissages, drift |
-
-### Analyse du vault
+#### Weekly / Monthly
 
 | Skill | Description |
 |-------|-------------|
-| `/map` | Cartographie topologique — clusters, dead zones, ponts critiques |
-| `/vault-link` | Propose des liens `[[]]` entre les notes (pair-programming) |
-| `/emerge` | Détecte les clusters d'idées qui forment quelque chose de nouveau |
-| `/drift` | Idées récurrentes non capitalisées sur les 15 derniers jours |
-| `/harvestdeep` | Analyse complète du vault sur 30 jours — patterns, signaux, inbox |
-| `/harvest` | Capitalisation rapide des 7 derniers jours |
+| `/closeweek` | Weekly review from daily notes and sessions |
+| `/closemonth` | Monthly review — projects, learnings, drift |
 
-### Connaissance
+#### Vault analysis
 
 | Skill | Description |
 |-------|-------------|
-| `/process` | Transforme une ressource (lien, PDF, vidéo) en note Knowledge structurée |
-| `/recall` | Cherche les 1-3 notes les plus pertinentes au contexte actuel |
-| `/ghost` | Répond à une question dans ta voix, en s'appuyant sur le vault |
-| `/trace` | Retrace l'évolution d'une idée dans le temps |
-| `/compound` | Répond à une question stratégique à trois moments du vault |
-| `/connect` | Trouve les bridges conceptuels entre deux domaines du vault |
-| `/digest` | Agrège et résume des sources externes (RSS, web) |
+| `/map` | Topological map — clusters, dead zones, critical bridges |
+| `/link` | Proposes `[[]]` links between notes (pair-programming) |
+| `/emerge` | Detects idea clusters that form something new |
+| `/drift` | Recurring uncapitalized ideas from the last 15 days |
+| `/harvestdeep` | Full vault analysis over 30 days — patterns, signals, inbox |
+| `/harvest` | Quick capitalization of the last 7 days |
 
-### Projets
-
-| Skill | Description |
-|-------|-------------|
-| `/workon` | Charge le contexte d'un ticket/feature et démarre une session de travail |
-| `/create-ticket` | Crée un ticket (fichier note + insertion kanban) |
-| `/specs` | Génère les specs d'un ticket |
-| `/refine` | Challenge un ticket avant implémentation |
-
-### Introspection
+#### Knowledge
 
 | Skill | Description |
 |-------|-------------|
-| `/stranger` | Portrait de l'auteur par un observateur extérieur — basé uniquement sur le vault |
-| `/ideas` | Extrait des idées actionnables depuis les patterns du vault (30j) |
+| `/process` | Turns a resource (link, PDF, video) into a structured Knowledge note |
+| `/recall` | Finds the 1-3 most relevant notes to the current context |
+| `/ghost` | Answers a question in your voice, drawing from the vault |
+| `/trace` | Traces the evolution of an idea over time |
+| `/compound` | Answers a strategic question at three moments in the vault |
+| `/connect` | Finds conceptual bridges between two domains of the vault |
+| `/digest` | Aggregates and summarizes external sources (RSS, web) |
 
-### Méta
+#### Projects
 
 | Skill | Description |
 |-------|-------------|
-| `/setup` | Configuration initiale du vault (profil, CLAUDE.md, hooks) |
-| `/recapsession` | Écrit le récap de la session Claude Code en cours |
-| `/resumelastsession` | Recharge le contexte de la dernière session |
-| `/evaluateskills` | Évalue la qualité des skills — détecte les ambiguïtés et les lacunes |
+| `/workon` | Loads a ticket/feature context and starts a work session |
+| `/create-ticket` | Creates a ticket (note file + kanban insertion) |
+| `/specs` | Generates specs for a ticket |
+| `/refine` | Challenges a ticket before implementation |
 
----
+#### Introspection
 
-## Workflow type
+| Skill | Description |
+|-------|-------------|
+| `/stranger` | Portrait by an outside observer — based only on the vault |
+| `/ideas` | Extracts actionable ideas from vault patterns (30 days) |
+
+#### Meta
+
+| Skill | Description |
+|-------|-------------|
+| `/setup` | Initial vault configuration (profile, CLAUDE.md, hooks) |
+| `/recapsession` | Writes the recap of the current Claude Code session |
+| `/resumelastsession` | Reloads the context of the last session |
+| `/evaluateskills` | Evaluates skill quality — detects ambiguities and gaps |
+
+### Typical workflow
 
 ```
-Matin         → /today         (contexte du jour)
-En continu    → /workon        (focus sur un sujet)
-              → /recall        (cherche dans le vault)
-              → /create-ticket (capture une idée)
-Soir          → /closeday      (ferme la journée)
+Morning       → /today         (day context)
+Throughout    → /workon        (focus on a topic)
+              → /recall        (search the vault)
+              → /create-ticket (capture an idea)
+Evening       → /closeday      (close the day)
 
-Semaine
-  Vendredi    → /closeweek
-  Dimanche    → /drift         (idées récurrentes)
-              → /vault-link    (relie les orphans)
+Week
+  Friday      → /closeweek
+  Sunday      → /drift         (recurring ideas)
+              → /vault-link    (link orphans)
 
-Mois
-  Fin de mois → /map           (état structurel)
-              → /harvestdeep   (patterns 30j)
-              → /closemonth
-              → /stranger      (portrait extérieur)
+Month
+  End of month → /map          (structural state)
+               → /harvestdeep  (30-day patterns)
+               → /closemonth
+               → /stranger     (outside portrait)
 ```
 
----
+### Advanced configuration
 
-## Configuration avancée
+#### Change date format or folder names
 
-### Changer le format de date ou les dossiers du vault
-
-Éditer `99 - Claude Code/config/vault-settings.md` :
+Edit `99 - Claude Code/config/vault-settings.md`:
 
 ```
 date_format: YYYY-MM-DD
@@ -174,27 +222,25 @@ projects_folder: 04 - Projects
 inbox_folder: 09 - Inbox
 ```
 
-Tous les skills lisent ce fichier automatiquement.
+All skills read this file automatically.
 
-### Ajouter des sources pour /digest
+#### Add sources for /digest
 
-Éditer `99 - Claude Code/config/digest-sources.md` — ajouter les URLs RSS ou web à agréger.
+Edit `99 - Claude Code/config/digest-sources.md` — add RSS or web URLs to aggregate.
 
-### Suivi des skills
+#### Skill tracking
 
-`99 - Claude Code/command-tracker.md` liste la dernière exécution de chaque skill. `/today` signale automatiquement les commandes en retard.
+`99 - Claude Code/command-tracker.md` lists the last run of each skill. `/today` automatically flags overdue commands.
 
----
-
-## Ajouter un projet
+### Adding a project
 
 ```
 [PROJECTS_FOLDER]/
-└── Mon Projet/
+└── My Project/
     ├── claude-code/
-    │   └── README.md     ← contexte codebase pour Claude
-    ├── Kanban.md         ← source de vérité des tickets
-    └── Todos/            ← tickets individuels
+    │   └── README.md     ← context for Claude
+    ├── Kanban.md         ← source of truth for tickets
+    └── Todos/            ← individual tickets
 ```
 
-Puis ajouter le projet dans `[PROJECTS_FOLDER]/INDEX.md` pour que `/today`, `/workon` et `/create-ticket` le détectent automatiquement.
+Then add the project to `[PROJECTS_FOLDER]/INDEX.md` so `/today`, `/workon` and `/create-ticket` detect it automatically.
