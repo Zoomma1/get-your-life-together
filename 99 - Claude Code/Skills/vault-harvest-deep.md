@@ -49,7 +49,7 @@ Si Victor accepte → lancer `/map`, attendre le résultat, puis continuer à l'
 Lire dans cet ordre :
 1. `99 - Claude Code/treated-links.md` → liste des liens déjà traités (filtre duplicatas potentiels)
 2. `04 - Projects/INDEX.md` → projets actifs et kanbans (pour contextualiser les émergences)
-3. `01 - Me/Victor.md` → profil, centres d'intérêt (baseline pour détecter les drifts personality-related)
+3. `{PERSONAL_FOLDER}/{USER_NAME}.md` → profil, centres d'intérêt (baseline pour détecter les drifts personality-related)
 
 ### Phase B — Contenu temporel (long mais séquentiel)
 

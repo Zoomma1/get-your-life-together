@@ -96,7 +96,7 @@ status: WIP
 2. Lire les sources explicitement listées dans le ticket :
    - Daily notes mentionnées (via chemin `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\`)
    - Essays existants (`{VAULT_PATH}\{KNOWLEDGE_FOLDER}\Essays\`)
-   - `{VAULT_PATH}\{PERSONAL_FOLDER}\Victor.md` si l'essay est d'introspection
+   - `{VAULT_PATH}\{PERSONAL_FOLDER}\{USER_NAME}.md` si l'essay est d'introspection
    - Tickets liés dans les dépendances du ticket
    - **Si une source n'existe pas** : ignorer silencieusement et continuer
 

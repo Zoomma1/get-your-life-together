@@ -167,7 +167,7 @@ Le portrait peut faire émerger des éléments nouveaux : patterns à promouvoir
 Quand Victor a creusé un point, **proposer explicitement** une capitalisation cible :
 
 > **Ce qu'on vient de creuser mériterait peut-être :**
-> - **Promotion en pattern confirmé** dans `01 - Me/Victor.md` (section "Patterns observés") — si on a touché un comportement récurrent sourcé sur 3+ instances
+> - **Promotion en pattern confirmé** dans `{PERSONAL_FOLDER}/{USER_NAME}.md` (section "Patterns observés") — si on a touché un comportement récurrent sourcé sur 3+ instances
 > - **Nouveau signal d'alerte** dans `01 - Me/Signaux d'alerte.md` — si on a nommé un mode d'échec ou une dérive structurelle
 > - **Tension active** dans `01 - Me/Aspiration.md` — si on a mis le doigt sur une contradiction entre deux choses que Victor veut
 > - **Note de contexte** créée dans `01 - Me/` — si Victor a livré du contexte oral riche qui n'existe nulle part dans le vault (historique, anecdote fondatrice, fait biographique)

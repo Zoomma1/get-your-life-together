@@ -31,7 +31,7 @@ Analyse le vault pour détecter des clusters d'idées éparpillées qui, ensembl
 **Temps** : ~1-2h complet (dépend du vault — Pass 1B/1C sont les phases lourdes)
 
 **Étapes clés** :
-1. **Lire références** (5-10 min) — INDEX, Victor.md, command-tracker
+1. **Lire références** (5-10 min) — INDEX, {USER_NAME}.md, command-tracker
 2. **Pass transverse** (15-20 min) — détecter candidats inter-domaines
 3. **Pass détail** (20-30 min) — appliquer Méthodes A/B/C/D aux candidats
 4. **Fabrication check** (5-10 min) — rejeter idées existantes
@@ -55,7 +55,7 @@ Scan du vault en 2 passes : d'abord orientation + détection rapide, puis captur
 Lire pour établir le baseline :
 ```
 1. `04 - Projects/INDEX.md` → projets actifs (exclure de l'analyse)
-2. `01 - Me/Victor.md` → profil, context (pour interpréter signaux)
+2. `{PERSONAL_FOLDER}/{USER_NAME}.md` → profil, context (pour interpréter signaux)
 3. `99 - Claude Code/command-tracker.md` → date /emerge précédent (éviter redondance)
 ```
 

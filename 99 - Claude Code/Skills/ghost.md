@@ -63,7 +63,7 @@ Ce profil vocal est une **contrainte dure** sur la réponse ghost — à utilise
 
 ## Étape 2 — Collecter et tagger les preuves
 
-**Recherche dans :** `00 - Daily notes/`, `03 - Knowledge/`, `01 - Me/Victor.md`, `99 - Claude Code/ADR/`, `99 - Claude Code/Sessions/`
+**Recherche dans :** `00 - Daily notes/`, `03 - Knowledge/`, `{PERSONAL_FOLDER}/{USER_NAME}.md`, `99 - Claude Code/ADR/`, `99 - Claude Code/Sessions/`
 
 **Stratégie :**
 1. Lire 1-2 notes pertinentes dans la zone la plus proche

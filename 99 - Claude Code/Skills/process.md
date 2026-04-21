@@ -49,7 +49,7 @@ Proposer à Victor dans cet ordre :
    ```
    Lancer le webhook (inclure le type détecté à l'Étape 2 : `youtube`, `article`, `image`, etc.) :
    ```bash
-   curl -s -X POST http://localhost:5678/webhook/fallback-link \
+   curl -s -X POST {N8N_WEBHOOK_URL}/webhook/fallback-link \
      -H "Content-Type: application/json" \
      -d "{\"url\": \"[URL]\", \"type\": \"[type]\"}"
    ```

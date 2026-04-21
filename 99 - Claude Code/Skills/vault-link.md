@@ -115,7 +115,7 @@ Score = Force × Impact (max 25).
 
 | Note source | Lien à ajouter | Note cible | Raison | Score |
 |-------------|----------------|------------|--------|-------|
-| vault-second-brain.md | [[Victor]] | Victor.md | Contexte personnel directement lié | 20 |
+| vault-second-brain.md | [[Victor]] | {USER_NAME}.md | Contexte personnel directement lié | 20 |
 | NMM.md | [[Balthasar-Gold]] | Balthasar-Gold.md | Peinture mentionnée dans la technique | 16 |
 ```
 

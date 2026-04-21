@@ -48,7 +48,7 @@ WebSearch : "site:reddit.com/r/ClaudeCode trending [mois année courante]"
 Lire en parallèle :
 
 1. `99 - Claude Code/Skills/INDEX.md` — liste des skills actifs
-2. `~/.claude/settings.json` (chemin : `C:/Users/victo/.claude/settings.json`) — plugins activés, hooks
+2. `~/.claude/settings.json` (chemin : `~/.claude/settings.json`) — plugins activés, hooks
 3. Kanban Claude Code colonnes **Idea** et **Spec** — ce qui est déjà en backlog
 
 **Extraction** : construire deux listes :

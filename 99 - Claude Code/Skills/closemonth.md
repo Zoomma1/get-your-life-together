@@ -1,6 +1,6 @@
 ---
 name: closemonth
-description: Bilan mensuel — progression des projets, tendances énergie/score, patterns comportementaux stabilisés (≥ 3 occurrences, ex : "procrastination sur décisions d'architecture"), objectifs du mois suivant et mise à jour proposée de Victor.md si des patterns se confirment. Utiliser quand Victor dit "closemonth", "bilan du mois", "on boucle le mois" ou via /closemonth.
+description: Bilan mensuel — progression des projets, tendances énergie/score, patterns comportementaux stabilisés (≥ 3 occurrences, ex : "procrastination sur décisions d'architecture"), objectifs du mois suivant et mise à jour proposée de {USER_NAME}.md si des patterns se confirment. Utiliser quand Victor dit "closemonth", "bilan du mois", "on boucle le mois" ou via /closemonth.
 narrative_critical: true
 ---
 
@@ -93,17 +93,17 @@ Extraire des sources (Étape 2) et remplir ce template :
 
 ## Étape 4 — Post-mortem & Propositions
 
-### A. Patterns comportementaux → mise à jour Victor.md
+### A. Patterns comportementaux → mise à jour {USER_NAME}.md
 
 Si patterns détectés ≥ 3 fois :
 1. Présenter à Victor le pattern exact (count + citations sources)
-2. Proposer une modification **ciblée et minimale** de `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\Victor.md`, section "Patterns observés"
+2. Proposer une modification **ciblée et minimale** de `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\{USER_NAME}.md`, section "Patterns observés"
 3. **Attendre la validation explicite de Victor** avant modification
 4. Exemples valides :
    - "Blocage paralysie sur décisions d'architecture sans pair review (détecté 4x) → ajouter : 'Demander review avant dev sur décisions structurantes' ?"
    - "Pattern de procrastination fin de semaine (5x) → ajouter : 'Limiter les tâches creuses après 17h ?' "
 
-Si 0 pattern ≥ 3 : ne pas toucher Victor.md, noter "Aucune modification proposée."
+Si 0 pattern ≥ 3 : ne pas toucher {USER_NAME}.md, noter "Aucune modification proposée."
 
 ### B. Skills analytiques suggérés
 
@@ -145,6 +145,6 @@ Présenter sous cette forme :
 - **Projet arrêté en cours de mois** : inclure dans Projets comme "Statut : arrêté à [semaine N]"
 - **Validation Victor obligatoire pour** :
   - Mois en retard (Étape 1, point 4)
-  - Modification Victor.md (Étape 4A)
-  - Refus de valider patterns → omettre de Victor.md, noter "Non validés, aucune modification"
+  - Modification {USER_NAME}.md (Étape 4A)
+  - Refus de valider patterns → omettre de {USER_NAME}.md, noter "Non validés, aucune modification"
   - Relance sur mois suivant (Étape 5, point 3)

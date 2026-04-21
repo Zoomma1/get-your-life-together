@@ -99,7 +99,7 @@ Scanner le contenu pour identifier :
 - Une tâche liée à un projet actif (dont le nom figure dans `04 - Projects/INDEX.md`)
 - **Projet inconnu identifié** : Si une tâche vise un projet NON listé dans INDEX.md, le flaguer pour l'Étape 4 (ne pas créer le ticket avant validation Victor)
 - **Vrais signaux négatifs uniquement** : stress explicite, épuisement, mauvaise passe, isolement, nuits écourtées, perte d'envie générale — jamais signaler les mentions positives ou ambiguës (ex: "je dors moins mais je me sens bien" n'est PAS un signal d'alerte)
-- **Patterns de travail** : si une tendance émerge sur la période (énergie systématiquement basse certains jours, sessions plus productives à certains moments, perturbateurs récurrents, nouveau rituel) → proposer un enrichissement de la section "Mode de travail et énergie" dans `01 - Me/Victor.md` — jamais écrire dedans directement, toujours proposer à Victor
+- **Patterns de travail** : si une tendance émerge sur la période (énergie systématiquement basse certains jours, sessions plus productives à certains moments, perturbateurs récurrents, nouveau rituel) → proposer un enrichissement de la section "Mode de travail et énergie" dans `{PERSONAL_FOLDER}/{USER_NAME}.md` — jamais écrire dedans directement, toujours proposer à Victor
 
 Catégoriser chaque signal :
 - **Idées à capitaliser** → créer une note dans le vault
@@ -131,12 +131,12 @@ Pour chaque image détectée :
      $bytes = [System.IO.File]::ReadAllBytes("{VAULT_PATH}\Ressources\Attachements\[filename]")
      $b64 = [Convert]::ToBase64String($bytes)
      $body = @{ type = "image"; filename = "[filename]"; mediaType = "image/[ext]"; data = $b64 } | ConvertTo-Json -Depth 3
-     Invoke-WebRequest -Uri "http://localhost:5678/webhook/fallback-link" -Method POST -ContentType "application/json" -Body $body
+     Invoke-WebRequest -Uri "{N8N_WEBHOOK_URL}/webhook/fallback-link" -Method POST -ContentType "application/json" -Body $body
      ```
    - **macOS/Linux (bash)** :
      ```bash
      B64=$(base64 -w0 "/Me/Tha vault/Ressources/Attachements/[filename]")
-     curl -s -X POST http://localhost:5678/webhook/fallback-link \
+     curl -s -X POST {N8N_WEBHOOK_URL}/webhook/fallback-link \
        -H "Content-Type: application/json" \
        -d "{\"type\": \"image\", \"filename\": \"[filename]\", \"mediaType\": \"image/[ext]\", \"data\": \"$B64\"}"
      ```
@@ -156,7 +156,7 @@ Si le fichier est introuvable dans le vault → signaler à Victor, ne pas bloqu
 Détecter tous les URLs dans les daily notes de la période, sauf les URLs exactes déjà traitées en mémoire.
 
 **Déléguer le fetch de chaque URL à un agent dédié** — 1 agent par URL, tous lancés en parallèle. Inclure systématiquement les instructions du fallback n8n dans chaque prompt d'agent :
-- En cas d'échec WebFetch : appeler `http://localhost:5678/webhook/fallback-link` avec `{ url, type: "youtube" | "article" }`
+- En cas d'échec WebFetch : appeler `{N8N_WEBHOOK_URL}/webhook/fallback-link` avec `{ url, type: "youtube" | "article" }`
 - Vérifier d'abord si n8n tourne (`docker ps --filter name=n8n`), le démarrer si besoin (`docker start n8n`)
 - Retourner le `{ title, content }` reçu par n8n plutôt que d'inférer via WebSearch
 - Un agent en échec ne bloque pas les autres — signaler l'URL en erreur dans le résumé final
@@ -186,7 +186,7 @@ Si toujours inaccessible, tenter le fallback automatique via n8n :
 3. Déterminer le type : `youtube` si l'URL contient `youtube.com` ou `youtu.be`, sinon `article`
 4. Appeler le webhook :
    ```bash
-   curl -s -X POST http://localhost:5678/webhook/fallback-link \
+   curl -s -X POST {N8N_WEBHOOK_URL}/webhook/fallback-link \
      -H "Content-Type: application/json" \
      -d "{\"url\": \"[URL]\", \"type\": \"[type]\"}"
    ```

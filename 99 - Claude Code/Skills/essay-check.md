@@ -1,6 +1,6 @@
 ---
 name: essay-check
-description: Synthèse des essays formalisés depuis le dernier check — lit les essays de `03 - Knowledge/Essays/` modifiés depuis last_check, identifie 2-3 patterns sourcés avec leur relation à Victor.md (Nouveau/Confirme/Contredit/Nuance), pose 1 question ouverte sourcée, propose un patch Victor.md (§ patterns observés) après validation. Déclenché par `/closeday` Étape 6 tous les 7j ou en standalone `/essay-check`.
+description: Synthèse des essays formalisés depuis le dernier check — lit les essays de `03 - Knowledge/Essays/` modifiés depuis last_check, identifie 2-3 patterns sourcés avec leur relation à {USER_NAME}.md (Nouveau/Confirme/Contredit/Nuance), pose 1 question ouverte sourcée, propose un patch {USER_NAME}.md (§ patterns observés) après validation. Déclenché par `/closeday` Étape 6 tous les 7j ou en standalone `/essay-check`.
 ---
 
 # Skill : Essay Check
@@ -29,13 +29,13 @@ description: Synthèse des essays formalisés depuis le dernier check — lit le
 
 Lire **en parallèle** :
 - Chaque essay filtré (contenu intégral)
-- `01 - Me/Victor.md` — pour connaître les patterns déjà documentés (section "Patterns observés")
+- `{PERSONAL_FOLDER}/{USER_NAME}.md` — pour connaître les patterns déjà documentés (section "Patterns observés")
 
 Identifier 2-3 thèmes émergents qui sont **formalisés** dans l'essay (pas juste mentionnés en passant) et qui correspondent à une de ces catégories :
 
-- **[Nouveau]** — pattern absent de `Victor.md`
-- **[Confirme]** — pattern `Victor.md` existant, nouvelle source qui le consolide
-- **[Contredit]** — pattern `Victor.md` existant remis en cause par l'essay
+- **[Nouveau]** — pattern absent de `{USER_NAME}.md`
+- **[Confirme]** — pattern `{USER_NAME}.md` existant, nouvelle source qui le consolide
+- **[Contredit]** — pattern `{USER_NAME}.md` existant remis en cause par l'essay
 - **[Nuance]** — pattern existant complété ou limité par une zone que l'essay explore
 
 Pour chaque thème, noter :
@@ -76,7 +76,7 @@ Attendre réponse Victor (timeout 45s).
 
 **Timeout / pas de réponse** → skip Étape 4 sans écriture, passer directement à Étape 5 (mise à jour tracker), fin.
 
-## Étape 4 — Patch Victor.md (conditionnel)
+## Étape 4 — Patch {USER_NAME}.md (conditionnel)
 
 Après réponse de Victor, pour chaque pattern qu'il valide ou enrichit :
 
@@ -110,10 +110,10 @@ Le check a eu lieu, même si rien n'a été écrit — c'est la cadence qui comp
 ## Règles
 
 1. **Scope essays uniquement** — `03 - Knowledge/Essays/*.md` et sous-dossiers. Exclure explicitement : dumps (`00 - Daily notes/`), thinking sessions, brouillons d'essays dans `04 - Projects/Project ideas/essay-*.md` (pas encore formalisés).
-2. **Toujours présenter avant d'écrire** — chaque patch `Victor.md` attend un OK explicite. Pas de batch silencieux.
-3. **Filtre mtime strict** — ne jamais re-traiter un essay déjà pris en compte dans un check précédent (évite doublons d'enrichissement Victor.md).
+2. **Toujours présenter avant d'écrire** — chaque patch `{USER_NAME}.md` attend un OK explicite. Pas de batch silencieux.
+3. **Filtre mtime strict** — ne jamais re-traiter un essay déjà pris en compte dans un check précédent (évite doublons d'enrichissement {USER_NAME}.md).
 4. **Pas de doublon avec /closeweek ou /drift** — se concentrer sur ce qui est *formalisé* dans un essay, pas les idées récurrentes non traitées ni les actions hebdo.
-5. **Fallback Victor.md absent** → skip Étape 4 silencieusement, faire juste la synthèse en chat + update tracker.
+5. **Fallback {USER_NAME}.md absent** → skip Étape 4 silencieusement, faire juste la synthèse en chat + update tracker.
 6. **Timeout standard 45s** par interaction — skip ou continuer sans écrire selon l'étape.
-7. **Append-only dans Victor.md** — ne jamais supprimer un pattern existant, seulement enrichir/nuancer (historique préservé). Pour un [Contredit], ajouter la contradiction sous le pattern existant au lieu de réécrire.
+7. **Append-only dans {USER_NAME}.md** — ne jamais supprimer un pattern existant, seulement enrichir/nuancer (historique préservé). Pour un [Contredit], ajouter la contradiction sous le pattern existant au lieu de réécrire.
 8. **Tracker mis à jour même si rien n'est écrit** — le check est compté à partir du moment où il est déclenché.

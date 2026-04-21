@@ -169,7 +169,7 @@ Depuis les sessions et la daily note, **relever toutes les idées/décisions men
 **Si trouvées** : proposer une destination pour chacune :
 
 ```
-[Idée] → [Destination : 03 - Knowledge/ | 04 - Projects/… | 01 - Me/Victor.md | kanban projet | Hobby Kanban | command-tracker]
+[Idée] → [Destination : 03 - Knowledge/ | 04 - Projects/… | {PERSONAL_FOLDER}/{USER_NAME}.md | kanban projet | Hobby Kanban | command-tracker]
 ```
 
 Présenter :
@@ -228,7 +228,7 @@ Sinon (fichier absent, entrée non trouvée, format invalide, ou date < 7j) → 
 
 **Si essay-check overdue** :
 
-Déclencher `/essay-check` et attendre retour. (Toute la synthèse, check-in, et enrichissement Victor.md sont gérés par le skill `essay-check` dédié.)
+Déclencher `/essay-check` et attendre retour. (Toute la synthèse, check-in, et enrichissement {USER_NAME}.md sont gérés par le skill `essay-check` dédié.)
 
 **Après essay-check** : Mettre à jour command-tracker : `/essay-check → YYYY-MM-DD` (date du jour).
 
@@ -243,4 +243,4 @@ Déclencher `/essay-check` et attendre retour. (Toute la synthèse, check-in, et
 7. **Append-only** — ne jamais écraser la daily note — sections `## 🌙 Bilan du jour` ajoutées en bas. Si existe déjà → skip à Étape 3.
 8. **Parsing robuste** — format inattendu (ex : `score: "quatre"`, date malformée) → skip + note "[format invalide]", ne pas bloquer
 9. **Chunking par tranches** — trop longs : limit: 200 (sessions) ou 100 (mood), offset: 0 → 200/100 → … jusqu'à fin
-10. **Victor.md fallback** — si absent, skip tout enrichissement silencieusement (Étape 6 seulement)
+10. **{USER_NAME}.md fallback** — si absent, skip tout enrichissement silencieusement (Étape 6 seulement)

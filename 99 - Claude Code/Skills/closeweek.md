@@ -237,7 +237,7 @@ Alternativement, Victor peut relancer mercredi et choisir `[A] ajouter manquants
 
 ## Règles absolues
 
-- La mise à jour comportementale de `Victor.md` est le rôle de `/closemonth`, pas de ce skill
+- La mise à jour comportementale de `{USER_NAME}.md` est le rôle de `/closemonth`, pas de ce skill
 - Traiter une semaine à la fois si plusieurs semaines en retard — proposer l'ordre (Étape 1, condition 5)
 - Insight > recap : valeur = ce que la semaine implique, pas ce qu'elle contient
 

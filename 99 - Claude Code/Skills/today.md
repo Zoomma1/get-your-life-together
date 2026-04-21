@@ -148,7 +148,7 @@ Pour chaque ticket **Idea** avec note → lire la note.
 
 **2.10 — Profil TDAH**
 
-Lire `{VAULT_PATH}\{PERSONAL_FOLDER}\Victor.md` — section markdown "Mode de travail et énergie" pour extraire les adaptations suggérées (ex: "une tâche à la fois", "pas de context switch"). Utiliser ces préférences pour adapter la composition du pool en Étape 4.
+Lire `{VAULT_PATH}\{PERSONAL_FOLDER}\{USER_NAME}.md` — section markdown "Mode de travail et énergie" pour extraire les adaptations suggérées (ex: "une tâche à la fois", "pas de context switch"). Utiliser ces préférences pour adapter la composition du pool en Étape 4.
 
 **2.11 — Maintenance vault**
 
@@ -160,10 +160,12 @@ Lire `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md` si existe. Pour chaq
 
 **2.12 — Mails (n8n)**
 
+**Si `{N8N_WEBHOOK_URL}` est vide dans vault-settings.md** → `MAIL_SECTION = ""`, skip toute cette étape silencieusement (feature optionnelle).
+
 Vérifier n8n et webhook mail-analysis (bash/WSL2) — initialiser `MAIL_SECTION = ""` avant de commencer :
 - Vérifier container : exécuter `docker ps --filter "name=n8n" --filter "status=running" --format "{{.Names}}"`
 - Si vide → démarrer : exécuter `docker start n8n && sleep 5`
-- Appeler webhook avec timeout (10s pour récupération + rendu) : exécuter `curl -s -m 10 "http://localhost:5678/webhook/mail-analysis"` 
+- Appeler webhook avec timeout (10s pour récupération + rendu) : exécuter `curl -s -m 10 "{N8N_WEBHOOK_URL}/webhook/mail-analysis"` 
 - Parser la réponse :
   * Si réponse est JSON avec clé `.markdown` non-vide → stocker le contenu texte dans `MAIL_SECTION`
   * Si réponse JSON mais `.markdown` absent ou vide → `MAIL_SECTION = ""` (pas de mails à afficher, pas d'erreur)
