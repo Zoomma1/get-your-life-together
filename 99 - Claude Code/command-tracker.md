@@ -18,3 +18,7 @@ Lu par `/today` pour détecter les commandes en retard.
 | /stranger    | —                  | 30 jours              |
 | /trace       | —                  | 30 jours              |
 | /evaluateskills | —               | 30 jours              |
+| /gylt-update    | —               | 7 jours               |
+| /pulse          | —               | 7 jours               |
+| /friction-scan  | —               | 7 jours               |
+| /essay-check    | —               | 7 jours               |

@@ -203,6 +203,7 @@ vault/
 | Skill | Description |
 |-------|-------------|
 | `/setup` | Initial vault configuration (profile, CLAUDE.md, hooks) |
+| `/gylt-update` | Weekly update from the official GitHub repo — shows what changed, you choose what to apply |
 | `/recapsession` | Writes the recap of the current Claude Code session |
 | `/resumelastsession` | Reloads the context of the last session |
 | `/evaluateskills` | Evaluates skill quality — detects ambiguities and gaps |
