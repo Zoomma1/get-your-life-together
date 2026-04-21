@@ -1,18 +1,25 @@
 ---
 name: connect
-description: Trouver les bridges conceptuels non-évidents entre deux domaines précis du vault via recherche textuelle. Contrairement à emerge (inductif — quoi émerge du vault ?), connect est déductif — que partagent ces deux domaines précis ? Contrairement à vault-link (opérationnel — crée les liens), connect est analytique — trouve d'abord les connexions, l'utilisateur décide ensuite. Ex : /connect Warhammer dev, /connect productivity workflow.
+description: Trouver les bridges conceptuels non-évidents entre deux domaines précis du vault via recherche textuelle. Contrairement à emerge (inductif — quoi émerge du vault ?), connect est déductif — que partagent ces deux domaines précis ? Contrairement à vault-link (opérationnel — crée les liens), connect est analytique — trouve d'abord les connexions, Victor décide ensuite. Ex : /connect Warhammer dev, /connect TDAH workflow.
+narrative_critical: true
 ---
+
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+>
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+>
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill : /connect
 
-Explore deux domaines du vault et révèle ce qu'ils partagent sans que l'utilisateur l'ait encore formulé — patterns communs, tensions parallèles, bridges conceptuels. Présenter les bridges, laisser l'utilisateur décider des liens à créer.
+Explore deux domaines du vault et révèle ce qu'ils partagent sans que Victor l'ait encore formulé — patterns communs, tensions parallèles, bridges conceptuels. Présenter les bridges, laisser Victor décider des liens à créer.
 
 ## Déclenchement
 
 ```
 /connect [domaine A] [domaine B]    → ex: /connect Warhammer dev
-/connect productivity workflow       → deux termes larges acceptés
-/connect "Mon Projet" learning       → guillemets pour les noms composés
+/connect TDAH workflow              → deux termes larges acceptés
+/connect "From Sprue to Glory" TDAH → guillemets pour les noms composés
 ```
 
 ---
@@ -89,7 +96,7 @@ Identifier le bridge unique le plus intéressant — celui qui recadre la façon
 
 ### Missing Links
 
-Connexions qui *devraient* exister mais n'ont pas encore été créées. **Proposer en prose** — ex : "Une note 'Mastery via iteration' pourrait relier hobby + dev" — jamais créer ou modifier des liens sans validation de l'utilisateur.
+Connexions qui *devraient* exister mais n'ont pas encore été créées. **Proposer en prose** — ex : "Une note 'Mastery via iteration' pourrait relier hobby + dev" — jamais créer ou modifier des liens sans validation de Victor.
 
 ### La question que ça soulève
 
@@ -99,7 +106,7 @@ Après avoir présenté la question, évaluer si elle est ticket-digne selon ce 
 - **Oui** : la question ouvre un champ de réflexion nouveau OU remet en question une assomption existante
 - **Non** : la question reste rhétorique ou ne demande pas de suivi
 
-Si oui → proposer le ticket en prose (ex : "Voulez-vous créer un ticket Idea ?") et attendre la réponse explicite de l'utilisateur. Ne jamais créer, modifier, ou ajouter à un ticket sans validation.
+Si oui → proposer le ticket en prose (ex : "Voulez-vous créer un ticket Idea ?") et attendre la réponse explicite de Victor. Ne jamais créer, modifier, ou ajouter à un ticket sans validation.
 
 ---
 
@@ -162,7 +169,7 @@ Status : Parsing error ou domaine invalide
 
 Résultat : [Domaine B] est trop court ou mal formé. Grep produirait trop de bruit.
 Suggestion : Utiliser un terme de 2+ caractères, ou guillemets pour les noms composés.
-Exemple : /connect "Mon Projet" Productivity
+Exemple : /connect "From Sprue to Glory" Productivity
 ```
 
 ---
@@ -215,5 +222,5 @@ Seuil ticket-digne : Oui — remet en question mon assomption que l'inertie a de
 - **Vault uniquement** — les bridges viennent des notes existantes et de leurs liens, pas de la synthèse ou du modèle de Claude
 - **Ne pas forcer** — un overlap superficiel n'est pas un bridge ; écarter si pas étayé par au moins une note, un lien, ou un thème concret
 - **Depth Asymmetry obligatoire** — appliquer le tableau des couvertures pour déterminer les hops, jamais estimer à vue
-- **Validation explicite** — pour tout action (création de liens, ticket, modification), attendre l'approbation explicite de l'utilisateur
+- **Validation explicite** — pour tout action (création de liens, ticket, modification), attendre l'approbation explicite de Victor
 - **Missing links en prose** — proposer les connexions manquantes sous forme de suggestions textuelles, jamais créer les notes

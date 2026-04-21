@@ -22,12 +22,6 @@ Analyse la structure topologique du vault : où les idées se concentrent, où l
 
 ---
 
-## Pré-requis — Charger les paramètres vault
-
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
-
----
-
 ## Étape 1 — Scan structurel
 
 Utiliser Glob et Grep pour collecter les données de structure sans tout lire. Déléguer le scan à des agents parallèles préserve le contexte principal pour l'analyse transverse qui suit et évite les timeouts.
@@ -38,7 +32,7 @@ Utiliser Glob et Grep pour collecter les données de structure sans tout lire. D
 
 Lancer un agent par dossier racine. Chaque agent exécute `Glob("**/*.md")` sur son chemin.
 
-**Dossiers à scanner :** `[NOTES_FOLDER]/`, `[ME_FOLDER]/`, `[HOBBIES_FOLDER]/`, `[KNOWLEDGE_FOLDER]/`, `[PROJECTS_FOLDER]/`, `05 - ISEP/`, `06 - Work/`, `[INBOX_FOLDER]/`, `99 - Claude Code/`
+**Dossiers à scanner :** `00 - Daily notes/`, `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`, `04 - Projects/`, `05 - ISEP/`, `06 - Work/`, `09 - Inbox/`, `99 - Claude Code/`
 
 **Contrat de retour (par agent) :**
 ```json
@@ -58,13 +52,13 @@ Lancer un agent par dossier racine. Chaque agent exécute `Glob("**/*.md")` sur 
 
 ### 1b. Orphans — 1 agent par batch de 15-20 notes
 
-Depuis les listes 1a, constituer des batches de notes dans `[HOBBIES_FOLDER]/`, `[KNOWLEDGE_FOLDER]/`, `[PROJECTS_FOLDER]/`, `05 - ISEP/`, `06 - Work/`. **Exclure `[NOTES_FOLDER]/`** (liens éphémères par nature) et `[INBOX_FOLDER]/` (zone de capture temporaire).
+Depuis les listes 1a, constituer des batches de notes dans `02 - Hobbies/`, `03 - Knowledge/`, `04 - Projects/`, `05 - ISEP/`, `06 - Work/`. **Exclure `00 - Daily notes/`** (liens éphémères par nature) et `09 - Inbox/` (zone de capture temporaire).
 
 Pour chaque batch, lancer un agent avec ce prompt :
 
 ```
 Pour chaque note de la liste (chemin complet) :
-- Grep(nom_fichier_sans_extension, path="[vault root]") 
+- Grep(nom_fichier_sans_extension, path="C:\\Me\\Tha vault") 
   → 0 résultat = orphan (aucune note ne référence ce fichier)
 Retourne : { "orphans": ["chemin/vers/note.md"], "batch_size": N, "status": "success|error" }
 ```
@@ -91,7 +85,7 @@ Retourne : {
 Lancer un agent qui grep tous les [[...]] du vault, puis valide chaque cible :
 
 ```
-Grep("\\[\\[[^\\]]+\\]\\]", path="[vault root]") → tous les liens [[...]]
+Grep("\\[\\[[^\\]]+\\]\\]", path="C:\\Me\\Tha vault") → tous les liens [[...]]
 Extraire les références uniques, puis pour chaque lien :
 - Vérifier via Glob si le fichier cible existe
 - Si NOT_FOUND : enregistrer comme lien non résolu, compter references
@@ -105,11 +99,37 @@ Retourne : {
 }
 ```
 
+### 1f. Santé des INDEX.md — 1 agent dédié
+
+Lancer un agent qui vérifie l'état de chaque `INDEX.md` du vault :
+
+```
+Glob("**/INDEX.md", path="C:\\Me\\Tha vault") → liste de tous les INDEX.md (exclure Archives/)
+
+Pour chaque INDEX.md trouvé :
+1. Lire le fichier, extraire les slugs listés (pattern [[slug]] ou [[slug|alias]])
+2. Glob(`dossier_parent/*.md`) → lister les fichiers réels dans le même dossier (exclure INDEX.md lui-même)
+3. Comparer :
+   - Slugs dans l'INDEX sans fichier .md correspondant → "entrée morte"
+   - Fichiers .md dans le dossier absents de l'INDEX → "entrée manquante"
+
+Retourne : {
+  "index_file": "chemin/INDEX.md",
+  "dead_entries": ["[[slug-inexistant]]"],
+  "missing_entries": ["nouveau-fichier.md"],
+  "status": "ok|stale|broken"
+}
+```
+
+- **`ok`** : aucun delta
+- **`stale`** : entrées manquantes uniquement (nouvelles notes non indexées)
+- **`broken`** : entrées mortes (notes référencées qui n'existent plus)
+
 ### 1e. Tickets orphelins — bash script séquentiel
 
 Exécuter seul (pas en parallèle) :
 ```bash
-bash "99 - Claude Code/scripts/check-orphan-tickets.sh"
+bash "/mnt/c/Me/Tha vault/99 - Claude Code/scripts/check-orphan-tickets.sh"
 ```
 
 Stocker résultat dans `ORPHAN_TICKETS` (liste de slugs, peut être vide).
@@ -119,11 +139,12 @@ Stocker résultat dans `ORPHAN_TICKETS` (liste de slugs, peut être vide).
 ### Agrégation (orchestrateur principal)
 
 Attendre les retours de tous les agents (avec fallback sur timeouts). Consolider avant étape 2 :
-- **Total notes :** somme des counts (1a), moins `[NOTES_FOLDER]/`
+- **Total notes :** somme des counts (1a), moins `00 - Daily notes/`
 - **Orphans :** liste unique des notes sans référence entrante
 - **Deadends :** liste unique des notes sans référence sortante
 - **Hubs :** TOP 10 par inbound_count
 - **Liens non résolus :** liste triée par referenced_by_count décroissant
+- **Santé INDEX.md :** liste des INDEX avec status `stale` ou `broken` (les `ok` sont ignorés)
 
 Les étapes 2, 3, 4 restent dans le contexte principal — elles nécessitent une vue transverse que seul l'orchestrateur possède.
 
@@ -174,7 +195,7 @@ Comparer les sujets prioritaires déclarés dans CLAUDE.md (projets actifs, cent
 | [sujet] | Haute / Moyenne / Faible | [N] | [hub1, hub2] | Dead zone / OK / Sur-représenté |
 
 **Critères :**
-- **Priorité haute + 0-2 notes** → Dead zone critique (ex : "MonProjet" est priorité mais aucune note de design)
+- **Priorité haute + 0-2 notes** → Dead zone critique (ex : "HomeLabServeur" est priorité mais aucune note de design)
 - **Priorité haute + 3-5 notes, peu connectées** → Dead zone modérée (sujet pensé mais peu développé)
 - **Priorité haute + clusters actifs** → OK
 - **Priorité faible + 10+ notes** → Attention sink (absorbe de l'énergie sans être stratégique) — candidat pour archive/tri
@@ -184,7 +205,7 @@ Comparer les sujets prioritaires déclarés dans CLAUDE.md (projets actifs, cent
 Pour chaque note orpheline (1b), qualifier automatiquement :
 - **(a) Genuinement isolée ?** → Ignorer (ex : brouillon temporaire, test) → pattern filename = "tmp", "test", "draft", "wip"
 - **(b) Pas connectée mais mérite de l'être ?** → Candidat haute valeur pour `/vault-link` → titre riche ou mtime <30j
-- **(c) Insight oublié ?** → Signaler à l'utilisateur → contenu métier pertinent mais mtime >3 mois
+- **(c) Insight oublié ?** → Signaler à Victor → contenu métier pertinent mais mtime >3 mois
 - **(d) Abandonnée accidentellement ?** → Vérifier la date de modification (mtime) → contenu long mais non modifié
 
 **Heuristique automatisée :**
@@ -202,9 +223,9 @@ Parmi les liens `[[...]]` non résolus (1d), trier par referenced_by_count décr
 
 ---
 
-## Étape 4 — Synthèse et présentation à l'utilisateur
+## Étape 4 — Synthèse et présentation à Victor
 
-Présenter la map complète. **Ne rien créer, ne rien modifier — tout est recommandation.** l'utilisateur décide quelles actions engager.
+Présenter la map complète. **Ne rien créer, ne rien modifier — tout est recommandation.** Victor décide quelles actions engager.
 
 **Format de sortie :**
 
@@ -236,7 +257,7 @@ VAULT MAP — [Date]
 
 | Sujet (CLAUDE.md) | Priorité | Notes vault | Cluster(s) | Diagnostic |
 |---|---|---|---|---|
-| [MonProjetA] | Haute | 0-2 | — | ⚠️ Critique : pensé mais non documenté |
+| [HomeLabServeur] | Haute | 0-2 | — | ⚠️ Critique : pensé mais non documenté |
 | [sujet] | Moyenne | 3-5 | [hub1] | ⚠️ Modérée : peu développé |
 | [sujet] | Haute | 8+ | [hub1, hub2] | ✓ OK : clusters actifs |
 
@@ -252,6 +273,16 @@ VAULT MAP — [Date]
 - [[Concept X]] — 4 références, pensée importante manquante
 - [[Concept Y]] — 2 références, clarifier ou typo ?
 
+## Santé des INDEX.md
+> Omettre si tous les INDEX.md sont `ok`
+
+| INDEX.md | Entrées mortes | Entrées manquantes | Statut |
+|----------|---------------|--------------------|--------|
+| `03 - Knowledge/INDEX.md` | — | `nouvelle-note.md` | ⚠️ Stale |
+| `01 - Me/INDEX.md` | `[[note-supprimée]]` | — | ❌ Broken |
+
+Remédiation : lancer `/vault-link` — l'Étape 6 met à jour les INDEX.md automatiquement.
+
 ## Actions recommandées — par ordre d'impact
 
 ### 1. Sécuriser les ponts critiques
@@ -261,8 +292,8 @@ Vérifier la santé (mtime récente) de : [[NoteX]], [[NoteY]]
 Lancer `/vault-link` sur les [X] orphans identifiés
 
 ### 3. Combler les dead zones
-- [MonProjetA] → créer spec/design dans `[KNOWLEDGE_FOLDER]/`
-- [MonProjetB] → relier à stack technique actuelle
+- [HomeLabServeur] → créer spec/design dans `03 - Knowledge/`
+- [CryptoBot] → relier à stack technique actuelle
 
 ### 4. Résoudre les liens importants non résolus
 Ces concepts apparaissent 3+ fois, créer les notes : [[...]]
@@ -272,23 +303,16 @@ Ces concepts apparaissent 3+ fois, créer les notes : [[...]]
 - Lancer `/harvestdeep` pour patterns temporels 30j (complète /map)
 ```
 
-**Conformité pair-programming :** aucune modification autonome, tout est recommandé et soumis à la validation de l'utilisateur.
-
-## Étape 5 — Tracker (optionnel, après validation de l'utilisateur)
-
-Si valider les actions recommandées, mettre à jour le tracker :
-- `99 - Claude Code/command-tracker.md` : `/map` → date du jour (YYYY-MM-DD)
-
----
+**Conformité pair-programming :** aucune modification autonome, tout est recommandé et soumis à validation Victor.
 
 ## Règles absolues
 
 - **Jamais créer ni modifier sans validation explicite** — /map est une analyse, pas une action. Tout est recommandé.
 - **Ne pas utiliser de plugins Obsidian** — utiliser Glob et Grep uniquement
-- **Exclure `[NOTES_FOLDER]/` des analyses orphan/deadend** — liens éphémères par nature. Inclure dans count total.
+- **Exclure `00 - Daily notes/` des analyses orphan/deadend** — liens éphémères par nature. Inclure dans count total.
 - **Dead zones = insight principal** — doivent être clairement distinguées des orphans et deadends
-- **Renvoyer vers les bons skills** : orphans → `/vault-link`, clusters fragiles → `/emerge`, patterns → `/harvestdeep`
-- **Compatible pair-programming** : présenter la map et les actions, l'utilisateur décide ce qu'il veut traiter
+- **Renvoyer vers les bons skills** : orphans → `/vault-link`, clusters fragiles → `/emerge`, patterns → `/harvestdeep`, INDEX stale/broken → `/vault-link` (Étape 6)
+- **Compatible pair-programming** : présenter la map et les actions, Victor décide ce qu'il veut traiter
 - **Fallbacks requis** : Si un agent parallèle timeout → relancer seul. Si vide → continuer. Si erreur → signaler dans status.
 - **Profondeur de clustering :** max 3 niveaux (50+ notes) ou max 2 (< 50 notes) — évite les super-clusters artificiels
 - **Heuristiques orphan** : Automatiser la classification (a/b/c/d) par pattern filename + mtime + taille

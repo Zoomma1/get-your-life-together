@@ -1,15 +1,9 @@
 ---
 name: process
-description: Donner une URL → Claude fetch le contenu et crée une note structurée dans [KNOWLEDGE_FOLDER]/ immédiatement. Utiliser quand l'utilisateur dit "/process [url]" ou "process ce lien", "capitalise cet article/cette vidéo". Court-circuite le harvest pour un traitement immédiat.
+description: Donner une URL → Claude fetch le contenu et crée une note structurée dans 03 - Knowledge/ immédiatement. Utiliser quand Victor dit "/process [url]" ou "process ce lien", "capitalise cet article/cette vidéo". Court-circuite le harvest pour un traitement immédiat.
 ---
 
 # Skill `/process`
-
-## Pré-requis — Charger les paramètres vault
-
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
-
----
 
 Transforme un lien externe en note Knowledge dans le vault, sans passer par l'inbox ni attendre le `/harvest`.
 
@@ -23,8 +17,8 @@ Transforme un lien externe en note Knowledge dans le vault, sans passer par l'in
 
 - Sans `--target` → Claude choisit le sous-dossier selon le domaine
 - Sans `--tag` → Claude génère les tags depuis le contenu
-- URL requise — sans URL, demander de la fournir
-- Si l'utilisateur annule à tout moment (Ctrl+C) → arrêter immédiatement et signaler l'annulation
+- URL requise — sans URL, demander à Victor de la fournir
+- Si Victor annule à tout moment (Ctrl+C) → arrêter immédiatement et signaler l'annulation
 
 ---
 
@@ -43,7 +37,7 @@ Pour shortcut `youtu.be/ID` ou paramètre `?v=ID` → normaliser vers `https://w
 WebFetch récupère titre + description (pas de transcript sans API YouTube). Minimum 100 caractères de contenu requis.
 
 **Fetch échoué (timeout, 4xx, 5xx, contenu < 100 chars) :**
-Prodemander dans cet ordre :
+Proposer à Victor dans cet ordre :
 
 1. **Fallback n8n** — si actif :
    ```bash
@@ -53,11 +47,11 @@ Prodemander dans cet ordre :
    ```bash
    docker start n8n && sleep 3
    ```
-   Lancer le webhook :
+   Lancer le webhook (inclure le type détecté à l'Étape 2 : `youtube`, `article`, `image`, etc.) :
    ```bash
    curl -s -X POST http://localhost:5678/webhook/fallback-link \
      -H "Content-Type: application/json" \
-     -d "{\"url\": \"[URL]\"}"
+     -d "{\"url\": \"[URL]\", \"type\": \"[type]\"}"
    ```
    Analyser réponse : si `{ "title": "...", "content": "..." }` avec contenu >= 100 chars → continuer.
    Sinon → proposer NotebookLM. Arrêter n8n après usage :
@@ -65,7 +59,7 @@ Prodemander dans cet ordre :
    docker stop n8n
    ```
 
-2. **Fallback NotebookLM** — si l'utilisateur accepte, présenter le prompt adapté au type détecté (voir ci-dessous) et laisser l'utilisateur copier-coller le résumé.
+2. **Fallback NotebookLM** — si Victor accepte, présenter le prompt adapté au type détecté (voir ci-dessous) et laisser Victor copier-coller le résumé.
 
 **Prompts NotebookLM :**
 
@@ -99,15 +93,15 @@ Résume : techniques mentionnées, peintures/couleurs (base, wash, layer, etc.),
 
 | Domaine détecté | Sous-dossier destination |
 |----------------|--------------------------|
-| Claude Code, LLM, prompt engineering, MCP, agents IA | `[KNOWLEDGE_FOLDER]/Claude code/` |
-| Dev, code, architecture, patterns, frameworks, outils dev | `[KNOWLEDGE_FOLDER]/Dev/` |
-| IA générale, ML, modèles, recherche IA | `[KNOWLEDGE_FOLDER]/IA/` |
-| Business, product, startup, management, stratégie | `[KNOWLEDGE_FOLDER]/Business/` |
-| Voyage, lieux, culture | `[KNOWLEDGE_FOLDER]/Travel/` |
-| Warhammer, peinture, figurines | `[HOBBIES_FOLDER]/Warhammer/` |
-| Autre / inclassable | `[KNOWLEDGE_FOLDER]/` (racine) |
+| Claude Code, LLM, prompt engineering, MCP, agents IA | `03 - Knowledge/Claude code/` |
+| Dev, code, architecture, patterns, frameworks, outils dev | `03 - Knowledge/Dev/` |
+| IA générale, ML, modèles, recherche IA | `03 - Knowledge/IA/` |
+| Business, product, startup, management, stratégie | `03 - Knowledge/Business/` |
+| Voyage, lieux, culture | `03 - Knowledge/Travel/` |
+| Warhammer, peinture, figurines | `02 - Hobbies/Warhammer/` |
+| Autre / inclassable | `03 - Knowledge/` (racine) |
 
-Si `--target` fourni → utiliser ce chemin directement. Créer le dossier s'il n'existe pas (`mkdir -p`). Accepter tout chemin valide sous `[KNOWLEDGE_FOLDER]/` ou `[HOBBIES_FOLDER]/`.
+Si `--target` fourni → utiliser ce chemin directement. Créer le dossier s'il n'existe pas (`mkdir -p`). Accepter tout chemin valide sous `03 - Knowledge/` ou `02 - Hobbies/`.
 
 ---
 
@@ -116,7 +110,7 @@ Si `--target` fourni → utiliser ce chemin directement. Créer le dossier s'il 
 Lister les fichiers existants dans le sous-dossier cible.
 
 Si une note similaire existe déjà :
-→ Présenter à l'utilisateur : "Note existante trouvée : [[nom-note]]. Créer quand même ou enrichir l'existante ?"
+→ Présenter à Victor : "Note existante trouvée : [[nom-note]]. Créer quand même ou enrichir l'existante ?"
 → Attendre sa réponse avant de continuer.
 
 ---
@@ -125,11 +119,11 @@ Si une note similaire existe déjà :
 
 Générer le slug depuis le titre (kebab-case, minuscules, sans accents, max 5-6 mots).
 
-Créer `[KNOWLEDGE_FOLDER]/[sous-dossier]/[slug].md` :
+Créer `03 - Knowledge/[sous-dossier]/[slug].md` :
 
 ```markdown
 ---
-date: [date du jour au format DATE_FORMAT]
+date: YYYY-MM-DD
 source: [url]
 tags: [domaine, mots-clés]
 status: nouvelle
@@ -153,7 +147,7 @@ status: nouvelle
 **Remplissage :**
 - `tags` : domaine + 2-4 mots-clés du contenu. Si `--tag [custom]` → ajouter en fin de liste (accepter tel quel)
 - `## Points clés` : 3-7 bullets, factuels
-- `## Cas d'usage avec mon workflow` : liens concrets avec les projets actifs du vault — omettre si aucun lien évident
+- `## Cas d'usage avec mon workflow` : liens concrets (FSTG, vault, projets) — omettre si aucun lien évident
 - `## Voir aussi` : chercher les notes liées dans le vault. Au moins 1 lien si pertinent existe, sinon omettre cette section.
 
 **Validation du contenu :**
@@ -166,7 +160,7 @@ status: nouvelle
 
 **Succès — note créée :**
 ```
-✅ Note créée : [KNOWLEDGE_FOLDER]/[sous-dossier]/[slug].md
+✅ Note créée : 03 - Knowledge/[sous-dossier]/[slug].md
 → Type : [type]
 → Tags : [tags]
 → Voir aussi : [[note-1]], [[note-2]] (si trouvées)
@@ -192,5 +186,5 @@ status: nouvelle
 - **Destinations valides uniquement** — utiliser le mapping domaine → sous-dossier
 - **Slug depuis le titre** — jamais depuis l'URL
 - **Fallbacks explicites** — signaler l'échec et proposer options (n8n ou NotebookLM)
-- **Warhammer → `[HOBBIES_FOLDER]/`** — jamais dans Knowledge
-- **Pair-programming** — attendre validation de l'utilisateur aux points critiques (doublon, fallback, annulation)
+- **Warhammer → Hobbies** — jamais dans Knowledge
+- **Pair-programming** — attendre validation de Victor aux points critiques (doublon, fallback, annulation)

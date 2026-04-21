@@ -7,29 +7,23 @@ description: Cherche dans le vault les 1-3 notes pertinentes au contexte. Appel 
 
 Recherche ciblée dans le vault : retrouve les notes vraiment utiles pour le contexte actuel.
 
-## Pré-requis — Charger les paramètres vault
-
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
-
----
-
 ## Déclenchement
 
 ```
 /recall              → infère les mots-clés depuis la conversation en cours
 /recall [sujet]      → recherche ciblée sur ce sujet
-/recall auth MonProjet    → plusieurs termes possibles (AND implicite)
+/recall auth FSTG    → plusieurs termes possibles (AND implicite)
 ```
 
 ---
 
 ## Étape 1 — Extraire les mots-clés (3 à 6)
 
-**Si argument fourni** : utiliser TOUS les termes, séparés par espace (ex: `/recall auth MonProjet` = search "auth" AND "MonProjet").
+**Si argument fourni** : utiliser TOUS les termes, séparés par espace (ex: `/recall auth FSTG` = search "auth" AND "FSTG").
 
 **Si aucun argument** : inférer depuis la conversation (par priorité) :
 1. Titres ou chemins mentionnés dans les 5 derniers échanges
-2. Noms de projets explicites mentionnés dans la conversation
+2. Noms de projets explicites (FSTG, ML, HomeLabServeur, etc.)
 3. Termes techniques répétés 2+ fois dans la dernière requête
 
 **Garder 3 à 6 mots-clés distincts** — ni trop larges ("code") ni trop spécifiques (noms variables).
@@ -44,13 +38,13 @@ Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `
 
 ### Répertoires à scanner (toujours tous)
 
-- `[KNOWLEDGE_FOLDER]/` (récursif)
-- `99 - Claude Code/ADR\`
-- `[PROJECTS_FOLDER]/[Projet actif]\claude-code\` (si en contexte)
-- `[PROJECTS_FOLDER]/[Projet actif]\` (si en contexte ; chemin réel, pas "04 - My projects")
-- `[HOBBIES_FOLDER]/` (si sujet hobby détecté)
+- `{VAULT_PATH}\{KNOWLEDGE_FOLDER}\` (récursif)
+- `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\ADR\`
+- `{VAULT_PATH}\{PROJECTS_FOLDER}\[Projet actif]\claude-code\` (si en contexte)
+- `{VAULT_PATH}\{PROJECTS_FOLDER}\[Projet actif]\` (si en contexte ; chemin réel, pas "04 - My projects")
+- `{VAULT_PATH}\{HOBBIES_FOLDER}\` (si sujet hobby détecté)
 
-**Ne pas scanner** : `[NOTES_FOLDER]/`, `[INBOX_FOLDER]/`, `Archive/`, `99 - Claude Code/Sessions/`.
+**Ne pas scanner** : `00 - Daily notes/`, `09 - Inbox/`, `Archive/`, `99 - Claude Code/Sessions/`.
 
 ### Limites d'exécution
 
@@ -95,6 +89,26 @@ Format :
 ```
 
 **Si aucun match ≥2** → silence total (pas de "aucun résultat").
+
+---
+
+## Étape 2bis — Recherche sémantique sessions (optionnel)
+
+**Condition** : lancer seulement si les mots-clés de l'Étape 1 sont techniques ou projets (Waddle, FSTG, Husker, pgvector…). Passer si requête purement personnelle/organisation.
+
+Appeler :
+```bash
+uv run ~/.claude/semantic_search.py "<mots-clés joints>" --top-k 3
+```
+
+**Si la commande échoue** (Postgres ou Ollama inaccessible) → non-bloquant, continuer vers Étape 3, mais afficher : `⚠️ Recherche sémantique sessions indisponible (Postgres/Ollama down) — résultats vault uniquement.`
+
+**Si résultats** (similarity ≥ 0.45) → ajouter un bloc séparé après les notes vault :
+```
+📎 Sessions pertinentes :
+- [YYYY-MM-DD] — <session title> / <section_type>
+```
+Max 3 sessions. Ne pas les mélanger avec les notes vault — blocs distincts.
 
 ---
 

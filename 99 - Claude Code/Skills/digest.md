@@ -1,7 +1,14 @@
 ---
 name: digest
-description: Fetch les sources de veille configurées dans digest-sources.md et écrit un résumé condensé dans la daily note du jour. Sources par défaut si non configuré : Hacker News, Anthropic, Dev.to.
+description: Fetch les sources de veille configurées dans digest-sources.md (sources par défaut si non configuré : Hacker News, Anthropic, Dev.to) et écrit un résumé condensé dans la daily note du jour avant le plan. Déclencher quand Victor dit "/digest", "digest", "digest tech", "donne moi les news", "veille du jour", "fais le digest", ou avant `/today` en début de journée pour intégrer la veille au plan.
+narrative_critical: true
 ---
+
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+>
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+>
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill `/digest`
 
@@ -90,6 +97,21 @@ Option B : Relancer le digest plus tard
 - Si A → continuer, ajouter en bas du digest : `*[Source] inaccessible aujourd'hui*`
 - Si B → arrêter
 
+### Si le contenu est non exploitable — fallback WebSearch
+
+Après chaque fetch réussi, évaluer si le contenu est exploitable :
+
+- **Non exploitable** : contenu majoritairement CSS/JS (nombreux `{`, `}`, propriétés CSS, variables `--`), page vide, ou réponse du modèle indiquant l'absence d'articles
+- **Exploitable** : texte naturel avec titres, dates, ou résumés d'articles identifiables
+
+**Si non exploitable → fallback automatique (silencieux) :**
+1. Extraire le domaine depuis l'URL source (ex: `hugodecrypte.kessel.media`)
+2. Lancer WebSearch avec la query `site:[domaine]`
+3. Appliquer le prompt de fetch d'origine sur les résultats WebSearch
+4. Si WebSearch retourne aussi zéro article → traiter comme inaccessible (Option A/B ci-dessus)
+
+Pas de message à Victor lors du fallback — la source est traitée normalement dans le digest.
+
 ---
 
 ## Étape 4 — Sélectionner et synthétiser
@@ -142,6 +164,15 @@ Insérer le bloc digest complet. Confirmer :
 ✅ Digest inséré dans la daily note du YYYY-MM-DD
 → [N] items — [catégories utilisées]
 ```
+
+---
+
+## Étape 7 — Research intel (automatique)
+
+Après confirmation de l'insertion du digest, exécuter le skill `/research-scout` :
+lire `99 - Claude Code/Skills/research-scout.md` et exécuter ses étapes.
+
+Non-bloquant : si /research-scout ne trouve rien ou que Victor skip tout, le digest est déjà terminé — aucune action supplémentaire.
 
 ---
 

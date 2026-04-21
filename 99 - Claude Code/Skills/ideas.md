@@ -1,17 +1,18 @@
 ---
 name: ideas
-description: À lancer toutes les 2-4 semaines quand l'utilisateur veut savoir quoi faire ensuite — transforme les patterns du vault en actions concrètes sourcées. Contrairement à vault-harvest-deep (qui détecte et capitalise) et à emerge (qui cherche des clusters inter-notes), /ideas transforme ces patterns en idées actionnables classées par catégorie avec effort estimé et sourcing obligatoire. Utiliser quand l'utilisateur dit "ideas", "qu'est-ce que je devrais faire", "génère des idées", "montre-moi les opportunités".
+description: À lancer toutes les 2-4 semaines quand Victor veut savoir quoi faire ensuite — transforme les patterns du vault en actions concrètes sourcées. Contrairement à vault-harvest-deep (qui détecte et capitalise) et à emerge (qui cherche des clusters inter-notes), /ideas transforme ces patterns en idées actionnables classées par catégorie avec effort estimé et sourcing obligatoire. Utiliser quand Victor dit "ideas", "qu'est-ce que je devrais faire", "génère des idées", "montre-moi les opportunités".
+narrative_critical: true
 ---
+
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+>
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+>
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill : /ideas
 
 Extrait des idées actionnables depuis les patterns réels du vault — pas du brainstorming générique. Chaque idée doit être sourcée ("basé sur ta note du [date]..."), sinon elle n'a pas sa place ici.
-
-## Pré-requis — Charger les paramètres vault
-
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
-
----
 
 **Quand invoquer `/ideas` plutôt qu'un autre skill :**
 
@@ -27,33 +28,33 @@ Utilise `/ideas` quand tu veux des **actions priorisées** basées sur une synth
 
 Synthétiser mentalement 6 sources de signal sur les 30 derniers jours. Chaque source donne un angle d'analyse distinct. (Faire cette synthèse en lecture directe du vault — sans appeler d'outils externes.)
 
-**Source 1 — Daily notes (`[NOTES_FOLDER]/[date selon DATE_FORMAT].md`, 30j)**
+**Source 1 — Daily notes (`00 - Daily notes/YYYY-MM-DD.md`, 30j)**
 Sujets mentionnés 2+ fois, intentions sans suite explicite, frustrations citées, décisions prises.
 
 **Source 2 — Sessions (`99 - Claude Code/Sessions/`, 30j)**
 Projets travaillés, progression vs stagnation notée, décisions, sujets reportés/évités intentionnellement.
 
-**Source 3 — Projets actifs et kanbans (`[PROJECTS_FOLDER]/INDEX.md` + kanbans, colonnes Idea/Specs/Ready/WIP)**
+**Source 3 — Projets actifs et kanbans (`04 - Projects/INDEX.md` + kanbans, colonnes Idea/Specs/Ready/WIP)**
 État de chaque projet, tickets bloqués depuis plusieurs jours/semaines, dépendances non résolues.
 
-**Source 4 — Knowledge actifs (`[KNOWLEDGE_FOLDER]/**/*.md`, modifiés dans les 30j)**
-Domaines sur lesquels l'utilisateur a écrit récemment, concepts capitalisés, lacunes visibles (sujets actifs sans note dédiée).
+**Source 4 — Knowledge actifs (`03 - Knowledge/**/*.md`, modifiés dans les 30j)**
+Domaines sur lesquels Victor a écrit récemment, concepts capitalisés, lacunes visibles (sujets actifs sans note dédiée).
 
-**Source 5 — Inbox (`[INBOX_FOLDER]/`)**
+**Source 5 — Inbox (`09 - Inbox/`)**
 Idées non capitalisées, tickets sans suite, sujets récurrents non actionnés.
 
-**Source 6 — READMEs projets actifs (`[PROJECTS_FOLDER]/[Projet]/claude-code/README.md` pour chaque projet actif)**
+**Source 6 — READMEs projets actifs (`04 - Projects/[Projet]/claude-code/README.md` pour chaque projet actif)**
 Objectifs déclarés, "next steps" officiels, dette technique mentionnée.
 
 ### Consolidation avant Étape 2
 
-Récapituler brièvement ce qui émerge des 6 sources. Si plus de 4 sources retournent "aucune donnée" (vault peu alimenté, aucune session récente, no kanbans, etc.), signaler à l'utilisateur que le signal est trop faible : proposer d'attendre une semaine supplémentaire ou continuer avec patterns partiels.
+Récapituler brièvement ce qui émerge des 6 sources. Si plus de 4 sources retournent "aucune donnée" (vault peu alimenté, aucune session récente, no kanbans, etc.), signaler à Victor que le signal est trop faible : proposer d'attendre une semaine supplémentaire ou continuer avec patterns partiels.
 
 ---
 
-## Étape 2 — Synthèse en 4 dimensions (STOP et validation de l'utilisateur)
+## Étape 2 — Synthèse en 4 dimensions (STOP et validation Victor)
 
-Synthétiser les 6 sources consolidées sur ces 4 axes. **Présenter cette synthèse à l'utilisateur sous forme de tableau 2D et attendre sa confirmation explicite avant de continuer à Étape 3.**
+Synthétiser les 6 sources consolidées sur ces 4 axes. **Présenter cette synthèse à Victor sous forme de tableau 2D et attendre sa confirmation explicite avant de continuer à Étape 3.**
 
 Format de présentation (tableau) :
 
@@ -64,7 +65,7 @@ Format de présentation (tableau) :
 | **Ce qui manque** | Lacunes identifiées (outils, savoir, process, docs), questions ouvertes (sources 4, 5, 6) |
 | **Bottlenecks** | Ce qui bloque plusieurs domaines : dépendances non résolues, manque de ressource/temps (sources 2, 3, 6) |
 
-**Exemple concret :** Si Source 1 parle d'une idée 3 fois en 2 semaines (frustration), et Source 3 montre un ticket "Specs" depuis 15j non avancé (bottleneck), alors : "Bloquer : [Titre] depuis 15j en Specs, mentionné 3 fois en frustration" → ligne du tableau "Bottlenecks".
+**Exemple concret :** Si Source 1 parle d'une idée 3 fois en 2 semaines (frustration), et Source 3 montre un ticket en Blocked depuis 15j non avancé (bottleneck), alors : "Bloquer : [Titre] depuis 15j en Blocked, mentionné 3 fois en frustration" → ligne du tableau "Bottlenecks".
 
 ---
 
@@ -139,7 +140,7 @@ OPPORTUNITE CLE : [titre]
 
 ### Sauvegarder le rapport (obligatoire)
 
-Créer `[KNOWLEDGE_FOLDER]/Ideas/YYYY-MM-DD.md` avec la structure suivante :
+Créer `03 - Knowledge/Ideas/YYYY-MM-DD.md` avec la structure suivante :
 
 ```markdown
 ---
@@ -160,12 +161,12 @@ vault-state: complet (6/6 sources) | partiel (2-5/6 sources) | faible (< 2/6)
 [Top 3 + Opportunité clé — Étape 4]
 
 ## Tickets générés
-[Si l'utilisateur a ticketisé : liste + kanbans cible]
+[Si Victor a ticketisé : liste + kanbans cible]
 ```
 
 ### Présenter la liste de ticketing
 
-Afficher à l'utilisateur une liste numérotée avec : titre + catégorie + kanban cible + effort. **l'utilisateur choisit explicitement** lesquels créer (numéros, "tout", ou "rien").
+Afficher à Victor une liste numérotée avec : titre + catégorie + kanban cible + effort. **Victor choisit explicitement** lesquels créer (numéros, "tout", ou "rien").
 
 **Kanbans par défaut (routage) :**
 - Outils/Systèmes → `99 - Claude Code/Claude Code Kanban.md`
@@ -188,24 +189,24 @@ Après persistance, ajouter une ligne à `99 - Claude Code/command-tracker.md` :
 
 ## Règles absolues
 
-- **Sourcing obligatoire** : chaque idée cite sa source (note + date) ou pattern explicite du vault (ex. "bloqué depuis 15j en Specs"). Si sourcing impossible → rejeter l'idée.
-- **Synthèse d'abord** : présenter tableau 4 dimensions (Étape 2) — attendre la validation de l'utilisateur avant Étape 3.
-- **Pas de création autonome** : tickets créés uniquement sur choix explicite de l'utilisateur (numéros, "tout", ou "rien").
+- **Sourcing obligatoire** : chaque idée cite sa source (note + date) ou pattern explicite du vault (ex. "bloqué depuis 15j en Blocked"). Si sourcing impossible → rejeter l'idée.
+- **Synthèse d'abord** : présenter tableau 4 dimensions (Étape 2) — attendre validation Victor avant Étape 3.
+- **Pas de création autonome** : tickets créés uniquement sur choix explicite de Victor (numéros, "tout", ou "rien").
 - **Pas de brainstorming générique** : uniquement des idées du vault, zéro suggestion libre.
 - **Pas de duplication** : si `/drift` ou `/emerge` ont déjà couvert un signal en Étape 1, l'omettre.
-- **Rapport obligatoire** : `[KNOWLEDGE_FOLDER]/Ideas/YYYY-MM-DD.md` créée même si l'utilisateur ne ticketise rien.
+- **Rapport obligatoire** : `03 - Knowledge/Ideas/YYYY-MM-DD.md` créée même si Victor ne ticketise rien.
 - **Signal faible** : si plus de 4 sources sont vides, signaler et proposer d'attendre 1 semaine supplémentaire ou continuer avec patterns partiels.
 
 ---
 
 ## Exemple de scénario d'invocation
 
-l'utilisateur dit : "génère des idées — j'ai pas bouffé depuis 2 semaines et je sais pas sur quoi me brancher"
+Victor dit : "génère des idées — j'ai pas bouffé depuis 2 semaines et je sais pas sur quoi me brancher"
 
 1. Lire daily notes 2 dernières semaines + sessions + kanbans → Étape 1
-2. Synthétiser en 4 dimensions (tableau) → Étape 2 → présenter à l'utilisateur
-3. Attendre la confirmation de l'utilisateur : "ok, continue" ou "attends je dois ajouter un truc"
+2. Synthétiser en 4 dimensions (tableau) → Étape 2 → présenter à Victor
+3. Attendre confirmation Victor : "ok, continue" ou "attends je dois ajouter un truc"
 4. Générer idées 9 catégories, chaque idée avec type/source/effort/pourquoi → Étape 3
 5. Top 3 + Opportunité clé → Étape 4
 6. Sauvegarder rapport + proposer ticketing → Étape 5
-7. Créer tickets sur confirmation l'utilisateur → Étape 5 (fin)
+7. Créer tickets sur confirmation Victor → Étape 5 (fin)

@@ -1,7 +1,14 @@
 ---
 name: vault-harvest-deep
-description: Scan complet du vault sur une longue période pour détecter les patterns émergents, les idées récurrentes inter-contextes et les connexions profondes. Utiliser une fois par mois ou quand l'utilisateur dit "harvest deep", "deep harvest", "analyse le vault".
+description: Scan complet du vault sur une longue période pour détecter les patterns émergents, les idées récurrentes inter-contextes et les connexions profondes. Utiliser une fois par mois ou quand Victor dit "harvest deep", "deep harvest", "analyse le vault".
+narrative_critical: true
 ---
+
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+>
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+>
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill : Vault Harvest Deep
 
@@ -9,7 +16,7 @@ Ce skill est la version mensuelle du harvest — il analyse l'intégralité du v
 
 ## Déclenchement
 
-- l'utilisateur dit "harvest deep", "deep harvest", "analyse le vault"
+- Victor dit "harvest deep", "deep harvest", "analyse le vault"
 - Fréquence recommandée : une fois par mois
 - Sans précision de période → analyser les 30 derniers jours de daily notes + tout le vault
 - **Durée :** quelques minutes à plusieurs heures selon le volume du vault
@@ -25,20 +32,13 @@ Ce skill est la version mensuelle du harvest — il analyse l'intégralité du v
 
 ---
 
-## Étape 0 — Vérification optionnelle du /map
+## Étape 0 — Proposition optionnelle du /map
 
-Avant de commencer, lire `99 - Claude Code/command-tracker.md` pour chercher la ligne `/map`.
+Proposer à Victor : *"Veux-tu lancer `/map` avant de commencer ? (recommandé — il contextualise les patterns topologiques du vault)"*
 
-| Cas | Action |
-|-----|--------|
-| `/map` daté < 20 jours | Continuer directement à l'Étape 1 |
-| `/map` absent ou > 20 jours | Proposer : *"Le `/map` est en retard — tu veux le lancer pour voir la topologie du vault avant le harvest deep ?"* Si l'utilisateur accepte, lancer `/map`, attendre le résultat, puis revenir à l'Étape 1. Sinon continuer. |
+Si Victor accepte → lancer `/map`, attendre le résultat, puis continuer à l'Étape 1. Sinon continuer directement.
 
 ---
-
-## Pré-requis — Charger les paramètres vault
-
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
 
 ## Étape 1 — Lire le contexte complet
 
@@ -48,13 +48,13 @@ Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `
 
 Lire dans cet ordre :
 1. `99 - Claude Code/treated-links.md` → liste des liens déjà traités (filtre duplicatas potentiels)
-2. `[PROJECTS_FOLDER]/INDEX.md` → projets actifs et kanbans (pour contextualiser les émergences)
-3. `[ME_FOLDER]/[NOM].md` → profil, centres d'intérêt (baseline pour détecter les drifts personality-related)
+2. `04 - Projects/INDEX.md` → projets actifs et kanbans (pour contextualiser les émergences)
+3. `01 - Me/Victor.md` → profil, centres d'intérêt (baseline pour détecter les drifts personality-related)
 
 ### Phase B — Contenu temporel (long mais séquentiel)
 
 Lire en ordre chronologique décroissant (le plus récent d'abord) :
-1. Les **30 derniers jours de daily notes** dans `[NOTES_FOLDER]/` (fichiers formatés selon `DATE_FORMAT`)
+1. Les **30 derniers jours de daily notes** dans `00 - Daily notes/` (fichiers YYYY-MM-DD.md)
    - Extraire : idées mentionnées 2+ fois, signaux d'alerte explicites, intentions sans suite, patterns d'énergie
 2. Les **30 derniers jours de sessions** dans `99 - Claude Code/Sessions/` (mêmes fichiers ou horodatés)
    - Extraire : drifts techniques non capturés dans daily notes, décisions recurentes, patterns de travail
@@ -64,11 +64,11 @@ Lire en ordre chronologique décroissant (le plus récent d'abord) :
 ### Phase C — Scan vault (structure breadth-first)
 
 Scanner les dossiers en cet ordre :
-1. `[PROJECTS_FOLDER]/` → état des projets, dette non actée, réalisations
-2. `[HOBBIES_FOLDER]/` → projets hobby actifs/stagnants, intentions non menées
-3. `[ME_FOLDER]/` → notes existantes, sujets traités, capitalisations récentes
-4. `[KNOWLEDGE_FOLDER]/` → concepts capitalisés, lacunes, liens manquants
-5. `[INBOX_FOLDER]/` → idées en attente, tickets sans suite
+1. `04 - Projects/` → état des projets, dette non actée, réalisations
+2. `02 - Hobbies/` → projets hobby actifs/stagnants, intentions non menées
+3. `01 - Me/` → notes existantes, sujets traités, capitalisations récentes
+4. `03 - Knowledge/` → concepts capitalisés, lacunes, liens manquants
+5. `09 - Inbox/` → idées en attente, tickets sans suite
 
 **Important :** Ne pas lire le contenu complet de chaque fichier — examiner rapidement par titre, date et métadonnées pour identifier rapidement les patterns sans saturer le contexte.
 
@@ -78,8 +78,8 @@ Scanner les dossiers en cet ordre :
 
 **Critères pour identifier un drift :**
 - Mentionné **2+ fois** dans les daily notes ou sessions sur la période
-- **Pas de note existante** (vérifier dans `[ME_FOLDER]/`, `[HOBBIES_FOLDER]/`, `[KNOWLEDGE_FOLDER]/`)
-- **Pas de ticket existant** dans les kanbans (`[PROJECTS_FOLDER]/`)
+- **Pas de note existante** (vérifier dans `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`)
+- **Pas de ticket existant** dans les kanbans (`04 - Projects/`)
 - Contextes **distincts** (pas la même journée, sur des sujets connexes mais non identiques)
 
 Exemple de drift : le thème guitare mentionné le 2026-03-10 ("j'ai envie de reprendre") et le 2026-03-25 ("trop cher ici") mais pas de note "Guitare" existante.
@@ -93,7 +93,7 @@ Exemple de drift : le thème guitare mentionné le 2026-03-10 ("j'ai envie de re
 ```
 
 Si des drifts sont détectés → les présenter dans la section `🌊 Drifts détectés` du récap.
-Pour le traitement complet, proposer de lancer `/drift` en suivi.
+Pour le traitement complet, proposer à Victor de lancer `/drift` en suivi.
 
 ### Patterns émergents — clusters qui forment quelque chose de plus grand
 
@@ -103,7 +103,7 @@ Pour le traitement complet, proposer de lancer `/drift` en suivi.
 - Les idées **s'enrichissent mutuellement** (ensemble elles font sens ; seules elles sont fragmentaires)
 - Pas encore de projet / essay / note synthèse existant qui les lie
 
-Exemple : notes "MonProjet", "DevOps learning", "Docker en prod" + mentions en daily (mars) = cluster "Infrastructure hobby project"
+Exemple : notes "HomeLabServeur", "DevOps learning", "Docker en prod" + mentions en daily (mars) = cluster "Infrastructure hobby project"
 
 **Présentation :**
 ```
@@ -115,7 +115,7 @@ Exemple : notes "MonProjet", "DevOps learning", "Docker en prod" + mentions en d
 ```
 
 Si des clusters sont détectés → les présenter dans la section `🌱 Patterns émergents` du récap.
-Pour la création complète (note projet ou essay), proposer de lancer `/emerge` en suivi.
+Pour la création complète (note projet ou essay), proposer à Victor de lancer `/emerge` en suivi.
 
 ## Étape 3 — Signaux d'alerte sur la période
 
@@ -144,17 +144,17 @@ Aucun signal / Signaux détectés et action recommandée :
 → [Proposer mise à jour de [[Signaux d'alerte]] ? / Aucun suivi nécessaire]
 ```
 
-## Étape 4 — Inbox review (optionnel si `[INBOX_FOLDER]/` existe)
+## Étape 4 — Inbox review (optionnel si `09 - Inbox/` existe)
 
-Si `[INBOX_FOLDER]/` existe et contient des notes : proposer une action à l'utilisateur pour chaque note.
+Si `09 - Inbox/` existe et contient des notes : proposer à Victor une action pour chaque note.
 
-**Laisser l'utilisateur choisir parmi :**
-1. **Ranger** → destination dans le vault (ex: `[ME_FOLDER]/`, `[HOBBIES_FOLDER]/`, `[KNOWLEDGE_FOLDER]/`)
+**Laisser Victor choisir parmi :**
+1. **Ranger** → destination dans le vault (ex: `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`)
 2. **Développer** → idée prometteuse, mérite 200+ mots et linking avant de ranger
 3. **Archiver** → date périmée, contexte passé, ou redondant avec une note existante
 4. **Garder** → toujours en cours de réflexion, repasser le mois prochain
 
-**Si `[INBOX_FOLDER]/` vide ou absent**, passer silencieusement à l'Étape 5.
+**Si `09 - Inbox/` vide ou absent**, passer silencieusement à l'Étape 5.
 
 ## Étape 5 — Validation et création
 
@@ -178,17 +178,17 @@ Présenter tout en une fois :
 Valide ce que tu veux traiter.
 ```
 
-**Attendre la validation de l'utilisateur pour chaque élément.** Une fois validés :
+**Attendre la validation de Victor pour chaque élément.** Une fois validés :
 - Je crée via MCP les notes Knowledge et tickets kanban approuvés
 - Respecter le naming du vault
 
-**Si l'utilisateur approuve 2+ notes Knowledge**, proposer : *"Tu veux que je cherche les notes existantes à lier avec les nouvelles ?"* Lancer `/link` en suivi si oui, sinon continuer.
+**Si Victor approuve 2+ notes Knowledge**, proposer : *"Tu veux que je cherche les notes existantes à lier avec les nouvelles ?"* Lancer `/link` en suivi si oui, sinon continuer.
 
-**Si l'utilisateur refuse tous les drifts/emerge**, passer directement à l'Étape 6 (tracker + session).
+**Si Victor refuse tous les drifts/emerge**, passer directement à l'Étape 6 (tracker + session).
 
 ## Étape 6 — Mettre à jour le tracker et la session
 
-Après completion du harvest deep (création + validation de l'utilisateur incluse) :
+Après completion du harvest deep (création + validation de Victor incluse) :
 
 1. Mettre à jour `99 - Claude Code/command-tracker.md` :
    - Ligne `/harvestdeep` (ou `/harvest-deep`) → remplacer la date par la date du jour au format `YYYY-MM-DD`
@@ -236,5 +236,5 @@ Après completion du harvest deep (création + validation de l'utilisateur inclu
 
 ### Dossiers inaccessibles ou vides
 
-Si un dossier n'existe pas ou est vide (ex: `[HOBBIES_FOLDER]/` vide), ignorer silencieusement et continuer au suivant.
+Si un dossier n'existe pas ou est vide (ex: `02 - Hobbies/` vide), ignorer silencieusement et continuer au suivant.
 

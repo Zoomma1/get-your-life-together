@@ -1,19 +1,20 @@
 ---
 name: compound
-description: À lancer 2-3 fois par an sur une question stratégique — carrière, architecture personnelle, architecture personnelle. Répond à la même question à trois moments du vault pour montrer comment la qualité de la réponse évolue quand le contexte s'accumule. Différent de /trace (comprendre comment une idée a évolué) : /compound mesure si le vault rend les réponses vraiment meilleures.
+description: À lancer 2-3 fois par an sur une question stratégique — carrière, architecture personnelle, rapport au TDAH. Répond à la même question à trois moments du vault pour montrer comment la qualité de la réponse évolue quand le contexte s'accumule. Différent de /trace (comprendre comment une idée a évolué) : /compound mesure si le vault rend les réponses vraiment meilleures.
+narrative_critical: true
 ---
+
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+>
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+>
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill : /compound
 
 Répond à la même question trois fois — à trois moments distincts du vault — avec uniquement le contexte disponible à chaque époque. La contrainte de longueur égale entre les trois réponses est le cœur du skill : elle isole la qualité du volume, et force à voir si le vault améliore vraiment les réponses ou se contente de les allonger.
 
 **Différence avec `/trace`** : `/trace` suit l'évolution d'une idée dans le vault (comprendre). `/compound` répond à une question à trois moments différents (mesurer si le vault pense mieux).
-
-## Pré-requis — Charger les paramètres vault
-
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
-
----
 
 **Flow complet :** Valider Q (Étape 0) → Analyser vault (Étape 1) → Choisir 3 périodes (Étape 2) → Inventaire contexte (Étape 3) → Prédire (Étape 4) → Générer 3 réponses (Étape 5) → Vérifier anachronismes (Étape 6) → Synthèse + delta (Étape 7) → Sauver (Étape 8).
 
@@ -36,16 +37,16 @@ Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `
 
 ## Étape 0 — Valider la question et chercher un run précédent
 
-**Valider d'abord :** Est-ce que cette question dépend du contexte personnel de l'utilisateur ?
+**Valider d'abord :** Est-ce que cette question dépend du contexte personnel de Victor ?
 
 - **Oui** → continuer
 - **Non** → le dire clairement et proposer une reformulation si possible
 
-**Vérifier la profondeur du vault sur ce sujet :** Glob `[KNOWLEDGE_FOLDER]/` et daily notes (`[NOTES_FOLDER]/`). Est-ce que le vault contient au moins **6 mois d'historique substantiel** sur ce sujet ? (Au moins 3+ notes de connaissance OU 20+ daily notes mentionnant le sujet, distribuées sur la période.)
+**Vérifier la profondeur du vault sur ce sujet :** Glob `03 - Knowledge/` et daily notes (`00 - Daily notes/`). Est-ce que le vault contient au moins **6 mois d'historique substantiel** sur ce sujet ? (Au moins 3+ notes de connaissance OU 20+ daily notes mentionnant le sujet, distribuées sur la période.)
 - Si **oui** → continuer
 - Si **non** → signaler clairement que le vault est trop jeune pour ce sujet et proposer un null result plutôt que de forcer trois périodes
 
-**Chercher un run précédent :** Glob `[KNOWLEDGE_FOLDER]/Compound/` pour lister les notes existantes (le dossier peut ne pas exister si c'est le premier run — c'est normal). Chercher une note dont le nom contient les termes clés de la question.
+**Chercher un run précédent :** Glob `03 - Knowledge/Compound/` pour lister les notes existantes (le dossier peut ne pas exister si c'est le premier run — c'est normal). Chercher une note dont le nom contient les termes clés de la question.
 - Si trouvée → lire la note : extraire la date du run, les 3 réponses (surtout la Période C — "Maintenant"), et la synthèse finale
 - Si absente (dossier vide ou inexistant) → continuer sans comparaison (le delta sera omis à l'Étape 7)
 
@@ -72,7 +73,7 @@ Choisir des points d'inflexion réels — **pas des intervalles fixes**. Critèr
 - **Période B (Milieu)** : Inflexion notable — à partir de là, la densité a augmenté (passage épars → régulier, ou régulier → dense). Les réponses auraient été visiblement différentes.
 - **Période C (Maintenant)** : Vault complet — aujourd'hui, avec tout l'historique accumulé.
 
-**Vault jeune ?** Si tu ne peux identifier qu'une ou deux périodes distinctes (moins de 6 mois d'historique pertinent), le signaler à l'utilisateur — null result est valide, ne pas forcer trois périodes.
+**Vault jeune ?** Si tu ne peux identifier qu'une ou deux périodes distinctes (moins de 6 mois d'historique pertinent), le signaler à Victor — null result est valide, ne pas forcer trois périodes.
 
 Si le vault n'a pas assez de profondeur temporelle sur ce sujet → le dire, ne pas fabriquer.
 
@@ -82,15 +83,15 @@ Si le vault n'a pas assez de profondeur temporelle sur ce sujet → le dire, ne 
 
 Pour chaque période, **lister les fichiers concrets** disponibles à ce moment. Stratégie de sélection :
 
-1. **Identifier tous les fichiers pertinents** : glob `[KNOWLEDGE_FOLDER]/*`, daily notes, `[PROJECTS_FOLDER]/[Projet]/ADR/`, `99 - Claude Code/` si créés avant la période.
+1. **Identifier tous les fichiers pertinents** : glob `03 - Knowledge/*`, daily notes, `Projects/[Projet]/ADR/`, `99 - Claude Code/` si créés avant la période.
 2. **Filtrer par date** : éliminer tout ce qui a été créé après la période.
 3. **Sélectionner 3-5 des plus pertinents** en priorité : (a) notes dédiées au sujet, (b) ADRs qui révèlent une position, (c) daily notes qui montrent la densité de préoccupation à cette époque. Exclure les bookmarks et notes < 100 mots.
 4. **Lister le résultat** : format 3-5 bullet points avec chemin exact.
 
 **Exemple format :**
-- `[KNOWLEDGE_FOLDER]/How I think about X — 2025-11-20.md` (décision clé)
-- `[NOTES_FOLDER]/2025-11-18.md` (3 mentions de sujet)
-- `[PROJECTS_FOLDER]/Rust/ADR/001 — Stack choices.md` (contexte d'apprentissage)
+- `03 - Knowledge/How I think about X — 2025-11-20.md` (décision clé)
+- `00 - Daily notes/2025-11-18.md` (3 mentions de sujet)
+- `Projects/Rust/ADR/001 — Stack choices.md` (contexte d'apprentissage)
 
 ---
 
@@ -103,7 +104,7 @@ Avant d'écrire les trois réponses, formuler une prédiction structurée : comm
 - **Dimension 2** : idem (au moins 2 dimensions, max 3)
 - **Incertitude** : Une zone où tu ne sais pas prédire — pourquoi c'est flou ?
 
-**Avant de continuer à Étape 5 :** Valide ta prédiction avec l'utilisateur — vérifier qu'elle a du sens au vu des inventaires Étape 3. Adapter si besoin. Continuer seulement quand valider (ou dit "c'est bon, génère").
+**Avant de continuer à Étape 5 :** Valide ta prédiction avec Victor — vérifier qu'elle a du sens au vu des inventaires Étape 3. Adapter si besoin. Continuer seulement quand Victor valide (ou dit "c'est bon, génère").
 
 ---
 
@@ -115,7 +116,7 @@ Avant d'écrire les trois réponses, formuler une prédiction structurée : comm
 
 2. **Longueur égale ±20%** — c'est le cœur du dispositif : elle isole la qualité du volume (pas du baratin). **Mesure stricte** : `wc -w` (word count brut, excluant titres/métadonnée). Moyenne des trois = M. Accepter A/B/C si chacun ∈ [0.8×M, 1.2×M]. Recalculer M si Étape 6 nécessite une réécriture.
 
-3. **Même voix** — première personne, incarnant l'utilisateur à chaque période (pas narrateur externe). La voix peut mûrir A→C (naturel), mais reste toujours celle de l'utilisateur. Pas de condescendance en A, pas d'autosatisfaction en C.
+3. **Même voix** — première personne, incarnant Victor à chaque période (pas narrateur externe). La voix peut mûrir A→C (naturel), mais reste toujours celle de Victor. Pas de condescendance en A, pas d'autosatisfaction en C.
 
 ### Format de présentation
 
@@ -173,7 +174,7 @@ Si un run précédent a été trouvé à l'Étape 0, ajouter cette section :
 
 **Ce qui s'est confirmé** : positions stables entre les deux runs — signe de pensée ancrée.
 
-**Shifts observables** : changements dans le mode de travail, les priorités ou le contexte de l'utilisateur entre les deux runs (déduit du contenu des réponses, pas inventé).
+**Shifts observables** : changements dans le mode de travail, les priorités ou le contexte de Victor entre les deux runs (déduit du contenu des réponses, pas inventé).
 
 **Qualité du compounding** : la réponse est-elle meilleure, plus nuancée, plus riche ? Ou stagnante ? Être honnête — la stagnation est une information valide.
 ```
@@ -185,9 +186,9 @@ Si aucun run précédent → omettre cette section entièrement.
 
 ## Étape 8 — Sauver le résultat
 
-Après la synthèse, créer `[KNOWLEDGE_FOLDER]/Compound/YYYY-MM-DD — [question en 3-5 mots].md` avec le contenu complet de la session (question, 3 réponses, vérification, synthèse, delta si applicable). Format de date : `YYYY-MM-DD` (e.g., `2026-04-01`). Toujours créer cette note — elle permet de comparer les runs suivants sur la même question.
+Après la synthèse, créer `03 - Knowledge/Compound/YYYY-MM-DD — [question en 3-5 mots].md` avec le contenu complet de la session (question, 3 réponses, vérification, synthèse, delta si applicable). Format de date : `YYYY-MM-DD` (e.g., `2026-04-01`). Toujours créer cette note — elle permet de comparer les runs suivants sur la même question.
 
-Si une note `/compound` sur la même question existe déjà (même sujet, même question) → l'indiquer à l'utilisateur et lui demander s'il veut créer une nouvelle note ou enrichir l'existante. Un même sujet peut avoir plusieurs runs (ex: `[KNOWLEDGE_FOLDER]/Compound/2026-02-15 — how i think about refactoring.md` et `[KNOWLEDGE_FOLDER]/Compound/2026-04-01 — how i think about refactoring.md` = deux snapshots différents).
+Si une note `/compound` sur la même question existe déjà (même sujet, même question) → l'indiquer à Victor et lui demander s'il veut créer une nouvelle note ou enrichir l'existante. Un même sujet peut avoir plusieurs runs (ex: `2026-02-15 — how i think about refactoring.md` et `2026-04-01 — how i think about refactoring.md` = deux snapshots différents).
 
 ---
 
@@ -204,7 +205,7 @@ Si une note `/compound` sur la même question existe déjà (même sujet, même 
 6. **Cheerleading aveugle** — célébrer chaque progression. Un null result est valide et informatif.
 
 ### À éviter
-7. **Périodes trop proches** — si A et B ne sont séparées que de quelques semaines, le delta sera bruyant. Signaler à l'utilisateur si le vault est trop jeune.
+7. **Périodes trop proches** — si A et B ne sont séparées que de quelques semaines, le delta sera bruyant. Signaler à Victor si le vault est trop jeune.
 
 ---
 
@@ -213,5 +214,5 @@ Si une note `/compound` sur la même question existe déjà (même sujet, même 
 - **Valider la question d'abord** — si elle ne dépend pas du contexte personnel, le dire clairement
 - **Longueur égale ±20%** — non-négociable, c'est le cœur du dispositif
 - **Null result = résultat valide** — ne jamais forcer une narrative de progression
-- **Prédire avant de générer** — Étape 4 + validation de l'utilisateur avant Étape 5
-- **Usage introspectif** — ce skill est pour l'utilisateur, pas une démonstration externe
+- **Prédire avant de générer** — Étape 4 + validation Victor avant Étape 5
+- **Usage introspectif** — ce skill est pour Victor, pas une démonstration externe

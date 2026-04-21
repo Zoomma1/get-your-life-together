@@ -32,13 +32,15 @@ No coding required.
 
 ### 3. Clone the vault
 
-Simply run this command in your terminal to get the vault files, run it from the directory where you want to create the vault, if you are lost navigating within a terminal check this: [How to navigate the terminal](https://medium.com/@twkriege/navigating-your-computer-using-the-terminal-the-first-intimidating-lesson-in-learning-to-code-ed81601f5389). You can name the folder whatever you want (here, `my-vault`):
+Run this command in your terminal from the directory where you want to create the vault. You can name the folder whatever you want (here, `my-vault`):
 
 ```bash
 git clone https://github.com/Zoomma1/get-your-life-together my-vault
 ```
 
 Open the `my-vault/` folder in Obsidian: **File > Open Vault > select the folder**.
+
+New to the terminal? [How to navigate the terminal](https://medium.com/@twkriege/navigating-your-computer-using-the-terminal-the-first-intimidating-lesson-in-learning-to-code-ed81601f5389)
 
 ### 4. Run `/setup`
 
@@ -68,13 +70,16 @@ Skills are commands you invoke from Claude Code. The ones you'll use first:
 |-------|------|
 | `/today` | Every morning. Day plan adapted to your energy |
 | `/my-world` | When you've lost track. Big picture, no planning |
+| `/dump` | When something is spinning in your head. Brain dump → questions → note |
 | `/closeday` | Every evening. Recap and carry-over |
 | `/create-ticket` | Capture an idea or task without breaking your focus |
 | `/recall` | Find something in the vault without digging manually |
 | `/workon` | Load a project's context and get to work |
 | `/stranger` | See yourself from the outside. Based only on what you've written |
 
-There are about forty more, covering vault analysis, introspection, knowledge management, project tracking.
+There are about 45 skills in total, covering daily planning, vault analysis, introspection, knowledge management, project tracking, and writing.
+
+A **daily note template** is included in `Ressources/Templates/` — compatible with the Obsidian [Templater](https://github.com/SilentVoid13/Templater) plugin for automatic date formatting.
 
 ---
 
@@ -100,14 +105,13 @@ The idea is simple: don't carry things in your head. Capture them, let Claude ho
 
 ```
 vault/
-├── [NOTES_FOLDER]/          ← daily journal (configurable via /setup)
-├── [ME_FOLDER]/             ← personal notes, profile
+├── [DAILY_NOTES_FOLDER]/    ← daily journal (configurable via /setup)
+├── [PERSONAL_FOLDER]/       ← personal notes, profile
 ├── [HOBBIES_FOLDER]/        ← hobby projects
 ├── [KNOWLEDGE_FOLDER]/      ← capitalized knowledge base
 ├── [PROJECTS_FOLDER]/       ← active projects (kanban, tickets, README)
-├── 05 - Studies/            ← (optional) studies
-├── 06 - Work/               ← (optional) work
 ├── [INBOX_FOLDER]/          ← temporary capture
+├── Ressources/Templates/    ← daily note template + project templates
 └── 99 - Claude Code/
     ├── Skills/
     ├── config/
@@ -125,8 +129,9 @@ vault/
 
 | Skill | Description |
 |-------|-------------|
-| `/today` | Loads the day's context — daily note, emails, active projects, overdue commands |
-| `/my-world` | Loads the global context — last 5 daily notes, recent sessions, no planning |
+| `/today` | Day plan adapted to energy, schedule, and active projects |
+| `/my-world` | Global context — last 5 daily notes + recent sessions, no planning |
+| `/dump` | Mental dump → follow-up questions → timed note in daily |
 | `/closeday` | Closes the day — recap, task transfer, kanban update |
 | `/closeyesterday` | Closes yesterday — when `/closeday` wasn't run the night before |
 
@@ -136,29 +141,43 @@ vault/
 |-------|-------------|
 | `/closeweek` | Weekly review from daily notes and sessions |
 | `/closemonth` | Monthly review — projects, learnings, drift |
+| `/pulse` | Weekly tech watch — GitHub trending + HN → gap analysis → tickets |
 
 #### Vault analysis
 
 | Skill | Description |
 |-------|-------------|
 | `/map` | Topological map — clusters, dead zones, critical bridges |
-| `/link` | Proposes `[[]]` links between notes (pair-programming) |
+| `/link` | Proposes `[[]]` links between notes |
 | `/emerge` | Detects idea clusters that form something new |
 | `/drift` | Recurring uncapitalized ideas from the last 15 days |
 | `/harvestdeep` | Full vault analysis over 30 days — patterns, signals, inbox |
 | `/harvest` | Quick capitalization of the last 7 days |
+| `/archivedone` | Archives all Done columns in active kanbans |
+| `/inbox-sort` | Sorts the inbox — detects orphans, moves files, patches wikilinks |
+| `/friction-scan` | Detects friction patterns in sessions — repeated corrections, violated rules |
 
 #### Knowledge
 
 | Skill | Description |
 |-------|-------------|
-| `/process` | Turns a resource (link, PDF, video) into a structured Knowledge note |
-| `/recall` | Finds the 1-3 most relevant notes to the current context |
+| `/process` | Turns a URL into a structured Knowledge note |
+| `/recall` | Finds the 1–3 most relevant notes to the current context |
 | `/ghost` | Answers a question in your voice, drawing from the vault |
 | `/trace` | Traces the evolution of an idea over time |
 | `/compound` | Answers a strategic question at three moments in the vault |
-| `/connect` | Finds conceptual bridges between two domains of the vault |
+| `/connect` | Finds conceptual bridges between two domains |
 | `/digest` | Aggregates and summarizes external sources (RSS, web) |
+| `/research-scout` | Targeted research for active projects — cross-references vault and web |
+
+#### Writing & introspection
+
+| Skill | Description |
+|-------|-------------|
+| `/essay` | Guided essay writing — plan + Q&A + final form |
+| `/essay-check` | Weekly synthesis of finished essays — patterns, open question |
+| `/stranger` | Portrait by an outside observer — based only on the vault |
+| `/ideas` | Extracts actionable ideas from vault patterns |
 
 #### Projects
 
@@ -168,13 +187,16 @@ vault/
 | `/create-ticket` | Creates a ticket (note file + kanban insertion) |
 | `/specs` | Generates specs for a ticket |
 | `/refine` | Challenges a ticket before implementation |
+| `/define-done` | Generates a done-criteria checklist before starting a milestone |
 
-#### Introspection
+#### Dev tools *(optional — for technical users)*
 
 | Skill | Description |
 |-------|-------------|
-| `/stranger` | Portrait by an outside observer — based only on the vault |
-| `/ideas` | Extracts actionable ideas from vault patterns (30 days) |
+| `/graph` | Generates a knowledge graph for a dev project |
+| `/explore-codebase` | Produces a structured architecture report for a codebase |
+| `/github` | GitHub interface via `gh` CLI — PRs, issues, CI status |
+| `/new-project-claude-md` | Generates CLAUDE.md + README for a new dev project |
 
 #### Meta
 
@@ -184,12 +206,14 @@ vault/
 | `/recapsession` | Writes the recap of the current Claude Code session |
 | `/resumelastsession` | Reloads the context of the last session |
 | `/evaluateskills` | Evaluates skill quality — detects ambiguities and gaps |
+| `/lean` | Toggles compact response mode for long sessions |
 
 ### Typical workflow
 
 ```
 Morning       → /today         (day context)
 Throughout    → /workon        (focus on a topic)
+              → /dump          (brain dump when overwhelmed)
               → /recall        (search the vault)
               → /create-ticket (capture an idea)
 Evening       → /closeday      (close the day)
@@ -197,7 +221,8 @@ Evening       → /closeday      (close the day)
 Week
   Friday      → /closeweek
   Sunday      → /drift         (recurring ideas)
-              → /vault-link    (link orphans)
+              → /link          (link orphans)
+              → /pulse         (tech watch)
 
 Month
   End of month → /map          (structural state)
@@ -220,9 +245,10 @@ hobbies_folder: 02 - Hobbies
 knowledge_folder: 03 - Knowledge
 projects_folder: 04 - Projects
 inbox_folder: 09 - Inbox
+claude_code_folder: 99 - Claude Code
 ```
 
-All skills read this file automatically.
+All skills read this file automatically at session start.
 
 #### Add sources for /digest
 
@@ -240,7 +266,13 @@ Edit `99 - Claude Code/config/digest-sources.md` — add RSS or web URLs to aggr
     ├── claude-code/
     │   └── README.md     ← context for Claude
     ├── Kanban.md         ← source of truth for tickets
-    └── Todos/            ← individual tickets
+    └── Tickets/          ← individual ticket files
 ```
 
 Then add the project to `[PROJECTS_FOLDER]/INDEX.md` so `/today`, `/workon` and `/create-ticket` detect it automatically.
+
+---
+
+## License
+
+MIT + Commons Clause — free to fork and use, commercial use requires permission. See [LICENSE](LICENSE).

@@ -1,6 +1,6 @@
 ---
 name: evaluateskills
-description: Maintenance mensuelle de tous les skills — auto-évaluation, sync avec le skill-creator Anthropic, review qualitative et application des fixes. Déclencher quand l'utilisateur dit "évalue les skills", "maintenance skills", "check les skills", "les skills sont à jour ?", ou en fin de session création de skill.
+description: Maintenance mensuelle de tous les skills — auto-évaluation, sync avec le skill-creator Anthropic, review qualitative et application des fixes. Déclencher quand Victor dit "évalue les skills", "maintenance skills", "check les skills", "les skills sont à jour ?", ou en fin de session création de skill.
 ---
 
 # Skill : Evaluate Skills
@@ -11,7 +11,7 @@ Chaque skill est évalué, muté si nécessaire, et la boucle tourne jusqu'à co
 
 ## Déclenchement
 
-- l'utilisateur dit "évalue les skills", "maintenance skills", "/evaluateskills"
+- Victor dit "évalue les skills", "maintenance skills", "/evaluateskills"
 - Fréquence recommandée : une fois par mois
 - Optionnel : cibler un sous-ensemble ("évalue les dev skills", "évalue uniquement workon")
 
@@ -42,13 +42,13 @@ Chercher des principes ou règles qui ne sont pas encore reflétés dans l'Étap
 - Nouveaux patterns d'évaluation ou catégories de problèmes
 - Changements dans les recommandations de structure
 
-Identifier tout élément nouveau découvert. Présenter à l'utilisateur le diff proposé pour l'Étape 2. Attendre la validation explicite de l'utilisateur avant de continuer.
+Identifier tout élément nouveau découvert. Présenter à Victor le diff proposé pour l'Étape 2. Attendre la validation explicite de Victor avant de continuer.
 
 ### Auto-évaluation
 
-Lire ce fichier avec les mêmes principes de l'Étape 2. Identifier tous les problèmes possibles (wording, structure, edge cases) selon les 6 critères.
+Lire ce fichier avec les mêmes principes de l'Étape 2. Identifier tous les problèmes possibles (wording, structure, edge cases) selon les 7 critères.
 
-Présenter les problèmes trouvés à l'utilisateur. Appliquer les fixes validés. Une fois complété, continuer à l'Étape 1.
+Présenter les problèmes trouvés à Victor. Appliquer les fixes validés. Une fois complété, continuer à l'Étape 1.
 
 ---
 
@@ -57,10 +57,10 @@ Présenter les problèmes trouvés à l'utilisateur. Appliquer les fixes validé
 1. Lire `99 - Claude Code/Skills/INDEX.md` — liste de tous les skills actifs
 2. Lire `99 - Claude Code/skills-autoresearch-log.md` si existant — pour connaître l'historique des mutations par skill
 3. Construire la liste des skills à évaluer :
-   - Si l'utilisateur précise un périmètre → se limiter à ce périmètre
+   - Si Victor précise un périmètre → se limiter à ce périmètre
    - Sans précision → tous les skills listés dans INDEX.md
 
-Présenter la liste et confirmer avec l'utilisateur avant de commencer.
+Présenter la liste et confirmer avec Victor avant de commencer.
 
 ---
 
@@ -68,7 +68,7 @@ Présenter la liste et confirmer avec l'utilisateur avant de commencer.
 
 Pour chaque skill, appliquer ces principes comme **lentilles d'analyse** — comprendre pourquoi un problème existe plutôt que cocher mécaniquement des cases.
 
-### Scoring — 6 critères (/6)
+### Scoring — 7 critères (/7)
 
 Chaque critère vaut 1 point. Le score est calculé par l'agent à chaque cycle.
 
@@ -79,7 +79,10 @@ Chaque critère vaut 1 point. Le score est calculé par l'agent à chaque cycle.
 | 3 | **Wording** | Les instructions sont-elles à l'impératif, sans ambiguïté ni conditionnel flou ? |
 | 4 | **Edge cases** | Les scénarios limites réalistes sont-ils couverts (fichier absent, format inattendu, liste vide) ? |
 | 5 | **Structure** | La logique est-elle à un seul endroit ? Pas de fragmentation entre étapes ? |
-| 6 | **Pair-programming** | Le skill n'implique-t-il aucune action autonome sans validation de l'utilisateur ? |
+| 6 | **Pair-programming** | Le skill n'implique-t-il aucune action autonome sans validation de Victor ? |
+| 7 | **Qualité de sortie** | Le skill produit-il une sortie conforme à son intention déclarée ? Pour les skills marqués `narrative_critical: true`, la richesse (regroupement, recul multi-jours, questions ouvertes) prime sur la concision — une version plus courte qui l'élimine est une régression, pas une amélioration. |
+
+> **Note pour les skills `narrative_critical: true`** : le critère 7 est prioritaire. Si une mutation améliore les critères 2 (Lean) ou 5 (Structure) mais dégrade le critère 7, c'est une régression nette — ne pas l'appliquer.
 
 ### Catégories de problèmes
 
@@ -114,7 +117,7 @@ Issues issues du dry-run (autoresearch) :
 
 **Qualité de la description** — La `description` dans le frontmatter est le mécanisme primaire de déclenchement automatique. Une description trop vague = skill jamais déclenché. Vérifier qu'elle inclut plusieurs formulations naturelles et des situations concrètes.
 
-Note : Claude a une tendance à l'undertriggering — ne pas utiliser un skill même quand il serait utile. Une bonne description est légèrement "pushy" : elle liste des contextes précis et des formulations que l'utilisateur utiliserait vraiment. Elle cible des tâches complexes/multi-étapes — Claude ne déclenche pas les skills pour des requêtes simples qu'il peut traiter directement.
+Note : Claude a une tendance à l'undertriggering — ne pas utiliser un skill même quand il serait utile. Une bonne description est légèrement "pushy" : elle liste des contextes précis et des formulations que Victor utiliserait vraiment. Elle cible des tâches complexes/multi-étapes — Claude ne déclenche pas les skills pour des requêtes simples qu'il peut traiter directement.
 
 **Frontmatter YAML valide** — Pas de `##` devant les clés, pas de clé dupliquée.
 
@@ -124,7 +127,7 @@ Note : Claude a une tendance à l'undertriggering — ne pas utiliser un skill m
 
 **Cohérence structurelle** — La logique d'une section doit être à un seul endroit.
 
-**Compatibilité pair-programming** — Aucun skill ne doit impliquer que Claude prend l'initiative sans validation de l'utilisateur.
+**Compatibilité pair-programming** — Aucun skill ne doit impliquer que Claude prend l'initiative sans validation de Victor.
 
 **Numérotation et références** — Pas de trous dans les numéros, pas de `2b` dans une séquence numérotée.
 
@@ -160,9 +163,13 @@ Chemin du fichier : [chemin absolu complet]
 
 Commence par lire le fichier à ce chemin.
 
+Si le frontmatter contient `narrative_critical: true` : mode protégé activé.
+- Toute réduction visant les instructions narratives prescriptives (regroupement, recul multi-jours, questions ouvertes, moments forts) est une régression sur le critère 7, même si elle améliore le critère 2 (Lean). Le skill a besoin de ces instructions pour produire sa sortie caractéristique — la "théorie de l'esprit" ne compense pas leur absence.
+- Le critère 7 "Qualité de sortie" est prioritaire sur les critères 2 et 5 pour ce skill.
+
 SCÉNARIO D'INVOCATION À SIMULER :
 Génère toi-même un scénario réaliste basé sur le nom et la description du skill.
-Exemple : si le skill s'appelle "workon", simule l'utilisateur qui dit "workon MonProjet".
+Exemple : si le skill s'appelle "workon", simule Victor qui dit "workon FSTG".
 
 CONTRAINTE ABSOLUE : Ne jamais modifier les chemins de fichiers, les noms d'outils,
 les commandes shell, ou les noms de variables dans le skill. Modifier uniquement
@@ -171,20 +178,21 @@ la structure, la clarté et la formulation des instructions.
 CYCLE D'AMÉLIORATION — tourner jusqu'à convergence (max 5 itérations) :
 
 Itération N :
-1. Score initial — évaluer le skill sur les 6 critères (/6) + identifier tous les problèmes ([BUG], [LEAN], [WORDING], [LOGIC], [EDGE], [DRIFT], [SILENT_FAIL], [ASSUMPTION])
-2. Si score == 6 ou aucun problème → STABLE, arrêter
+1. Score initial — évaluer le skill sur les 7 critères (/7) + identifier tous les problèmes ([BUG], [LEAN], [WORDING], [LOGIC], [EDGE], [DRIFT], [SILENT_FAIL], [ASSUMPTION])
+2. Si score == 7 ou aucun problème → STABLE, arrêter
 3. Générer une version mutée : réécrire le skill en ciblant les problèmes trouvés — garder le frontmatter intact
-4. Scorer la version mutée (/6)
+4. Scorer la version mutée (/7)
 5. Si score muté > score initial → écrire la mutation dans le fichier (overwrite), logger "improved run N: X→Y"
 6. Si score muté <= score initial → STABLE, logger "converged run N: score X unchanged", garder l'original
 7. Continuer à l'itération N+1
 
 ÉCRITURE DANS LE LOG :
-Appender à la fin de `99 - Claude Code/skills-autoresearch-log.md` (ne jamais écraser).
+Appender à la fin de `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/skills-autoresearch-log.md` (ne jamais écraser).
 Une entrée par skill — score initial/final, itérations, status (improved/stable/converged/max_reached), issues, mutations.
 
 FORMAT DE RETOUR vers le contexte principal (une seule ligne) :
-`[nom]: X/6 → Y/6 improved` ou `[nom]: X/6 stable`
+`[nom]: X/7 → Y/7 improved [NC]` ou `[nom]: X/7 stable [NC]`  ← si narrative_critical: true détecté
+`[nom]: X/7 → Y/7 improved` ou `[nom]: X/7 stable`            ← sinon
 ```
 
 ---
@@ -194,9 +202,9 @@ FORMAT DE RETOUR vers le contexte principal (une seule ligne) :
 Après chaque batch, afficher les lignes de retour des agents (une ligne par skill) :
 
 ```
-workon: 5/6 → 6/6 improved
-today: 2/6 stable
-recapsession: 3/6 → 5/6 improved
+workon: 5/7 → 6/7 improved
+today: 2/7 stable
+recapsession: 3/7 → 5/7 improved [NC]
 ...
 ```
 
@@ -208,8 +216,8 @@ Le détail complet de chaque mutation est dans le log — ne pas le relire ici.
 
 ## Étape 3.6 — Dry-run de validation (Sonnet)
 
-Une fois tous les batches terminés, identifier les skills mutés avec un **delta ≥ 2 points**.
-Les skills à delta < 2 (tweaks mineurs) sont considérés bas risque — pas de dry-run.
+Une fois tous les batches terminés, identifier les skills mutés avec un **delta ≥ 2 points OU dont le retour contient `[NC]`** (skills `narrative_critical: true` — dry-run obligatoire quel que soit le delta, car même un gain d'1 point peut masquer une régression narrative).
+Les skills à delta < 2 sans `[NC]` (tweaks mineurs sur skills non-narratifs) sont considérés bas risque — pas de dry-run.
 
 Référencer l'archive créée en Étape 0 pour chaque restauration potentielle. **Archive path : `Skills/Archives/YYYY-MM-DD_HH-MM/`** — remplacer par la date/heure du run courant.
 
@@ -228,17 +236,17 @@ VALIDATION :
    - Aucun chemin de fichier modifié
    - Aucune commande shell altérée
    - Le comportement observable reste cohérent avec la description du skill
-3. Scorer le skill muté sur les 6 critères
+3. Scorer le skill muté sur les 7 critères
 4. Verdict : VALID (score ≥ score Haiku) | REVERT (régression détectée ou score < score Haiku)
 
-Retourner une ligne : [nom]: VALID X/6 | REVERT — [raison courte]
+Retourner une ligne : [nom]: VALID X/7 | REVERT — [raison courte]
 ```
 
-Présenter les verdicts à l'utilisateur :
+Présenter les verdicts à Victor :
 - **VALID** → mutation acceptée, fichier reste modifié
 - **REVERT** → restaurer immédiatement depuis l'archive avec `cp -r Skills/Archives/YYYY-MM-DD_HH-MM/[skill].md Skills/[skill].md`
 
-Exécuter chaque restauration validée. Signaler l'état final à l'utilisateur avant Étape 4.
+Exécuter chaque restauration validée. Signaler l'état final à Victor avant Étape 4.
 
 ---
 
@@ -253,12 +261,31 @@ Une fois tous les batches et dry-runs terminés, lire `skills-autoresearch-log.m
 
 ## Étape 5 — Review finale des mutations
 
-Présenter à l'utilisateur :
+Présenter à Victor :
 - Le tableau récapitulatif final (tous batches confondus)
 - Pour chaque skill muté validé : le diff des changements appliqués (avant/après)
 - Les patterns récurrents identifiés (Étape 4)
 
-Attendre la validation de l'utilisateur. Si un skill muté doit être reverté → restaurer depuis `Skills/Archives/YYYY-MM-DD_HH-MM/`.
+Attendre la validation de Victor. Si un skill muté doit être reverté → restaurer depuis `Skills/Archives/YYYY-MM-DD_HH-MM/`.
+
+Une fois les revert éventuels appliqués, invoquer `/evaluateskills-postmortem` avec :
+- `ARCHIVE_PATH` = `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Skills/Archives/YYYY-MM-DD_HH-MM/` (chemin du backup Étape 0)
+- `MUTATED_SKILLS` = liste des skills mutés validés (après revert éventuels)
+
+Le postmortem est silencieux si aucune régression n'est détectée. S'il alerte, attendre la décision de Victor avant de passer à l'Étape 6.
+
+---
+
+## Étape 5.5 — Sync stubs
+
+Exécuter le script de sync pour créer les stubs manquants :
+
+```powershell
+& "$env:USERPROFILE\.claude\sync-skills.ps1"
+```
+
+- Si des stubs ont été créés : les mentionner dans le résumé final
+- Si tout est à jour : continuer sans commentaire
 
 ---
 
@@ -273,11 +300,11 @@ Attendre la validation de l'utilisateur. Si un skill muté doit être reverté �
 
 | Skill | Score initial | Score final | Itérations | Statut |
 |-------|--------------|-------------|------------|--------|
-| [nom] | X/6 | Y/6 | N | improved / stable / converged / max_reached |
+| [nom] | X/7 | Y/7 | N | improved / stable / converged / max_reached |
 
 ### Changements appliqués
 - **[skill]** run 1: [WORDING] description rewritten → score 3→5
-- **[skill]** run 2: converged at 5/6
+- **[skill]** run 2: converged at 5/7
 
 ### Patterns récurrents
 [Types de problèmes qui reviennent sur plusieurs skills — signal d'amélioration du processus de création]

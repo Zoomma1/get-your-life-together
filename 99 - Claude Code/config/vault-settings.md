@@ -1,6 +1,6 @@
 # Vault Settings
 
-Généré par `/setup`. Lu automatiquement par tous les skills.
+Généré par `/setup`. Lu automatiquement par les skills qui accèdent aux daily notes.
 
 ---
 
@@ -11,3 +11,4 @@ hobbies_folder: 02 - Hobbies
 knowledge_folder: 03 - Knowledge
 projects_folder: 04 - Projects
 inbox_folder: 09 - Inbox
+claude_code_folder: 99 - Claude Code
