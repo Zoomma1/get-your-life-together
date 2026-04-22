@@ -1,122 +1,122 @@
 ---
 name: setup
-description: Configure un vault Claude Code from scratch — génère le profil personnel, le CLAUDE.md, installe les hooks et crée la structure 99 - Claude Code/.
+description: Configure a Claude Code vault from scratch — generates a personal profile, CLAUDE.md, installs hooks and creates the 99 - Claude Code/ structure.
 ---
 
-**Configure un vault Claude Code from scratch** — génère le profil personnel, le CLAUDE.md, installe les hooks et crée la structure `99 - Claude Code/`.
+**Configure a Claude Code vault from scratch** — generates a personal profile, CLAUDE.md, installs hooks and creates the `99 - Claude Code/` structure.
 
-**Invocation** : `/setup` — à lancer une seule fois lors de l'installation, ou relancer pour régénérer le CLAUDE.md sans écraser les notes existantes.
-
----
-
-## Prérequis
-
-- Obsidian installé avec le vault ouvert
-- Claude Code installé (`claude` disponible en ligne de commande)
-- Node.js installé (`node` disponible en ligne de commande)
+**Invocation**: `/setup` — run once during installation, or re-run to regenerate CLAUDE.md without overwriting existing notes.
 
 ---
 
-## Étape 0 — Détection de l'environnement
+## Prerequisites
 
-Avant toute question, collecter silencieusement :
+- Obsidian installed with the vault open
+- Claude Code installed (`claude` available on the command line)
+- Node.js installed (`node` available on the command line)
+
+---
+
+## Step 0 — Environment detection
+
+Before any questions, silently collect:
 
 ```bash
-# Chemin absolu du vault (répertoire de travail courant de Claude Code)
+# Absolute path of the vault (Claude Code current working directory)
 pwd
 
-# Chemin home Claude
-# Windows : %USERPROFILE%\.claude
-# Mac/Linux : ~/.claude
+# Claude home path
+# Windows: %USERPROFILE%\.claude
+# Mac/Linux: ~/.claude
 
 # OS
 node -e "console.log(process.platform)"
 ```
 
-Stocker :
-- `VAULT_PATH` — chemin absolu du vault
-- `CLAUDE_HOME` — chemin absolu vers `.claude` de l'utilisateur
+Store:
+- `VAULT_PATH` — absolute path of the vault
+- `CLAUDE_HOME` — absolute path to the user's `.claude` folder
 - `OS_PLATFORM` — `win32` / `darwin` / `linux`
 
-Si `VAULT_PATH` ne contient pas de dossier `99 - Claude Code/` → confirmer avec l'utilisateur : *"Je vais créer la structure dans `[VAULT_PATH]`. C'est bien le bon vault ?"*
+If `VAULT_PATH` does not contain a `99 - Claude Code/` folder → confirm with the user: *"I'm going to create the structure in `[VAULT_PATH]`. Is this the right vault?"*
 
 ---
 
-## Étape 1 — Profil personnel (essay interactif)
+## Step 1 — Personal profile (interactive essay)
 
-Annoncer : *"Je vais te poser des questions en plusieurs rounds pour créer ton profil personnel. Ce fichier aidera Claude à te connaître et à personnaliser ses réponses. Pas de bonne ou mauvaise réponse — réponds aussi librement que tu veux."*
+Announce: *"I'll ask you questions in several rounds to create your personal profile. This file will help Claude get to know you and personalise its responses. There are no right or wrong answers — reply as freely as you like."*
 
-Utiliser ce prompt pour conduire l'interview :
-
----
-
-Procède par rounds de questions. Commence large puis affine progressivement :
-- Round 1 : qui je suis (identité, parcours, situation actuelle)
-- Round 2 : ce que je fais (travail, projets, études)
-- Round 3 : ce que j'aime (hobbies, passions, centres d'intérêt)
-- Round 4 : comment je pense et travaille (méthodes, valeurs, façon de prendre des décisions)
-- Round 5 : questions spécifiques basées sur ce que tu as appris des rounds précédents
-
-Règles :
-- Maximum 5 questions par round, posées toutes en même temps
-- Attendre les réponses avant de passer au round suivant
-- Les questions du round suivant doivent s'appuyer sur ce que la personne a dit, pas être génériques
-- Aucune reformulation des réponses entre les rounds, aller directement aux questions suivantes
-- Si 5 rounds ne suffisent pas, en ajouter librement
-- À la fin, rédiger l'essay en français, à la troisième personne, structuré en sections thématiques, dense et factuel — pas lyrique
+Use this prompt to conduct the interview:
 
 ---
 
-Une fois l'essay rédigé :
-- Stocker le prénom/pseudo dans `NOM`
-- **Demander validation** : *"Voici ton profil. Tu veux ajuster quelque chose avant que je l'enregistre ?"*
-- Écrire l'essay dans `[ME_FOLDER]/{{NOM}}.md` uniquement après validation
+Proceed in rounds of questions. Start broad, then progressively refine:
+- Round 1: who I am (identity, background, current situation)
+- Round 2: what I do (work, projects, studies)
+- Round 3: what I enjoy (hobbies, passions, interests)
+- Round 4: how I think and work (methods, values, decision-making style)
+- Round 5: specific questions based on what you learned from previous rounds
+
+Rules:
+- Maximum 5 questions per round, asked all at once
+- Wait for answers before moving to the next round
+- Questions in the next round must build on what the person said, not be generic
+- No rephrasing of answers between rounds — go straight to the next questions
+- If 5 rounds are not enough, freely add more
+- At the end, write the essay in LANGUE, third person, structured in thematic sections, dense and factual — not lyrical
 
 ---
 
-## Étape 2 — Préférences Claude
-
-Poser les questions suivantes **toutes en même temps** :
-
-1. **Mode de travail** — Comment tu veux que Claude travaille avec toi ?
-   - **(A) Pair — défaut** : Claude guide et explique, tu décides et agis. Claude ne fait rien sans ta demande explicite.
-   - **(B) Autonome** : Claude implémente directement et résume ce qu'il a fait.
-
-2. **Style de réponse** — Quel style tu préfères ?
-   - **(A) Court et direct — défaut** : réponses concises, structurées (listes, tableaux), aller à l'essentiel.
-   - **(B) Détaillé** : réponses complètes avec contexte et exemples.
-
-3. **Langue** — Dans quelle langue tu veux que Claude te réponde ? (défaut : Français)
-
-4. **Format de date des daily notes** — Quel format utilises-tu pour nommer tes daily notes ?
-   - **(A) YYYY-MM-DD — défaut** : 2026-04-11.md (format ISO, recommandé)
-   - **(B) DD-MM-YYYY** : 11-04-2026.md
-   - **(C) MM-DD-YYYY** : 04-11-2026.md
-   - **(D) Autre** : précise le format
-
-5. **Dossier des daily notes** — Comment s'appelle ton dossier de daily notes ? (défaut : `00 - Daily notes`)
-
-6. **Dossier personnel** — Comment s'appelle ton dossier de notes personnelles ? (défaut : `01 - Me`)
-
-7. **Dossier hobbies** — Comment s'appelle ton dossier de hobbies/loisirs ? (défaut : `02 - Hobbies`)
-
-8. **Dossier knowledge** — Comment s'appelle ta base de connaissances ? (défaut : `03 - Knowledge`)
-
-9. **Dossier projets** — Comment s'appelle ton dossier de projets ? (défaut : `04 - Projects`)
-
-10. **Dossier inbox** — Comment s'appelle ton dossier de capture temporaire ? (défaut : `09 - Inbox`)
-
-11. **Sources digest** — Le skill `/digest` surveille des sources d'actualité pour toi chaque matin. Quelles sources tu veux suivre ? Exemples : tech (Hacker News, Dev.to), IA (Anthropic blog), finance, actu monde, design... Tu peux aussi dire "aucune pour l'instant".
-
-Stocker les réponses dans `MODE_TRAVAIL`, `STYLE_REPONSE`, `LANGUE`, `DATE_FORMAT`, `DAILY_NOTES_FOLDER`, `PERSONAL_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`, `DIGEST_SOURCES`.
+Once the essay is written:
+- Store the first name / username in `NOM`
+- **Ask for validation**: *"Here is your profile. Would you like to adjust anything before I save it?"*
+- Write the essay to `[ME_FOLDER]/{{NOM}}.md` only after validation
 
 ---
 
-## Étape 3 — Génération des fichiers
+## Step 2 — Claude preferences
 
-### 3.1 — Structure `99 - Claude Code/`
+Ask the following questions **all at once**:
 
-Créer les dossiers suivants s'ils n'existent pas :
+1. **Working mode** — How do you want Claude to work with you?
+   - **(A) Pair — default**: Claude guides and explains, you decide and act. Claude does nothing without your explicit request.
+   - **(B) Autonomous**: Claude implements directly and summarises what it has done.
+
+2. **Response style** — Which style do you prefer?
+   - **(A) Short and direct — default**: concise, structured responses (lists, tables), straight to the point.
+   - **(B) Detailed**: complete responses with context and examples.
+
+3. **Language** — In which language do you want Claude to respond? (default: English)
+
+4. **Daily note date format** — Which format do you use to name your daily notes?
+   - **(A) YYYY-MM-DD — default**: 2026-04-11.md (ISO format, recommended)
+   - **(B) DD-MM-YYYY**: 11-04-2026.md
+   - **(C) MM-DD-YYYY**: 04-11-2026.md
+   - **(D) Other**: specify the format
+
+5. **Daily notes folder** — What is your daily notes folder called? (default: `00 - Daily notes`)
+
+6. **Personal folder** — What is your personal notes folder called? (default: `01 - Me`)
+
+7. **Hobbies folder** — What is your hobbies / leisure folder called? (default: `02 - Hobbies`)
+
+8. **Knowledge folder** — What is your knowledge base called? (default: `03 - Knowledge`)
+
+9. **Projects folder** — What is your projects folder called? (default: `04 - Projects`)
+
+10. **Inbox folder** — What is your temporary capture folder called? (default: `09 - Inbox`)
+
+11. **Digest sources** — The `/digest` skill monitors news sources for you each morning. Which sources do you want to follow? Examples: tech (Hacker News, Dev.to), AI (Anthropic blog), finance, world news, design... You can also say "none for now".
+
+Store responses in `MODE_TRAVAIL`, `STYLE_REPONSE`, `LANGUE`, `DATE_FORMAT`, `DAILY_NOTES_FOLDER`, `PERSONAL_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`, `DIGEST_SOURCES`.
+
+---
+
+## Step 3 — File generation
+
+### 3.1 — `99 - Claude Code/` structure
+
+Create the following folders if they do not exist:
 
 ```
 [VAULT_PATH]/99 - Claude Code/
@@ -127,44 +127,44 @@ Créer les dossiers suivants s'ils n'existent pas :
   ADR/
 ```
 
-Créer les fichiers suivants s'ils n'existent pas :
+Create the following files if they do not exist:
 
-**`99 - Claude Code/MEMORY.md`** :
+**`99 - Claude Code/MEMORY.md`**:
 ```markdown
 # MEMORY.md — Index
 
-<!-- Index des mémoires persistantes — généré et mis à jour automatiquement par Claude -->
+<!-- Index of persistent memories — generated and updated automatically by Claude -->
 ```
 
-**`99 - Claude Code/command-tracker.md`** :
+**`99 - Claude Code/command-tracker.md`**:
 ```markdown
 # Command Tracker
 
-Mis à jour automatiquement par chaque skill après exécution.
-Lu par `/today` pour détecter les commandes en retard.
+Updated automatically by each skill after execution.
+Read by `/today` to detect overdue commands.
 
-| Commande     | Dernière exécution | Fréquence recommandée |
-| ------------ | ------------------ | --------------------- |
-| /harvest     | —                  | 7 jours               |
-| /map         | —                  | 7 jours               |
-| /link        | —                  | 7 jours               |
-| /harvestdeep | —                  | 30 jours              |
-| /drift       | —                  | 7 jours               |
-| /emerge      | —                  | 15 jours              |
-| /closeweek   | —                  | 7 jours               |
-| /closemonth  | —                  | 30 jours              |
-| /my-world    | —                  | 1 jour                |
-| /stranger    | —                  | 30 jours              |
-| /trace       | —                  | 30 jours              |
-| /evaluateskills | —               | 30 jours              |
+| Command      | Last run | Recommended frequency |
+| ------------ | -------- | --------------------- |
+| /harvest     | —        | 7 days                |
+| /map         | —        | 7 days                |
+| /link        | —        | 7 days                |
+| /harvestdeep | —        | 30 days               |
+| /drift       | —        | 7 days                |
+| /emerge      | —        | 15 days               |
+| /closeweek   | —        | 7 days                |
+| /closemonth  | —        | 30 days               |
+| /my-world    | —        | 1 day                 |
+| /stranger    | —        | 30 days               |
+| /trace       | —        | 30 days               |
+| /evaluateskills | —     | 30 days               |
 ```
 
-### 3.1b — Dossiers utilisateur
+### 3.1b — User folders
 
-Pour chacun des dossiers suivants, **vérifier l'existence avant toute action** :
+For each of the following folders, **check for existence before any action**:
 
-| Variable | Chemin à vérifier |
-|----------|-------------------|
+| Variable | Path to check |
+|----------|---------------|
 | `DAILY_NOTES_FOLDER` | `[VAULT_PATH]/[DAILY_NOTES_FOLDER]/` |
 | `PERSONAL_FOLDER` | `[VAULT_PATH]/[PERSONAL_FOLDER]/` |
 | `HOBBIES_FOLDER` | `[VAULT_PATH]/[HOBBIES_FOLDER]/` |
@@ -172,35 +172,35 @@ Pour chacun des dossiers suivants, **vérifier l'existence avant toute action** 
 | `PROJECTS_FOLDER` | `[VAULT_PATH]/[PROJECTS_FOLDER]/` |
 | `INBOX_FOLDER` | `[VAULT_PATH]/[INBOX_FOLDER]/tickets/` |
 
-Règle : **si le dossier existe → ne pas y toucher, l'utiliser tel quel**. Si absent → le créer.
+Rule: **if the folder exists → do not touch it, use it as-is**. If absent → create it.
 
-Pour `[PROJECTS_FOLDER]` uniquement : si le dossier est créé (n'existait pas), créer aussi `[PROJECTS_FOLDER]/INDEX.md` :
+For `[PROJECTS_FOLDER]` only: if the folder is created (did not previously exist), also create `[PROJECTS_FOLDER]/INDEX.md`:
 
 ```markdown
 # Projects Index
 
-Lu automatiquement par `/today`, `/workon`, `/create-ticket`, `/drift`, `/harvestdeep`.
+Read automatically by `/today`, `/workon`, `/create-ticket`, `/drift`, `/harvestdeep`.
 
 ## Format
 
-Ajouter une ligne par projet actif :
+Add one line per active project:
 
-| Projet | Chemin | Kanban |
-|--------|--------|--------|
-| Exemple | `[PROJECTS_FOLDER]/Exemple/` | `[PROJECTS_FOLDER]/Exemple/Kanban.md` |
+| Project | Path | Kanban |
+|---------|------|--------|
+| Example | `[PROJECTS_FOLDER]/Example/` | `[PROJECTS_FOLDER]/Example/Kanban.md` |
 
-## Projets actifs
+## Active projects
 
-<!-- Ajouter ici les projets lors du setup ou manuellement -->
+<!-- Add projects here during setup or manually -->
 ```
 
-Si `[PROJECTS_FOLDER]/INDEX.md` existait déjà → ne pas l'écraser.
+If `[PROJECTS_FOLDER]/INDEX.md` already exists → do not overwrite it.
 
 ---
 
 ### 3.1d — vault-settings.md
 
-Créer `99 - Claude Code/config/vault-settings.md` :
+Create `99 - Claude Code/config/vault-settings.md`:
 
 ```markdown
 # Vault Settings
@@ -212,63 +212,65 @@ hobbies_folder: [HOBBIES_FOLDER]
 knowledge_folder: [KNOWLEDGE_FOLDER]
 projects_folder: [PROJECTS_FOLDER]
 inbox_folder: [INBOX_FOLDER]
+langue: [LANGUE]
 ```
 
-Où :
-- `[DATE_FORMAT]` → format choisi en Étape 2 (ex: `YYYY-MM-DD`, `DD-MM-YYYY`)
-- `[DAILY_NOTES_FOLDER]` → dossier choisi (ex: `00 - Daily notes`)
+Where:
+- `[DATE_FORMAT]` → format chosen in Step 2 (e.g. `YYYY-MM-DD`, `DD-MM-YYYY`)
+- `[DAILY_NOTES_FOLDER]` → chosen folder name (e.g. `00 - Daily notes`)
+- `[LANGUE]` → language chosen in Step 2 (e.g. `EN`, `FR`, `ES`)
 
 ### 3.2 — CLAUDE.md
 
-Lire `99 - Claude Code/Templates/CLAUDE.md.template`.
+Read `99 - Claude Code/Templates/CLAUDE.md.template`.
 
-Interpoler les placeholders :
-- `{{NOM}}` → valeur de `NOM`
-- `{{LANGUE}}` → valeur de `LANGUE`
-- `{{PERSONAL_FOLDER}}` → valeur de `PERSONAL_FOLDER`
-- `{{MODE_TRAVAIL}}` → bloc correspondant à l'option choisie (A ou B) :
+Interpolate placeholders:
+- `{{NOM}}` → value of `NOM`
+- `{{LANGUE}}` → value of `LANGUE`
+- `{{PERSONAL_FOLDER}}` → value of `PERSONAL_FOLDER`
+- `{{MODE_TRAVAIL}}` → block corresponding to the chosen option (A or B):
 
-  **Option A (pair)** :
+  **Option A (pair)**:
   ```
-  Claude agit comme **guide et pair**, pas assistant autonome.
-  - Expliquer l'approche, laisser {{NOM}} décider et agir
-  - Proposer des pistes, pas des solutions toutes faites
-  - Poser des questions si plusieurs approches existent
+  Claude acts as a **guide and pair**, not an autonomous assistant.
+  - Explain the approach, let {{NOM}} decide and act
+  - Suggest directions, not ready-made solutions
+  - Ask questions when multiple approaches exist
 
-  **Quand {{NOM}} dit "fais-le"** : agir directement + résumé de ce qui a été fait et pourquoi.
-  **Ne jamais faire sans demande explicite** : créer des fichiers non discutés, enchaîner des tâches sans validation.
-  ```
-
-  **Option B (autonome)** :
-  ```
-  Claude agit de façon **autonome et directe**.
-  - Implémenter sans attendre validation à chaque étape
-  - Résumer ce qui a été fait en fin de tâche
-  - Demander uniquement si une décision structurante se présente
+  **When {{NOM}} says "do it"**: act directly + summary of what was done and why.
+  **Never act without explicit request**: no undiscussed files, no chained tasks without validation.
   ```
 
-- `{{STYLE_REPONSE}}` → bloc correspondant :
-
-  **Option A (court)** :
+  **Option B (autonomous)**:
   ```
-  Réponses courtes et directes — aller à l'essentiel, pas de phrases de remplissage.
-  Format structuré : tableaux, listes, blocs de code quand pertinent.
-  Expliquer le pourquoi, pas seulement le comment.
-  ```
-
-  **Option B (détaillé)** :
-  ```
-  Réponses détaillées avec contexte complet et exemples.
-  Format prose avec structure claire.
+  Claude acts **autonomously and directly**.
+  - Implement without waiting for validation at each step
+  - Summarise what was done at the end of a task
+  - Ask only when a structural decision arises
   ```
 
-Écrire le résultat dans `[CLAUDE_HOME]/CLAUDE.md`.
+- `{{STYLE_REPONSE}}` → corresponding block:
 
-**Si le fichier existe déjà** → demander confirmation : *"Un CLAUDE.md existe déjà. Je le remplace ?"*
+  **Option A (short)**:
+  ```
+  Short, direct responses — get to the point, no filler sentences.
+  Structured format: tables, lists, code blocks where relevant.
+  Explain the why, not just the how.
+  ```
+
+  **Option B (detailed)**:
+  ```
+  Detailed responses with full context and examples.
+  Prose format with clear structure.
+  ```
+
+Write the result to `[CLAUDE_HOME]/CLAUDE.md`.
+
+**If the file already exists** → ask for confirmation: *"A CLAUDE.md already exists. Should I replace it?"*
 
 ### 3.3 — vault-config.json
 
-Créer `[CLAUDE_HOME]/vault-config.json` :
+Create `[CLAUDE_HOME]/vault-config.json`:
 
 ```json
 {
@@ -279,37 +281,37 @@ Créer `[CLAUDE_HOME]/vault-config.json` :
 
 ### 3.4 — digest-sources.md
 
-Si `DIGEST_SOURCES` n'est pas "aucune" → créer `99 - Claude Code/config/digest-sources.md` :
+If `DIGEST_SOURCES` is not "none" → create `99 - Claude Code/config/digest-sources.md`:
 
 ```markdown
-# Sources Digest
+# Digest Sources
 
-Sources surveillées par /digest chaque matin.
+Sources monitored by /digest each morning.
 
-## Sources actives
+## Active sources
 
-[liste des sources choisies]
+[list of chosen sources]
 
-## Format attendu
-- Hacker News : top stories du jour
-- Anthropic blog : nouveaux articles
-- Dev.to : articles tendance
-- Autres : adapter selon la source
+## Expected format
+- Hacker News: top stories of the day
+- Anthropic blog: new articles
+- Dev.to: trending articles
+- Others: adapt per source
 ```
 
 ---
 
-## Étape 4 — Installation des hooks
+## Step 4 — Hook installation
 
-Afficher la commande et demander confirmation avant chaque action.
+Display the command and ask for confirmation before each action.
 
-### 4.1 — Copier les hooks
+### 4.1 — Copy hooks
 
 ```bash
-# Créer le dossier hooks si nécessaire
+# Create hooks folder if needed
 mkdir -p [CLAUDE_HOME]/hooks
 
-# Copier les 3 hooks depuis 99 - Claude Code/
+# Copy the 3 hooks from 99 - Claude Code/
 cp "[VAULT_PATH]/99 - Claude Code/hooks/recap-session.js" "[CLAUDE_HOME]/hooks/"
 cp "[VAULT_PATH]/99 - Claude Code/hooks/retention-purge.js" "[CLAUDE_HOME]/hooks/"
 cp "[VAULT_PATH]/99 - Claude Code/hooks/secret-guard.js" "[CLAUDE_HOME]/hooks/"
@@ -317,76 +319,75 @@ cp "[VAULT_PATH]/99 - Claude Code/hooks/secret-guard.js" "[CLAUDE_HOME]/hooks/"
 
 ### 4.2 — settings.json
 
-Lire `99 - Claude Code/Templates/settings.json.template`.
+Read `99 - Claude Code/Templates/settings.json.template`.
 
-Interpoler :
-- `{{VAULT_PATH}}` → chemin absolu du vault
-- `{{CLAUDE_HOME}}` → chemin absolu vers `.claude`
+Interpolate:
+- `{{VAULT_PATH}}` → absolute path of the vault
+- `{{CLAUDE_HOME}}` → absolute path to `.claude`
 
-**Si `[CLAUDE_HOME]/settings.json` existe déjà** → merger uniquement les sections `hooks` et `permissions.allow` sans écraser les autres paramètres existants. Demander confirmation avant.
+**If `[CLAUDE_HOME]/settings.json` already exists** → merge only the `hooks` and `permissions.allow` sections without overwriting other existing settings. Ask for confirmation first.
 
-**Si absent** → écrire le template interpolé directement.
+**If absent** → write the interpolated template directly.
 
-### 4.3 — Symlink CLAUDE.md
+### 4.3 — CLAUDE.md symlink
 
-Créer un symlink pour que `99 - Claude Code/CLAUDE.md` pointe vers `[CLAUDE_HOME]/CLAUDE.md` :
+Create a symlink so that `99 - Claude Code/CLAUDE.md` points to `[CLAUDE_HOME]/CLAUDE.md`:
 
-**Windows** :
+**Windows**:
 ```bash
 cmd /c mklink "[VAULT_PATH]\99 - Claude Code\CLAUDE.md" "[CLAUDE_HOME]\CLAUDE.md"
 ```
 
-**Mac/Linux** :
+**Mac/Linux**:
 ```bash
 ln -sf "[CLAUDE_HOME]/CLAUDE.md" "[VAULT_PATH]/99 - Claude Code/CLAUDE.md"
 ```
 
-Si le fichier `99 - Claude Code/CLAUDE.md` existe déjà (symlink ou fichier) → le supprimer avant de créer le symlink.
+If `99 - Claude Code/CLAUDE.md` already exists (symlink or file) → delete it before creating the symlink.
 
 ---
 
-## Étape 5 — Récapitulatif et prochaines étapes
+## Step 5 — Summary and next steps
 
-Afficher un récapitulatif de ce qui a été créé :
+Display a summary of what was created:
 
 ```
-✅ Profil personnel      [ME_FOLDER]/[NOM].md
-✅ CLAUDE.md             ~/.claude/CLAUDE.md (+ symlink vault)
+✅ Personal profile      [ME_FOLDER]/[NOM].md
+✅ CLAUDE.md             ~/.claude/CLAUDE.md (+ vault symlink)
 ✅ vault-config.json     ~/.claude/vault-config.json
-✅ Hooks installés       recap-session.js, retention-purge.js, secret-guard.js
-✅ Structure vault       99 - Claude Code/ (Skills, Sessions, config, memory, ADR)
+✅ Hooks installed       recap-session.js, retention-purge.js, secret-guard.js
+✅ Vault structure       99 - Claude Code/ (Skills, Sessions, config, memory, ADR)
 ✅ Command tracker       99 - Claude Code/command-tracker.md
-[si digest] ✅ Sources digest  99 - Claude Code/config/digest-sources.md
-✅ Stubs skills         ~/.claude/commands/ ([N] fichiers)
+[if digest] ✅ Digest sources  99 - Claude Code/config/digest-sources.md
+✅ Skill stubs           ~/.claude/commands/ ([N] files)
 ```
 
+### 5.1 — Create stubs for all skills
 
-### 5.1 — Créer les stubs pour tous les skills
+For each `.md` file in `[VAULT_PATH]/99 - Claude Code/Skills/` (except `setup.md` itself and `INDEX.md`):
 
-Pour chaque fichier `.md` dans `[VAULT_PATH]/99 - Claude Code/Skills/` (sauf `setup.md` lui-même et `INDEX.md`) :
-
-Créer `[CLAUDE_HOME]/commands/[nom-du-skill].md` avec ce contenu :
+Create `[CLAUDE_HOME]/commands/[skill-name].md` with this content:
 ```
-Lis le skill [nom] dans `[VAULT_PATH]/99 - Claude Code/Skills/[nom].md` et exécute-le.
+Read the [name] skill from `[VAULT_PATH]/99 - Claude Code/Skills/[name].md` and execute it.
 ```
 
-Exemples générés :
-- `~/.claude/commands/today.md` → `Lis le skill today dans `[VAULT_PATH]/99 - Claude Code/Skills/today.md` et exécute-le.`
-- `~/.claude/commands/harvest.md` → `Lis le skill vault-harvest dans `[VAULT_PATH]/99 - Claude Code/Skills/vault-harvest.md` et exécute-le.`
+Examples generated:
+- `~/.claude/commands/today.md` → `Read the today skill from `[VAULT_PATH]/99 - Claude Code/Skills/today.md` and execute it.`
+- `~/.claude/commands/harvest.md` → `Read the vault-harvest skill from `[VAULT_PATH]/99 - Claude Code/Skills/vault-harvest.md` and execute it.`
 
-**Note** : si un stub existe déjà pour un skill, ne pas l'écraser — passer au suivant.
+**Note**: if a stub already exists for a skill, do not overwrite it — move to the next.
 
-Afficher le nombre de stubs créés à la fin.
+Display the number of stubs created at the end.
 
-Puis indiquer les prochaines étapes :
-1. Installer Obsidian si ce n'est pas fait — ouvrir ce dossier comme vault
-2. Lancer `/today` pour commencer
+Then indicate next steps:
+1. Install Obsidian if not done — open this folder as a vault
+2. Run `/today` to get started
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- **Ne jamais écraser** `[ME_FOLDER]/[NOM].md` si le fichier existe — demander confirmation
-- **Ne jamais écraser** `settings.json` sans merger — toujours préserver les paramètres existants
-- **Toujours demander confirmation** avant chaque opération sur `~/.claude/` (hors vault)
-- **Idempotent** : relancer `/setup` régénère CLAUDE.md et vault-config.json, ne touche pas aux notes existantes
+- **Never overwrite** `[ME_FOLDER]/[NOM].md` if the file exists — ask for confirmation
+- **Never overwrite** `settings.json` without merging — always preserve existing settings
+- **Always ask for confirmation** before any operation on `~/.claude/` (outside the vault)
+- **Idempotent**: re-running `/setup` regenerates CLAUDE.md and vault-config.json, does not touch existing notes
