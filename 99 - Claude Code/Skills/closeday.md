@@ -1,246 +1,246 @@
 ---
 name: closeday
-description: Bilan de fin de journée — synthétiser sessions, mettre à jour daily note avec patterns observés, détecter WIP Warhammer en cours, vérifier essay-check overdue. Déclencher quand Victor dit l'une de ces formules : "closeday", "j'arrête", "je finis", "c'est fini", "fin de session", "bonne nuit", "bonne journée", "j'arrête pour aujourd'hui", "ça suffit", "journée finie", "c'est bon je m'arrête", "c'est terminé" ou via /closeday.
+description: End-of-day summary — synthesize sessions, update daily note with observed patterns, detect Warhammer WIP in progress, check essay-check overdue. Trigger when Victor says one of these phrases : "closeday", "I'm stopping", "I'm done", "that's done", "end of session", "good night", "good day", "I'm stopping now", "that's enough", "day's over", "I'm done stopping", "it's finished" or via /closeday.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected from aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **narrative qualitative output**. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`** : in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (grouping, context, key moments, open questions, tone, narration). The preservation of qualitative content takes priority over line reduction.
 
 # Skill : Close Day
 
-## Déclenchement
+## Trigger
 
-Victor dit l'une de ces formules (ou équivalente) :
+Victor says one of these phrases (or equivalent) :
 - "closeday"
-- "j'arrête", "je finis", "c'est fini"
-- "bonne nuit", "bonne journée"
-- "fin de session", "je m'arrête"
+- "I'm stopping", "I'm done", "it's done"
+- "good night", "good day"
+- "end of session", "I'm stopping"
 
-Ou : commande `/closeday`
+Or : command `/closeday`
 
-## Étape 1 — Collecter les données du jour
+## Step 1 — Collect day's data
 
-**Date cible** : calculer avant toute lecture. Si `heure < 04:00` → date = veille, sinon date = aujourd'hui. Utiliser cette date pour tous les chemins ci-dessous.
+**Target date** : calculate before any reading. If `time < 04:00` → date = yesterday, else date = today. Use this date for all paths below.
 
-Lire en parallèle (avec fallbacks) :
+Read in parallel (with fallbacks) :
 
-1. **Daily note du jour** : `00 - Daily notes/[date cible].md`
-   - Si absent → créer un fichier minimal (frontmatter vide + titre du jour), continuer
+1. **Daily note of day** : `00 - Daily notes/[target date].md`
+   - If absent → create minimal file (empty frontmatter + day title), continue
    - Format : `---\n---\n# YYYY-MM-DD\n`
    
-2. **Sessions du jour** : `99 - Claude Code/Sessions/YYYY-MM-DD.md`
-   - Si absent → synthétiser depuis la daily note, noter `[Synthèse approx — à valider par Victor]`
-   - Si plusieurs sessions → énumérer chacune avec heure de début (ex: `09:30 — Projet X`)
-   - Si fichier trop long (erreur token) → lire par tranches successives (limit: 200, offset: 0 → 200 → 400 → …) jusqu'à fin complète. Ne jamais construire bilan sur lecture partielle — si truncation, noter `[Lecture complète par tranches — synthèse validée]`.
+2. **Sessions of day** : `99 - Claude Code/Sessions/YYYY-MM-DD.md`
+   - If absent → synthesize from daily note, note `[Approx synthesis — to be validated by Victor]`
+   - If multiple sessions → enumerate each with start time (ex: `09:30 — Project X`)
+   - If file too long (token error) → read in successive chunks (limit: 200, offset: 0 → 200 → 400 → …) until complete. Never build summary on partial read — if truncation, note `[Complete read by chunks — synthesis validated]`.
    
 3. **Hobby Kanban** : `02 - Hobbies/Hobby Kanban.md`
-   - Si absent → skip Étape 1.5 silencieusement
-   - Vérifier si colonne `## WIP` contient des tickets (items non vides)
+   - If absent → skip Step 1.5 silently
+   - Verify if `## WIP` column contains tickets (non-empty items)
 
-4. **Recul hebdo — 3 daily notes précédentes** : `00 - Daily notes/YYYY-MM-DD.md` pour J-1, J-2, J-3
-   - Lecture ciblée des sections `## 🌙 Bilan du jour`, `## 💡 Idées & Réflexions`, frontmatter (`energy`, `score`)
-   - Si une daily note est absente → skip silencieusement, continuer avec celles présentes
-   - Objectif : détecter les patterns inter-jours (énergie qui monte/descend, sujets qui reviennent, contradictions avec aujourd'hui, moments forts répétés ou isolés)
-   - Ces données nourrissent l'étape 2.2 (questions ouvertes sourcées) et l'étape 2.3 (narratif de l'État général)
+4. **Weekly lookback — 3 previous daily notes** : `00 - Daily notes/YYYY-MM-DD.md` for J-1, J-2, J-3
+   - Targeted read of `## 🌙 Day Summary`, `## 💡 Ideas & Reflections`, frontmatter (`energy`, `score`)
+   - If a daily note missing → skip silently, continue with available ones
+   - Objective : detect inter-day patterns (energy rising/falling, recurring topics, contradictions with today, repeated or isolated highlights)
+   - This data feeds Step 2.2 (sourced open questions) and Step 2.3 (general state narrative)
 
-## Étape 1.5 — Suivi Warhammer (optionnel — skip si Hobby Kanban absent)
+## Step 1.5 — Warhammer tracking (optional — skip if Hobby Kanban absent)
 
-**Condition préalable** : Hobby Kanban trouvé.
+**Prerequisite** : Hobby Kanban found.
 
-**Si `## WIP` n'est pas vide** → skip (déjà peuplé, pas besoin de relancer).
+**If `## WIP` is not empty** → skip (already populated, no need to re-launch).
 
-**Si `## WIP` est vide** → Poser : "Tu as des figurines en cours ? (Warhammer, peinture, etc.)"
+**If `## WIP` is empty** → Ask : "Any figurines in progress? (Warhammer, painting, etc.)"
 
-Accepter : "oui", "ok", ou nom concret. Refuser : "non", silence, timeout (30s) → continuer sans écrire.
-- Si accepté → ajouter au WIP
-- Sinon → continuer sans écrire
+Accept : "yes", "ok", or concrete name. Refuse : "no", silence, timeout (30s) → continue without writing.
+- If accepted → add to WIP
+- Otherwise → continue without writing
 
-## Étape 2 — Construire le bilan
+## Step 2 — Build summary
 
-### 2.1 — Agrégation et regroupement narratif
+### 2.1 — Aggregation and narrative grouping
 
-Depuis la daily note et `Sessions/YYYY-MM-DD.md`, extraire et **regrouper par chantier** (pas par ordre chronologique plat) :
+From daily note and `Sessions/YYYY-MM-DD.md`, extract and **group by project** (not in flat chronological order) :
 
-- **Regroupement par chantier/thème** : une feature, un projet, une session de raffinement, un chantier perso = un bullet unique. Ne pas éclater par session si plusieurs sessions portent sur le même sujet.
-- **Contexte d'exécution obligatoire par bullet** : pour chaque chantier, inclure ce qui rend le travail concret — stack touchée, fichiers modifiés, tests écrits, ADR créé, décisions prises, personnes impliquées. Pas de bullet nu style "Bug 429 fail to fetch" — préférer "Bug 429 + fail to fetch saisie armée/projet — retry exponentiel côté client, debug du timing Prisma, 3 tests ajoutés".
-- **Moments forts narratifs** : relever explicitement les événements marquants de la journée (bonne surprise, frustration, moment de joie, interaction notable, crise) — ces moments vont dans `État général` à l'étape 2.3, pas dans la liste des bullets.
-- **Énergie et états** : observations de flow, fatigue, blocages, écarts notables (ex: énergie basse mais output élevé) — pour l'État général.
-- **Patterns inter-jours** : en croisant avec les 3 daily notes précédentes (chargées à l'étape 1, point 4), relever ce qui se répète, ce qui contredit, ce qui émerge comme constante. Ces observations nourrissent les questions ouvertes à l'étape 2.2.
-- **Vérification déjà-vu sémantique** (optionnel) : pour chaque pattern identifié ci-dessus, requête :
+- **Grouping by project/theme** : one feature, one project, one refinement session, one personal task = one bullet. Don't splinter by session if multiple sessions cover same subject.
+- **Mandatory execution context per bullet** : for each project, include what makes work concrete — stack touched, files modified, tests written, ADR created, decisions made, people involved. No bare bullet like "Bug 429 fail to fetch" — prefer "Bug 429 + fail to fetch armed input/project — exponential retry client-side, Prisma timing debug, 3 tests added".
+- **Narrative highlights** : explicitly note day's landmark events (good surprise, frustration, joy moment, notable interaction, crisis) — these go in `General state` at step 2.3, not in bullets.
+- **Energy and states** : observations of flow, fatigue, blockers, notable gaps (ex: low energy but high output) — for general state.
+- **Inter-day patterns** : crossing with 3 previous daily notes read (loaded at step 1, point 4), note what repeats, what contradicts, what emerges as constant. These observations feed Step 2.2 open questions.
+- **Optional semantic already-seen check** (optional) : for each pattern identified above, query :
   ```bash
-  uv run ~/.claude/semantic_search.py "<pattern en 3-5 mots>" --top-k 2 --type accompli
+  uv run ~/.claude/semantic_search.py "<pattern in 3-5 words>" --top-k 2 --type accomplished
   ```
-  Si similarity ≥ 0.45 sur une session antérieure → le pattern est un **déjà-vu**. Pour chaque déjà-vu :
-  1. **Date de première apparition** : extraire la date de la session trouvée
-  2. **Ce qui en a découlé** : relancer avec `--type prochaines_etapes --since <date>` pour voir les suites planifiées après ce pattern
-  3. **Lien causal** : si les suites existent, construire le lien "pattern → ce qui s'est passé après"
-  Ces informations enrichissent la section `Patterns détectés` dans la note (voir template ci-dessous).
-  Si Postgres/Ollama inaccessible → non-bloquant, afficher : `⚠️ Vérification déjà-vu indisponible (Postgres/Ollama down) — patterns sourçés sur daily notes uniquement.`
-- **Idées/Décisions** : relever mais **traiter en Étape 4, pas ici**.
+  If similarity ≥ 0.45 on earlier session → pattern is an **already-seen**. For each already-seen :
+  1. **First appearance date** : extract date from found session
+  2. **What followed** : re-launch with `--type next_steps --since <date>` to see planned follow-ups after this pattern
+  3. **Causal link** : if follow-ups exist, build the link "pattern → what happened after"
+  This information enriches `Patterns detected` section in note (see template below).
+  If Postgres/Ollama inaccessible → non-blocking, display : `⚠️ Already-seen check unavailable (Postgres/Ollama down) — patterns sourced from daily notes only.`
+- **Ideas/Decisions** : note but **handle in Step 4, not here**.
 
-### 2.2 — Présentation et validation du bilan
+### 2.2 — Presentation and validation of summary
 
-Présenter à Victor **la version narrative complète** — pas une version résumée. Victor doit voir dans le chat ce qui sera écrit, pas une preview plate :
+Present to Victor **the full narrative version** — not a summary preview. Victor should see in chat what will be written, not a flat preview :
 
-> Voilà ce que j'ai vu sur la journée :
+> Here's what I saw over the day :
 >
-> **Ce qui a été fait** (regroupé par chantier, contexte inclus) :
-> - [chantier 1 — contexte d'exécution : stack, fichiers, tests, ADR, décisions]
-> - [chantier 2 — contexte d'exécution]
+> **What was done** (grouped by project, execution context included) :
+> - [project 1 — execution context : stack, files, tests, ADR, decisions]
+> - [project 2 — execution context]
 > - …
 >
-> **État général** (narratif, 2-4 phrases) : [énergie ressentie, flow ou friction, moment fort de la journée, lien éventuel avec la fatigue/motivation — raconter la journée, pas la résumer]
+> **General state** (narrative, 2-4 sentences) : [energy felt, flow or friction, day's highlight, eventual link with fatigue/motivation — tell the day, don't summarize]
 >
-> **Patterns observés** (croisés avec les 3 jours précédents) :
-> - [pattern récurrent ou contradiction détectée, sourcé "déjà vu J-1/J-2" ou "nouveau vs hier"]
-> - [écart énergie/output, ou motivation qui compense la fatigue, etc.]
+> **Patterns observed** (crossed with last 3 days) :
+> - [recurring pattern or detected contradiction, sourced "already seen J-1/J-2" or "new vs yesterday"]
+> - [energy/output gap, or motivation compensating fatigue, etc.]
 >
-> **2 questions pour creuser** (sourcées sur le recul hebdo, pas génériques) :
-> 1. [Question reliée à un pattern inter-jours précis, ex: "Le pattern X est revenu 3 fois cette semaine — c'est une constante ou lié au contexte Y ?"]
-> 2. [Question sur ce que les notes ne capturent pas bien, ou contradiction observée]
+> **2 questions to dig into** (sourced from weekly lookback, not generic) :
+> 1. [Question linked to specific inter-day pattern, ex: "Pattern X came back 3 times this week — is it constant or linked to context Y ?"]
+> 2. [Question on what notes don't capture well, or observed contradiction]
 
-**Règles pour les questions ouvertes** :
-- **Toujours 1 à 2 questions**, jamais zéro (c'est ça qui fait la rétrospective vivante)
-- **Sourcées** : chaque question doit s'appuyer sur quelque chose de concret vu dans les 3 dernières dailies ou dans les thinking sessions du jour
-- **Pas génériques** : éviter "comment tu te sens ?", "t'as appris quoi ?" — préférer des questions précises sur des patterns ou contradictions détectées
+**Rules for open questions** :
+- **Always 1 to 2 questions**, never zero (that's what makes retrospective alive)
+- **Sourced** : each question must rest on something concrete seen in last 3 dailies or thinking sessions today
+- **Not generic** : avoid "how do you feel?", "what did you learn?" — prefer precise questions on detected patterns or contradictions
 
-**Si `## 💡 Idées & Réflexions` existe et remplie** → présenter la version narrative complète + questions ouvertes, puis demander : "C'est bon, je le note ?"
-- Accepter : oui, ok, d'accord, ouais. Refuser : non, nope, silence/timeout (45s) → continuer sans modifier.
+**If `## 💡 Ideas & Reflections` exists and filled** → present full narrative version + open questions, then ask : "Good, I'll note it?"
+- Accept : yes, ok, agreed, yeah. Refuse : no, nope, silence/timeout (45s) → continue without modifying.
 
-**Sinon (section vide ou absente)** → présenter ce qui a pu être reconstruit + demander :
-> (1) Qu'est-ce que t'as vraiment avancé ? (2) Un blocage ou observation ? (3) [question sourcée sur le recul hebdo si patterns détectés]
+**Otherwise (section empty or absent)** → present what could be reconstructed + ask :
+> (1) What did you really advance? (2) A blocker or observation? (3) [sourced question from weekly lookback if patterns detected]
 
-Accepter réponses (libre). Timeout (45s) ou pas de réponse → inclure données existantes (sessions, mood, recul hebdo) + note "[Quick Wrap skipped — timeout]".
+Accept responses (free form). Timeout (45s) or no response → include existing data (sessions, mood, weekly lookback) + note "[Quick Wrap skipped — timeout]".
 
-### 2.3 — Écriture du bilan
+### 2.3 — Writing the summary
 
-**Chercher si `## 🌙 Bilan du jour` existe déjà** → Si oui, passer à Étape 3 (bilan déjà écrit). Si non, ajouter en bas de la daily note :
+**Check if `## 🌙 Day Summary` already exists** → If yes, go to Step 3 (summary already written). If no, add at bottom of daily note :
 
 ```markdown
-## 🌙 Bilan du jour
+## 🌙 Day Summary
 
-### Ce qui a été fait
-- **[Chantier 1 — titre narratif]** — contexte d'exécution complet : stack touchée, fichiers modifiés, tests écrits, ADR créé, décisions prises, résultats concrets
-- **[Chantier 2 — titre narratif]** — contexte d'exécution complet
+### What was done
+- **[Project 1 — narrative title]** — complete execution context : stack touched, files modified, tests written, ADR created, decisions made, concrete results
+- **[Project 2 — narrative title]** — complete execution context
 - [...]
 
-### Énergie & état
-- Énergie du jour : [valeur frontmatter ou "non renseignée"]
-- Score final : [Étape 3]
-- **État général** : [NARRATIF 2-4 phrases — raconter la journée, pas la résumer. Inclure : le ton de la journée (atypique, dense, calme, difficile...), l'écart éventuel énergie/output, les flow moments, le ou les moments forts relevés (bonne nouvelle, frustration, interaction marquante, crise, joie). Pas de bullets ici — du texte qui raconte.]
+### Energy & state
+- Day's energy : [frontmatter value or "not provided"]
+- Final score : [Step 3]
+- **General state** : [NARRATIVE 2-4 sentences — tell the day, don't summarize. Include : day's tone (atypical, dense, calm, difficult...), any energy/output gap, flow moments, highlights (good news, frustration, notable interaction, crisis, joy). No bullets here — prose that tells.]
 
-### Patterns détectés
-[Croiser avec les 3 daily notes précédentes. Intégrer 2-4 observations structurées :
-- Patterns inter-jours (récurrences, contradictions, écarts énergie/output)
-- Dynamiques comportementales émergentes sourcées sur des faits concrets
-- Si `## 💡 Idées & Réflexions` est remplie : ne PAS juste écrire "Voir section Réflexions" — faire du **méta** par-dessus, relever ce qui émerge en croisant plusieurs thinking sessions, pas juste les lister
-- Pour les patterns identifiés comme déjà-vu (vérification sémantique Étape 2.1) : format obligatoire :
-  `→ Déjà observé le YYYY-MM-DD — suite : [ce qui en a découlé, en 1 phrase]`]
+### Patterns detected
+[Cross with last 3 daily notes. Integrate 2-4 structured observations :
+- Inter-day patterns (recurrences, contradictions, energy/output gaps)
+- Emerging behavioral dynamics sourced on concrete facts
+- If `## 💡 Ideas & Reflections` is filled : don't just write "See Reflections" — do **meta** analysis, note what emerges crossing multiple thinking sessions, not just list them
+- For patterns identified as already-seen (semantic check Step 2.1) : mandatory format :
+  `→ Already observed on YYYY-MM-DD — follow-up : [what happened after, 1 sentence]`]
 
-### Demain
-- Prochaine étape prioritaire : [depuis les sessions]
-- À ne pas oublier : [mentionnés pendant la journée]
+### Tomorrow
+- Next priority step : [from sessions]
+- Don't forget : [mentioned during day]
 ```
 
-**Règle critique sur la qualité narrative** : ce bilan est la sortie principale du skill. Les étapes 4 (idées à filer), 5 (propositions de capitalisation) et 6 (essay-check) sont **secondaires** et ne doivent **en aucun cas** compromettre la richesse du bilan. Si le modèle se sent tiré entre "bien écrire le bilan" et "anticiper les capitalisations latérales", **priorité absolue au bilan narratif**.
+**Critical rule on narrative quality** : this summary is the skill's main output. Steps 4 (ideas to track), 5 (capitalization proposals) and 6 (essay-check) are **secondary** and must **in no way** compromise summary richness. If the model feels pulled between "write good summary" and "anticipate lateral capitalizations", **absolute priority to narrative richness**.
 
-## Étape 3 — Score et frontmatter
+## Step 3 — Score and frontmatter
 
-Vérifier si `score:` existe dans frontmatter (valeur numérique 1-5).
+Check if `score:` exists in frontmatter (numeric value 1-5).
 
-**Si présent et valide** → continuer à l'Étape 4.
+**If present and valid** → continue to Step 4.
 
-**Si absent ou invalide** :
-- Poser : "Note ta journée sur 5 ?"
-- Accepter : nombres 1-5. Refuser : non-nombre, silence/timeout (30s) → skip sans score, continuer à Étape 4.
+**If absent or invalid** :
+- Ask : "Rate your day on 5?"
+- Accept : numbers 1-5. Refuse : non-number, silence/timeout (30s) → skip without score, continue to Step 4.
 
-(Ce score conditionne l'essay-check hebdo à l'Étape 6.)
+(This score conditions weekly essay-check in Step 6.)
 
-## Étape 4 — Idées et décisions : filing suggestions
+## Step 4 — Ideas and decisions : filing suggestions
 
-Depuis les sessions et la daily note, **relever toutes les idées/décisions mentionnées** : nouveaux insights, changements de direction, tâches à tracker, tech à explorer, etc.
+From sessions and daily note, **identify all mentioned ideas/decisions** : new insights, direction changes, tasks to track, tech to explore, etc.
 
-**Si aucune trouvée** → skip silencieusement, aller à Étape 5.
+**If none found** → skip silently, go to Step 5.
 
-**Si trouvées** : proposer une destination pour chacune :
+**If found** : propose a destination for each :
 
 ```
-[Idée] → [Destination : 03 - Knowledge/ | 04 - Projects/… | {PERSONAL_FOLDER}/{USER_NAME}.md | kanban projet | Hobby Kanban | command-tracker]
+[Idea] → [Destination : 03 - Knowledge/ | 04 - Projects/… | {PERSONAL_FOLDER}/{USER_NAME}.md | project kanban | Hobby Kanban | command-tracker]
 ```
 
-Présenter :
+Present :
 
-> Idées/décisions du jour :
+> Ideas/decisions from day :
 > - [item 1] → [destination]
 > - [item 2] → [destination]
 > 
-> Tu veux en filer certaines ?
+> Want to file any?
 
-Accepter : listes explicites ("oui, les 2 premiers", "item X seulement"). Refuser : "non", "nope", silence/timeout (45s) → laisser en daily note, ne rien écrire.
+Accept : explicit lists ("yes, first 2", "item X only"). Refuse : "no", "nope", silence/timeout (45s) → leave in daily note, write nothing.
 
-## Étape 5 — Propositions de capitalisation (conditionnel)
+## Step 5 — Capitalization proposals (conditional)
 
-**Vérifier** si `99 - Claude Code/Sessions/proposals-YYYY-MM-DD.md` existe pour la date du jour.
+**Check** if `99 - Claude Code/Sessions/proposals-YYYY-MM-DD.md` exists for day's date.
 
-**Si absent** → skip silencieusement, aller à Étape 6.
+**If absent** → skip silently, go to Step 6.
 
-**Si présent et `processed: true`** → skip silencieusement, aller à Étape 6.
+**If present and `processed: true`** → skip silently, go to Step 6.
 
-**Si présent et `processed: false`** :
+**If present and `processed: false`** :
 
-1. Lire le fichier
-2. Présenter les propositions à Victor :
+1. Read the file
+2. Present proposals to Victor :
 
-> Propositions de capitalisation du jour :
+> Capitalization proposals from day :
 >
-> [pour chaque bloc Session]
+> [for each Session block]
 > **Session HH:MM :**
-> - [ADR] Titre — Scope — Contexte
-> - [Skill] Nom du skill — Action — Contexte
+> - [ADR] Title — Scope — Context
+> - [Skill] Name — Action — Context
 >
-> Tu valides, rejettes, ou reportes ?
+> You validate, reject, or defer?
 
-3. Pour chaque élément validé :
-   - **ADR transverse** → créer dans `99 - Claude Code/ADR/` + mettre à jour `ADR/INDEX.md`
-   - **ADR projet** → créer dans `04 - Projects/[Projet]/claude-code/ADR/`
-   - **Skill update** → appliquer la modification dans `99 - Claude Code/Skills/[skill].md`
-   - **Skill create** → invoquer `/create-ticket` avec type Amélioration pour ticketiser la création
-4. Timeout (45s) ou refus global → skip tout
-5. **Toujours** marquer `processed: true` dans le frontmatter après traitement (validé ou non)
+3. For each validated element :
+   - **Transverse ADR** → create in `99 - Claude Code/ADR/` + update `ADR/INDEX.md`
+   - **Project ADR** → create in `04 - Projects/[Project]/claude-code/ADR/`
+   - **Skill update** → apply modification in `99 - Claude Code/Skills/[skill].md`
+   - **Skill create** → invoke `/create-ticket` with type Improvement to ticketize creation
+4. Timeout (45s) or global refusal → skip all
+5. **Always** mark `processed: true` in frontmatter after handling (validated or not)
 
-## Étape 6 — Essay-check hebdo (conditionnel)
+## Step 6 — Weekly essay-check (conditional)
 
-**Lire** `99 - Claude Code/command-tracker.md` et chercher la dernière ligne `- /essay-check → YYYY-MM-DD`.
+**Read** `99 - Claude Code/command-tracker.md` and find last line `- /essay-check → YYYY-MM-DD`.
 
-**Conditions pour déclencher essay-check** :
-- command-tracker existe **ET**
-- entrée `/essay-check` trouvée **ET**
-- date au format YYYY-MM-DD valide **ET**
-- date ≥ 7 jours (overdue)
+**Conditions to trigger essay-check** :
+- command-tracker exists **AND**
+- `/essay-check` entry found **AND**
+- date in valid YYYY-MM-DD format **AND**
+- date ≥ 7 days (overdue)
 
-Sinon (fichier absent, entrée non trouvée, format invalide, ou date < 7j) → skip, fin du closeday.
+Otherwise (file absent, entry not found, invalid format, or date < 7d) → skip, end closeday.
 
 ---
 
-**Si essay-check overdue** :
+**If essay-check overdue** :
 
-Déclencher `/essay-check` et attendre retour. (Toute la synthèse, check-in, et enrichissement {USER_NAME}.md sont gérés par le skill `essay-check` dédié.)
+Trigger `/essay-check` and wait for return. (All synthesis, check-in, and {USER_NAME}.md enrichment are managed by dedicated `essay-check` skill.)
 
-**Après essay-check** : Mettre à jour command-tracker : `/essay-check → YYYY-MM-DD` (date du jour).
+**After essay-check** : Update command-tracker : `/essay-check → YYYY-MM-DD` (day's date).
 
-## Règles
+## Rules
 
-1. **Priorité absolue au bilan narratif** — la sortie principale du skill est un bilan riche, narratif, regroupé par chantier, avec recul hebdo et questions ouvertes sourcées. Les étapes 4-5-6 (filing, capitalisation, essay-check) sont **secondaires** et ne doivent jamais dégrader la qualité du bilan. Si le modèle doit arbitrer entre richesse narrative et anticipation des étapes latérales, choisir la richesse narrative.
-2. **Pas de liste plate** — Étape 2.3 : les bullets de "Ce qui a été fait" doivent être regroupés par chantier avec contexte d'exécution complet, jamais une liste chronologique plate. "État général" doit être un narratif 2-4 phrases, pas un résumé en bullets.
-3. **Toujours 1-2 questions ouvertes sourcées** à l'étape 2.2 — jamais zéro, jamais génériques. Elles doivent s'appuyer sur des patterns concrets observés dans les 3 daily notes précédentes ou dans les thinking sessions du jour.
-4. **Aucune écriture sans confirmation** — toujours présenter avant d'écrire
-5. **Timeouts standard** — chaque interaction a un max (30-45s selon contexte). À expiration : action par défaut (skip, continuer + note "[action skipped — timeout]")
-6. **Fichiers manquants gracieux** — skip silencieux si non bloquant (sauf daily note du jour — créer si absent)
-7. **Append-only** — ne jamais écraser la daily note — sections `## 🌙 Bilan du jour` ajoutées en bas. Si existe déjà → skip à Étape 3.
-8. **Parsing robuste** — format inattendu (ex : `score: "quatre"`, date malformée) → skip + note "[format invalide]", ne pas bloquer
-9. **Chunking par tranches** — trop longs : limit: 200 (sessions) ou 100 (mood), offset: 0 → 200/100 → … jusqu'à fin
-10. **{USER_NAME}.md fallback** — si absent, skip tout enrichissement silencieusement (Étape 6 seulement)
+1. **Absolute priority to narrative summary** — the skill's main output is a rich, narrative, project-grouped summary with weekly lookback and sourced open questions. Steps 4-5-6 (filing, capitalization, essay-check) are **secondary** and must never degrade summary quality. If the model must choose between narrative richness and anticipating lateral steps, choose narrative richness.
+2. **No flat list** — Step 2.3 : "What was done" bullets must be grouped by project with complete execution context, never flat chronological list. "General state" must be 2-4 sentence narrative, not bullet summary.
+3. **Always 1-2 sourced open questions** in Step 2.2 — never zero, never generic. They must rest on concrete patterns observed in last 3 daily notes or thinking sessions today.
+4. **No write without confirmation** — always present before writing
+5. **Standard timeouts** — each interaction has max (30-45s depending context). At expiration : default action (skip, continue + note "[action skipped — timeout]")
+6. **Missing files graceful** — skip silently if non-blocking (except daily note of day — create if absent)
+7. **Append-only** — never overwrite daily note — `## 🌙 Day Summary` sections added at bottom. If exists already → skip to Step 3.
+8. **Robust parsing** — unexpected format (ex : `score: "four"`, malformed date) → skip + note "[invalid format]", don't block
+9. **Chunking by slices** — too long : limit: 200 (sessions) or 100 (mood), offset: 0 → 200/100 → … until end
+10. **{USER_NAME}.md fallback** — if absent, skip all enrichment silently (Step 6 only)

@@ -1,29 +1,29 @@
 ---
 name: closeyesterday
-description: Clôture la journée d'hier quand /closeday n'a pas été lancé — même logique que /closeday mais appliquée à J-1. Invoquer depuis /today quand hier n'est pas clôturé.
+description: Close yesterday's day when /closeday wasn't launched — same logic as /closeday but applied to J-1. Invoke from /today when yesterday isn't closed.
 ---
 
 # Skill : /closeyesterday
 
-Applique la même logique que `/closeday` mais sur la daily note d'hier (`J-1`) au lieu d'aujourd'hui.
+Applies the same logic as `/closeday` but to yesterday's daily note (`J-1`) instead of today.
 
-## Pré-requis — Charger les paramètres vault
+## Prerequisite — Load vault parameters
 
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
+Read `99 - Claude Code/config/vault-settings.md` → extract : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
 
-## Déclenchement
+## Trigger
 
-- Invoqué automatiquement depuis `/today` quand hier n'est pas clôturé
-- Invocation manuelle : `/closeyesterday`
+- Auto-invoked from `/today` when yesterday isn't closed
+- Manual invocation : `/closeyesterday`
 
-## Étapes
+## Steps
 
-Appliquer exactement les mêmes étapes que `/closeday`, en remplaçant :
-- "daily note du jour" → daily note d'hier (`[NOTES_FOLDER]/[date J-1 selon DATE_FORMAT].md`)
-- "session du jour" → dernière session existante avant aujourd'hui dans `99 - Claude Code/Sessions/`
+Apply exactly the same steps as `/closeday`, replacing :
+- "daily note of day" → yesterday's daily note (`[NOTES_FOLDER]/[date J-1 per DATE_FORMAT].md`)
+- "session of day" → last session existing before today in `99 - Claude Code/Sessions/`
 
-Lire le skill `/closeday` pour le détail des étapes.
+Read the `/closeday` skill for step details.
 
-## Règle absolue
+## Absolute rule
 
-Ne jamais modifier la daily note d'aujourd'hui. Opérer uniquement sur J-1.
+Never modify today's daily note. Operate only on J-1.

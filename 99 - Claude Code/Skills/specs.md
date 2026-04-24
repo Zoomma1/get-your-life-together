@@ -1,150 +1,150 @@
 ---
 name: specs
-description: Générer les specs des features en colonne Spec, prioriser leur implémentation, valider avec l'utilisateur, puis déplacer vers Ready. Supporte plusieurs kanbans en une session.
+description: Generate specs for features in Spec column, prioritize their implementation, validate with user, then move to Ready. Supports multiple kanbans in one session.
 ---
 
-Exécute le workflow de génération de specs pour un ou plusieurs kanbans.
+Executes the workflow for generating specs for one or more kanbans.
 
-## Pré-requis — Charger les paramètres vault
+## Prerequisites — Load vault parameters
 
-Lire `99 - Claude Code/config/vault-settings.md` → extraire : `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
+Read `99 - Claude Code/config/vault-settings.md` → extract: `DATE_FORMAT`, `NOTES_FOLDER`, `ME_FOLDER`, `HOBBIES_FOLDER`, `KNOWLEDGE_FOLDER`, `PROJECTS_FOLDER`, `INBOX_FOLDER`.
 
-## Étape 0 — Configurer les chemins dynamiques
+## Step 0 — Configure dynamic paths
 
-Pour chaque kanban à traiter, établir le chemin racine :
+For each kanban to process, establish the root path:
 
-| Kanban | Chemin racine | README | Priority |
-|--------|---------------|--------|----------|
-| Projet classique | `[PROJECTS_FOLDER]/<Projet>/` | `README.md` | `Priority.md` |
-| Claude Code | `99 - Claude Code/` | (pas de README) | `Priority.md` |
+| Kanban | Root path | README | Priority |
+|--------|------------|--------|----------|
+| Standard project | `[PROJECTS_FOLDER]/<Project>/` | `README.md` | `Priority.md` |
+| Claude Code | `99 - Claude Code/` | (no README) | `Priority.md` |
 
-Utiliser ce mappage dans toutes les étapes suivantes pour éviter les recherches répétées.
+Use this mapping in all following steps to avoid repeated searches.
 
-## Étape 1 — Identifier les kanbans à traiter
+## Step 1 — Identify kanbans to process
 
-1. Lire `[PROJECTS_FOLDER]/INDEX.md` pour connaître les projets actifs et leurs kanbans
-2. Identifier les kanbans à traiter :
-   - Si l'utilisateur précise un projet → traiter uniquement ce kanban
-   - Si l'utilisateur dit "tous" ou ne précise pas → traiter tous les kanbans avec des tickets en colonne **Spec** :
-     - Kanbans projets : `[PROJECTS_FOLDER]/<Projet>/Project management.md`
-     - Kanban Claude Code : `99 - Claude Code/Claude Code Kanban.md`
-3. Pour chaque kanban identifié :
-   - Projet classique → lire le README à `<Chemin racine>/README.md` pour le contexte (Architecture, Stack, Conventions)
-   - Claude Code → s'appuyer sur le CLAUDE.md et les skills existants (pas de README)
+1. Read `[PROJECTS_FOLDER]/INDEX.md` to identify active projects and their kanbans
+2. Identify kanbans to process:
+   - If user specifies a project → process only that kanban
+   - If user says "all" or doesn't specify → process all kanbans with tickets in **Spec** column:
+     - Project kanbans: `[PROJECTS_FOLDER]/<Project>/Project management.md`
+     - Claude Code kanban: `99 - Claude Code/Claude Code Kanban.md`
+3. For each identified kanban:
+   - Standard project → read README at `<Root path>/README.md` for context (Architecture, Stack, Conventions)
+   - Claude Code → rely on CLAUDE.md and existing skills (no README)
 
-## Étape 2 — Lister les features
+## Step 2 — List features
 
-Pour chaque kanban identifié :
-1. Lire le kanban
-2. Extraire toutes les features en colonne **Spec** et classifier :
-   - **Specs à générer** : note vide ou sans section `## Specs générées`
-   - **Specs déjà générées** : note existante avec section `## Specs générées` remplie → marquer pour déplacement en Ready (sans régénération)
-   - **Feature déjà implémentée** : uniquement si explicite dans la section "Done" ou progression du README du projet — ne pas supposer
-3. Aussi lister les features en colonne **Ready** non encore démarrées (pour l'ordre global de priorité — elles peuvent être réordonnées si affectées par le nouvel ordre)
-4. Ignorer les features en colonne **Done** — ne jamais les relister
+For each identified kanban:
+1. Read the kanban
+2. Extract all features in **Spec** column and classify:
+   - **Specs to generate** : empty note or without `## Specs générées` section
+   - **Already-spec'd** : existing note with `## Specs générées` section filled → mark for move to Ready (no re-generation)
+   - **Already implemented** : only if explicit in "Done" section or project README progress — don't assume
+3. Also list features in **Ready** column not yet started (for overall priority order — they can be reordered if affected by new order)
+4. Ignore features in **Done** column — never relist them
 
-**Résultat de l'étape 2** : 3 listes par kanban
-- Features en Spec à spécer : `[F1, F2, F3]`
-- Features en Spec déjà spécées : `[F4, F5]`
-- Features en Ready (non démarrées) : `[F6, F7]`
+**Step 2 result** : 3 lists per kanban
+- Features in Spec to spec: `[F1, F2, F3]`
+- Features in Spec already spec'd: `[F4, F5]`
+- Features in Ready (not started): `[F6, F7]`
 
-## Étape 3 — Proposer un ordre de priorité
+## Step 3 — Propose priority order
 
-Pour chaque kanban avec au moins une feature à traiter (Spec ou Ready) :
+For each kanban with at least one feature to process (Spec or Ready):
 
-Analyser et proposer un ordre basé sur :
-- **Dépendances** : une feature qui bloque une autre (explicite dans titres/descriptions) passe en premier — considérer dépendances intra-kanban uniquement
-- **Valeur utilisateur** : impact sur l'expérience perçue par l'utilisateur final
-- **Complexité technique** : features complexes pouvant être des fondations pour d'autres
+Analyze and propose order based on:
+- **Dependencies** : a feature that blocks another (explicit in titles/descriptions) comes first — consider intra-kanban dependencies only
+- **User value** : impact on end-user perceived experience
+- **Technical complexity** : complex features that could be foundations for others
 
-Présenter le résultat en un seul tableau par kanban :
+Present result as single table per kanban:
 
 ```markdown
-### Kanban [NomProjet]
-| # | Feature | Raison |
+### Kanban [ProjectName]
+| # | Feature | Reason |
 |---|---------|--------|
-| 1 | [[NomFeature]] | Bloque X / Valeur utilisateur haute |
-| 2 | [[NomFeature]] | Dépendance de #1 / Impact medium |
+| 1 | [[FeatureName]] | Blocks X / High user value |
+| 2 | [[FeatureName]] | Dependency of #1 / Medium impact |
 ```
 
-**Cas limite** : Si un kanban a zéro feature à spécer **ET** zéro feature Ready → sauter directement à la section suivante, aucune action.
+**Edge case** : If kanban has zero features to spec **AND** zero features in Ready → skip directly to next section, no action.
 
-Attendre la validation de l'utilisateur avant de continuer.
+Wait for user validation before continuing.
 
-## Étape 4 — Mettre à jour Priority.md (optionnel)
+## Step 4 — Update Priority.md (optional)
 
-**Condition préalable** : Cette étape s'exécute UNIQUEMENT si :
-1. l'utilisateur a validé l'ordre à l'étape 3 ET
-2. Au moins une feature a été identifiée comme "à spécer" à l'étape 2 (même si finalement zéro spec a été générée)
+**Prerequisite** : This step executes ONLY if:
+1. user validated the order in step 3 AND
+2. At least one feature was identified as "to spec" in step 2 (even if ultimately zero specs were generated)
 
-Si cette condition n'est pas remplie → sauter à l'étape 6.
+If this condition is not met → skip to step 6.
 
-Pour chaque kanban qui a un `Priority.md` (utiliser chemins de l'Étape 0) :
+For each kanban that has a `Priority.md` (use paths from Step 0):
 
-### 4a — Nettoyer les anciens batches
+### 4a — Clean old batches
 
-Pour chaque batch existant en Priority.md :
-1. Lister les features du batch présentes en colonne **Done** du kanban
-2. Supprimer ces lignes du batch
-3. Si le batch est maintenant vide → supprimer la section entière du batch
+For each existing batch in Priority.md:
+1. List features in batch present in kanban's **Done** column
+2. Remove these lines from the batch
+3. If batch now empty → remove entire batch section
 
-Après nettoyage, appliquer cette logique de consolidation :
+After cleanup, apply this consolidation logic:
 
 ```
-IF (tous les anciens batches vides) THEN:
-  IF (features Ready subsistent au kanban) THEN:
-    Créer tableau unique "Backlog Ready [date-ISO]"
-    Ajouter toutes les features Ready en ordre de priorité
+IF (all old batches empty) THEN:
+  IF (Ready features remain in kanban) THEN:
+    Create single "Backlog Ready [date-ISO]" table
+    Add all Ready features in priority order
   ELSE:
-    Supprimer toutes les sections batch
+    Remove all batch sections
 ELSE:
-  Garder la structure batch existante (batches partiels restants)
+  Keep existing batch structure (remaining partial batches)
 END
 ```
 
-### 4b — Ajouter le nouveau batch
+### 4b — Add new batch
 
-Créer une section pour les features spécées cette session :
+Create section for features spec'd this session:
 
 ```markdown
-## Batch [date] — Ordre de priorité
-| # | Feature | Raison |
+## Batch [date] — Priority order
+| # | Feature | Reason |
 |---|---------|--------|
-| 1 | [[NomFeature]] | Bloque X / Valeur utilisateur haute |
-| 2 | [[NomFeature]] | Dépendance de #1 / Impact medium |
+| 1 | [[FeatureName]] | Blocks X / High user value |
+| 2 | [[FeatureName]] | Dependency of #1 / Medium impact |
 ```
 
-## Étape 5 — Générer les specs manquantes
+## Step 5 — Generate missing specs
 
-Pour les tickets identifiés à l'étape 2 comme "specs à générer", dans l'ordre convenu :
+For tickets identified in step 2 as "specs to generate", in agreed order:
 
-1. Vérifier que la note existe — si non, la créer dans `<Chemin racine>/Features/` avec le titre de la feature
-2. Remplir la section `## Specs générées` avec :
-   - Comportement attendu (user stories ou cas d'usage)
-   - Critères d'acceptation (AC — testables, concrets)
-   - Notes techniques (stack, patterns, dépendances existantes)
-   - Cas limites à gérer
-3. S'appuyer sur le contexte du README projet (`Architecture`, `Stack`) et les conventions du CLAUDE.md
-4. Ne jamais écraser ce que l'utilisateur a déjà rempli — ajouter à la section existante
+1. Verify note exists — if not, create it in `<Root path>/Features/` with feature title
+2. Fill the `## Specs générées` section with:
+   - Expected behavior (user stories or use cases)
+   - Acceptance criteria (AC — testable, concrete)
+   - Technical notes (stack, patterns, existing dependencies)
+   - Edge cases to handle
+3. Rely on project README context (`Architecture`, `Stack`) and CLAUDE.md conventions
+4. Never overwrite what user already filled — add to existing section
 
-## Étape 6 — Déplacer les tickets
+## Step 6 — Move tickets
 
-Pour chaque feature traitée à l'étape 5 (générée ou déjà présente), mettre à jour le kanban :
+For each feature processed in step 5 (generated or already present), update kanban:
 
-- **Specs générées ou déjà présentes** → déplacer de **Spec** vers **Ready**
-- **Feature déjà implémentée** → déplacer de **Spec** vers **Done**
+- **Generated or already-present specs** → move from **Spec** to **Ready**
+- **Already implemented feature** → move from **Spec** to **Done**
 
-Processus de déplacement :
-1. Trouver la ligne dans la section **Spec**
-2. Couper la ligne entière (garder le formatage `[[...]]` et espaces)
-3. La coller dans **Ready** ou **Done** en maintenant la structure du kanban
-4. Vérifier que le kanban reste cohérent (pas de doublons, structure intacte)
+Move process:
+1. Find line in **Spec** section
+2. Cut entire line (keep `[[...]]` formatting and spacing)
+3. Paste in **Ready** or **Done** maintaining kanban structure
+4. Verify kanban stays coherent (no duplicates, structure intact)
 
-## Règles absolues
+## Absolute rules
 
-- **Validation obligatoire** : attendre la validation de l'ordre de priorité avant de générer les specs ou mettre à jour Priority.md
-- **Pas d'écrasement** : ne jamais écraser le contenu existant — ajouter à `## Specs générées` sans supprimer
-- **Pas de régénération** : si des specs existent déjà (section `## Specs générées` présente), déplacer en Ready sans modifier
-- **Véracité des dépendances** : ne valider une dépendance que si elle est explicite dans les titres, descriptions ou notes du kanban
-- **Contexte obligatoire** : toujours lire le README du projet avant de générer (Architecture, Stack)
-- **Pair-programming** : aucune action autonome — attendre validation à chaque étape charnière (Étape 3, puis Étape 4)
+- **Mandatory validation** : wait for priority order validation before generating specs or updating Priority.md
+- **No overwrite** : never overwrite existing content — add to `## Specs générées` without removing
+- **No re-generation** : if specs already exist (section `## Specs générées` present), move to Ready without modifying
+- **Dependency truthfulness** : only validate a dependency if explicit in titles, descriptions, or kanban notes
+- **Mandatory context** : always read project README before generating (Architecture, Stack)
+- **Pair-programming** : no autonomous action — wait for validation at each key step (Step 3, then Step 4)

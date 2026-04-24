@@ -1,212 +1,212 @@
 ---
 name: ideas
-description: À lancer toutes les 2-4 semaines quand Victor veut savoir quoi faire ensuite — transforme les patterns du vault en actions concrètes sourcées. Contrairement à vault-harvest-deep (qui détecte et capitalise) et à emerge (qui cherche des clusters inter-notes), /ideas transforme ces patterns en idées actionnables classées par catégorie avec effort estimé et sourcing obligatoire. Utiliser quand Victor dit "ideas", "qu'est-ce que je devrais faire", "génère des idées", "montre-moi les opportunités".
+description: Launch every 2-4 weeks when Victor wants to know what to do next — transforms vault patterns into concrete actionable ideas sourced. Unlike vault-harvest-deep (which detects and capitalizes) and emerge (which looks for inter-note clusters), /ideas transforms these patterns into actionable ideas classified by category with estimated effort and mandatory sourcing. Use when Victor says "ideas", "what should I do", "generate ideas", "show me opportunities".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **narrative qualitative output**. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`** : in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips out narrative instructions (grouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
 # Skill : /ideas
 
-Extrait des idées actionnables depuis les patterns réels du vault — pas du brainstorming générique. Chaque idée doit être sourcée ("basé sur ta note du [date]..."), sinon elle n'a pas sa place ici.
+Extracts actionable ideas from real vault patterns — not generic brainstorming. Each idea must be sourced ("based on your note from [date]..."), otherwise it doesn't belong here.
 
-**Quand invoquer `/ideas` plutôt qu'un autre skill :**
+**When to invoke `/ideas` instead of another skill:**
 
-Utilise `/ideas` quand tu veux des **actions priorisées** basées sur une synthèse du vault sur 30 jours. Les autres skills complètent :
-- **/drift** → signal isolé réapparu ces 15j (pas encore actionné)
-- **/harvestdeep** → panorama exhaustif 30j (consolidation sans priorisation)
-- **/emerge** → clusters inter-notes (nouvelles connexions, pas des actions)
-- **/ideas** → synthèse 4 dimensions → top 3 actions + 1 opportunité clé
+Use `/ideas` when you want **prioritized actions** based on a 30-day vault synthesis. Other skills complement:
+- **/drift** → isolated signal re-emerged in last 15 days (not yet actioned)
+- **/harvestdeep** → exhaustive 30-day overview (consolidation without prioritization)
+- **/emerge** → inter-note clusters (new connections, not actions)
+- **/ideas** → 4-dimension synthesis → top 3 actions + 1 key opportunity
 
 ---
 
-## Étape 1 — Lire le vault (scope 30 jours ou moins si peu de données)
+## Step 1 — Read the vault (scope 30 days or less if little data)
 
-Synthétiser mentalement 6 sources de signal sur les 30 derniers jours. Chaque source donne un angle d'analyse distinct. (Faire cette synthèse en lecture directe du vault — sans appeler d'outils externes.)
+Mentally synthesize 6 signal sources over the last 30 days. Each source gives a distinct analysis angle. (Do this synthesis through direct vault reading — without calling external tools.)
 
-**Source 1 — Daily notes (`00 - Daily notes/YYYY-MM-DD.md`, 30j)**
-Sujets mentionnés 2+ fois, intentions sans suite explicite, frustrations citées, décisions prises.
+**Source 1 — Daily notes (`00 - Daily notes/YYYY-MM-DD.md`, 30d)**
+Topics mentioned 2+ times, intentions without explicit follow-up, cited frustrations, decisions made.
 
-**Source 2 — Sessions (`99 - Claude Code/Sessions/`, 30j)**
-Projets travaillés, progression vs stagnation notée, décisions, sujets reportés/évités intentionnellement.
+**Source 2 — Sessions (`99 - Claude Code/Sessions/`, 30d)**
+Projects worked on, noted progression vs stagnation, decisions, topics deferred/intentionally avoided.
 
-**Source 3 — Projets actifs et kanbans (`04 - Projects/INDEX.md` + kanbans, colonnes Idea/Specs/Ready/WIP)**
-État de chaque projet, tickets bloqués depuis plusieurs jours/semaines, dépendances non résolues.
+**Source 3 — Active projects and kanbans (`04 - Projects/INDEX.md` + kanbans, Idea/Specs/Ready/WIP columns)**
+State of each project, tickets blocked for days/weeks, unresolved dependencies.
 
-**Source 4 — Knowledge actifs (`03 - Knowledge/**/*.md`, modifiés dans les 30j)**
-Domaines sur lesquels Victor a écrit récemment, concepts capitalisés, lacunes visibles (sujets actifs sans note dédiée).
+**Source 4 — Active Knowledge (`03 - Knowledge/**/*.md`, modified within 30d)**
+Domains Victor recently wrote about, capitalized concepts, visible gaps (active topics without dedicated note).
 
 **Source 5 — Inbox (`09 - Inbox/`)**
-Idées non capitalisées, tickets sans suite, sujets récurrents non actionnés.
+Uncapitalized ideas, tickets without follow-up, recurring topics not actioned.
 
-**Source 6 — READMEs projets actifs (`04 - Projects/[Projet]/claude-code/README.md` pour chaque projet actif)**
-Objectifs déclarés, "next steps" officiels, dette technique mentionnée.
+**Source 6 — Active project READMEs (`04 - Projects/[Project]/claude-code/README.md` for each active project)**
+Declared objectives, official "next steps", mentioned technical debt.
 
-### Consolidation avant Étape 2
+### Consolidation before Step 2
 
-Récapituler brièvement ce qui émerge des 6 sources. Si plus de 4 sources retournent "aucune donnée" (vault peu alimenté, aucune session récente, no kanbans, etc.), signaler à Victor que le signal est trop faible : proposer d'attendre une semaine supplémentaire ou continuer avec patterns partiels.
+Briefly recap what emerges from the 6 sources. If more than 4 sources return "no data" (vault poorly fed, no recent sessions, no kanbans, etc.), signal to Victor that the signal is too weak: propose waiting an additional week or continuing with partial patterns.
 
 ---
 
-## Étape 2 — Synthèse en 4 dimensions (STOP et validation Victor)
+## Step 2 — Synthesis in 4 dimensions (STOP and Victor validation)
 
-Synthétiser les 6 sources consolidées sur ces 4 axes. **Présenter cette synthèse à Victor sous forme de tableau 2D et attendre sa confirmation explicite avant de continuer à Étape 3.**
+Synthesize the 6 consolidated sources on these 4 axes. **Present this synthesis to Victor as a 2D table and wait for his explicit confirmation before continuing to Step 3.**
 
-Format de présentation (tableau) :
+Presentation format (table):
 
-| Dimension | Signal / Exemple |
+| Dimension | Signal / Example |
 |-----------|------------------|
-| **Ce qui marche** | Sujets/projets/pratiques avec énergie et avancement concret (sources 2, 3, 4) |
-| **Ce qui frustre** | Friction récurrente, intentions sans suite, dépendances évitées (sources 1, 2, 5) |
-| **Ce qui manque** | Lacunes identifiées (outils, savoir, process, docs), questions ouvertes (sources 4, 5, 6) |
-| **Bottlenecks** | Ce qui bloque plusieurs domaines : dépendances non résolues, manque de ressource/temps (sources 2, 3, 6) |
+| **What works** | Topics/projects/practices with energy and concrete progress (sources 2, 3, 4) |
+| **What frustrates** | Recurring friction, intentions without follow-up, avoided dependencies (sources 1, 2, 5) |
+| **What's missing** | Identified gaps (tools, knowledge, process, docs), open questions (sources 4, 5, 6) |
+| **Bottlenecks** | What blocks multiple domains: unresolved dependencies, lack of resource/time (sources 2, 3, 6) |
 
-**Exemple concret :** Si Source 1 parle d'une idée 3 fois en 2 semaines (frustration), et Source 3 montre un ticket en Blocked depuis 15j non avancé (bottleneck), alors : "Bloquer : [Titre] depuis 15j en Blocked, mentionné 3 fois en frustration" → ligne du tableau "Bottlenecks".
+**Concrete example:** If Source 1 mentions an idea 3 times in 2 weeks (frustration), and Source 3 shows a ticket in Blocked for 15 days not progressed (bottleneck), then: "Block: [Title] in Blocked for 15 days, mentioned 3 times in frustration" → row in "Bottlenecks" table.
 
 ---
 
-## Étape 3 — Génération d'idées (9 catégories, 3-4 max par catégorie)
+## Step 3 — Idea generation (9 categories, 3-4 max per category)
 
-Pour chaque catégorie, générer uniquement des idées **ancrées dans le vault** — si une idée ne peut pas être sourcée (note + date, ou pattern explicite du vault), la rejeter. **Chaque idée est immédiatement qualifiée par type (Étape 4 fusionnée ici).**
+For each category, generate only ideas **anchored in the vault** — if an idea cannot be sourced (note + date, or explicit vault pattern), reject it. **Each idea is immediately qualified by type (Step 4 merged here).**
 
-Format standardisé d'une idée :
+Standardized idea format:
 
 ```
-[Titre de l'idée]
+[Idea title]
 → Type : obvious-but-important / genuinely non-obvious
-→ Source : [note/daily du YYYY-MM-DD ou « pattern sur X, Y, Z »]
-→ Effort : rapide (< 1h) / moyen (1j) / lourd (plusieurs sessions)
-→ Pourquoi maintenant : [lien explicite avec un signal de Étape 2]
+→ Source : [note/daily from YYYY-MM-DD or « pattern across X, Y, Z »]
+→ Effort : quick (< 1h) / medium (1d) / heavy (multiple sessions)
+→ Why now : [explicit link with a signal from Step 2]
 ```
 
-**Définitions de type :**
-- **Obvious-but-important** — idée logique et attendue, mais non encore actionnée. Réduit la dette d'inaction.
-- **Genuinely non-obvious** — connexion entre domaines lointains, pattern caché, conclusion qui n'aurait pas émergé sans analyse croisée. **À mettre en avant car plus précieuse.**
+**Type definitions:**
+- **Obvious-but-important** — logical and expected idea, but not yet actioned. Reduces debt of inaction.
+- **Genuinely non-obvious** — connection between distant domains, hidden pattern, conclusion that wouldn't have emerged without cross-analysis. **Highlight because more valuable.**
 
-### 1. Outils à construire
-Outils, scripts, automatisations qui résoudraient une friction identifiée.
+### 1. Tools to build
+Tools, scripts, automations that would resolve an identified friction.
 
-### 2. Conversations à avoir
-Personnes à contacter, sujets à aborder — déclenchés par un problème ou une opportunité.
+### 2. Conversations to have
+People to contact, topics to address — triggered by a problem or opportunity.
 
-### 3. Essays à écrire
-Tensions intellectuelles, opinions forgées, points de vue qui méritent d'être écrits.
+### 3. Essays to write
+Intellectual tensions, forged opinions, viewpoints worth writing.
 
-### 4. Projets à démarrer
-Nouvelles initiatives distinctes des projets actuels.
+### 4. Projects to launch
+New initiatives distinct from current projects.
 
-### 5. Skills à développer
-Compétences identifiées comme manquantes ou à renforcer pour accélérer/débloquer des patterns.
+### 5. Skills to develop
+Identified competencies as missing or to strengthen to accelerate/unblock patterns.
 
-### 6. Personnes à connecter
-Collaborations potentielles, mentors, communautés pour un domaine actif.
+### 6. People to connect
+Potential collaborations, mentors, communities for an active domain.
 
-### 7. Systèmes à améliorer
-Process, workflows, routines qui pourraient être optimisés ou automatisés.
+### 7. Systems to improve
+Processes, workflows, routines that could be optimized or automated.
 
-### 8. Questions à répondre
-Questions ouvertes présentes dans le vault sans réponse actuelle.
+### 8. Questions to answer
+Open questions present in the vault without current answer.
 
-### 9. Expériences à lancer
-Tests/expérimentations rapides à faire pour valider une hypothèse ou apprendre.
+### 9. Experiments to run
+Quick tests/experiments to validate a hypothesis or learn.
 
-**Règle de volume** : 2-3 idées maximales par catégorie. Mieux vaut 6-8 idées fortes et sourcées que 25 vagues.
+**Volume rule** : 2-3 ideas max per category. Better 6-8 strong, sourced ideas than 25 vague ones.
 
 ---
 
 
-## Étape 4 — Prioritisation finale
+## Step 4 — Final prioritization
 
-**Top 3 actions à plus fort impact**
-Basées sur : effort/impact, alignement avec les projets actifs, et les bottlenecks identifiés en Étape 2.
+**Top 3 highest-impact actions**
+Based on: effort/impact, alignment with active projects, and bottlenecks identified in Step 2.
 
-**1 opportunité clé**
-L'idée la plus importante émergée dans cette session — celle qui, si actionnée, débloque ou change significativement une friction ou un domaine.
+**1 key opportunity**
+The most important idea that emerged in this session — the one that, if actioned, unblocks or significantly changes a friction or domain.
 
 ```
-OPPORTUNITE CLE : [titre]
+KEY OPPORTUNITY : [title]
 → Type : obvious-but-important / genuinely non-obvious
-→ Pourquoi celle-là : [raisonnement en 2-3 phrases basé sur Étape 2]
-→ Première étape concrète : [action minimale pour démarrer]
+→ Why this one : [2-3 sentence reasoning based on Step 2]
+→ First concrete step : [minimal action to get started]
 ```
 
 ---
 
-## Étape 5 — Persistance et décision ticket
+## Step 5 — Persistence and ticket decision
 
-### Sauvegarder le rapport (obligatoire)
+### Save the report (mandatory)
 
-Créer `03 - Knowledge/Ideas/YYYY-MM-DD.md` avec la structure suivante :
+Create `03 - Knowledge/Ideas/YYYY-MM-DD.md` with the following structure:
 
 ```markdown
 ---
 date: YYYY-MM-DD
 type: ideas-session
-vault-state: complet (6/6 sources) | partiel (2-5/6 sources) | faible (< 2/6)
+vault-state: complete (6/6 sources) | partial (2-5/6 sources) | weak (< 2/6)
 ---
 
 # Session /ideas — YYYY-MM-DD
 
-## Synthèse 4 dimensions
-[Tableau Étape 2 : Ce qui marche | Ce qui frustre | Ce qui manque | Bottlenecks]
+## 4-dimension synthesis
+[Table from Step 2 : What works | What frustrates | What's missing | Bottlenecks]
 
-## Idées par catégorie
-[Toutes les idées des 9 catégories — Étape 3 — avec type + source + effort + pourquoi maintenant]
+## Ideas by category
+[All ideas from 9 categories — Step 3 — with type + source + effort + why now]
 
-## Prioritisation
-[Top 3 + Opportunité clé — Étape 4]
+## Prioritization
+[Top 3 + Key opportunity — Step 4]
 
-## Tickets générés
-[Si Victor a ticketisé : liste + kanbans cible]
+## Generated tickets
+[If Victor ticketed: list + target kanbans]
 ```
 
-### Présenter la liste de ticketing
+### Present the ticketing list
 
-Afficher à Victor une liste numérotée avec : titre + catégorie + kanban cible + effort. **Victor choisit explicitement** lesquels créer (numéros, "tout", ou "rien").
+Display to Victor a numbered list with: title + category + target kanban + effort. **Victor explicitly chooses** which ones to create (numbers, "all", or "none").
 
-**Kanbans par défaut (routage) :**
-- Outils/Systèmes → `99 - Claude Code/Claude Code Kanban.md`
-- Projets → kanban du projet correspondant
-- Skills/Questions/Expériences → Claude Code Kanban
-- Essays → Claude Code Kanban (colonne Idea)
-- Conversations/Personnes → Claude Code Kanban
+**Default kanbans (routing):**
+- Tools/Systems → `99 - Claude Code/Claude Code Kanban.md`
+- Projects → project's kanban
+- Skills/Questions/Experiments → Claude Code Kanban
+- Essays → Claude Code Kanban (Idea column)
+- Conversations/People → Claude Code Kanban
 
-**Une fois confirmé :** pour chaque ticket à créer, appliquer le skill `create-ticket` avec `column=Idea`, `type` qualifié, `project` si applicable, et `context` = source (note + YYYY-MM-DD) + effort estimé.
+**Once confirmed:** for each ticket to create, apply the `create-ticket` skill with `column=Idea`, qualified `type`, `project` if applicable, and `context` = source (note + YYYY-MM-DD) + estimated effort.
 
-### Mettre à jour command-tracker
+### Update command-tracker
 
-Après persistance, ajouter une ligne à `99 - Claude Code/command-tracker.md` :
+After persistence, add a line to `99 - Claude Code/command-tracker.md`:
 
 ```
-/ideas | YYYY-MM-DD | ~20-30 jours | X tickets créés
+/ideas | YYYY-MM-DD | ~20-30 days | X tickets created
 ```
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- **Sourcing obligatoire** : chaque idée cite sa source (note + date) ou pattern explicite du vault (ex. "bloqué depuis 15j en Blocked"). Si sourcing impossible → rejeter l'idée.
-- **Synthèse d'abord** : présenter tableau 4 dimensions (Étape 2) — attendre validation Victor avant Étape 3.
-- **Pas de création autonome** : tickets créés uniquement sur choix explicite de Victor (numéros, "tout", ou "rien").
-- **Pas de brainstorming générique** : uniquement des idées du vault, zéro suggestion libre.
-- **Pas de duplication** : si `/drift` ou `/emerge` ont déjà couvert un signal en Étape 1, l'omettre.
-- **Rapport obligatoire** : `03 - Knowledge/Ideas/YYYY-MM-DD.md` créée même si Victor ne ticketise rien.
-- **Signal faible** : si plus de 4 sources sont vides, signaler et proposer d'attendre 1 semaine supplémentaire ou continuer avec patterns partiels.
+- **Mandatory sourcing** : each idea cites its source (note + date) or explicit vault pattern (ex. "blocked for 15d in Blocked"). If sourcing impossible → reject the idea.
+- **Synthesis first** : present 4-dimension table (Step 2) — wait for Victor validation before Step 3.
+- **No autonomous creation** : tickets created only on Victor's explicit choice (numbers, "all", or "none").
+- **No generic brainstorming** : only ideas from the vault, zero free suggestion.
+- **No duplication** : if `/drift` or `/emerge` already covered a signal in Step 1, omit it.
+- **Mandatory report** : `03 - Knowledge/Ideas/YYYY-MM-DD.md` created even if Victor doesn't ticket anything.
+- **Weak signal** : if more than 4 sources are empty, signal and propose waiting 1 additional week or continuing with partial patterns.
 
 ---
 
-## Exemple de scénario d'invocation
+## Example invocation scenario
 
-Victor dit : "génère des idées — j'ai pas bouffé depuis 2 semaines et je sais pas sur quoi me brancher"
+Victor says: "generate ideas — I haven't eaten in 2 weeks and I don't know what to focus on"
 
-1. Lire daily notes 2 dernières semaines + sessions + kanbans → Étape 1
-2. Synthétiser en 4 dimensions (tableau) → Étape 2 → présenter à Victor
-3. Attendre confirmation Victor : "ok, continue" ou "attends je dois ajouter un truc"
-4. Générer idées 9 catégories, chaque idée avec type/source/effort/pourquoi → Étape 3
-5. Top 3 + Opportunité clé → Étape 4
-6. Sauvegarder rapport + proposer ticketing → Étape 5
-7. Créer tickets sur confirmation Victor → Étape 5 (fin)
+1. Read daily notes last 2 weeks + sessions + kanbans → Step 1
+2. Synthesize in 4 dimensions (table) → Step 2 → present to Victor
+3. Wait Victor confirmation: "ok, continue" or "wait I need to add something"
+4. Generate ideas 9 categories, each idea with type/source/effort/why → Step 3
+5. Top 3 + Key opportunity → Step 4
+6. Save report + propose ticketing → Step 5
+7. Create tickets on Victor confirmation → Step 5 (end)

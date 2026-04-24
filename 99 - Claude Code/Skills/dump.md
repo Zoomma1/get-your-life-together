@@ -1,71 +1,71 @@
 ---
 name: dump
-description: Session de vidage mental à la demande — Victor écrit librement, Claude pose des questions de relance adaptées au contenu, puis génère un bloc horodaté prêt à coller dans la daily note. Déclencher dès que Victor dit "/dump", "j'ai besoin de vider", "thinking session", "j'ai la tête pleine", "j'ai des trucs à extérioriser", "besoin de décharger", ou toute formulation qui exprime un besoin d'externalisation mentale ou émotionnelle non structurée — même sans le mot "dump".
+description: On-demand mental dumping session — Victor writes freely, Claude asks follow-up questions tailored to the content, then generates a timestamped block ready to paste into the daily note. Trigger whenever Victor says "/dump", "I need to dump", "thinking session", "my head is full", "I have stuff to get out", "need to offload", or any phrasing expressing a need for unstructured mental or emotional externalization — even without the word "dump".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected from aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **narrative qualitative output**. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`** : in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (grouping, context, key moments, open questions, tone, narration). The preservation of qualitative content takes priority over line reduction.
 
 # Skill : dump
 
-Session d'externalisation en trois temps : écoute libre → questions de relance → bloc copier-collable pour la daily note.
+Externalization session in three steps : open listening → follow-up questions → copyable block for the daily note.
 
-## Étape 1 — Invitation
+## Step 1 — Invitation
 
-Ouvrir la session avec une invitation courte et non directive :
+Open the session with a short, non-directive invitation :
 
-> "Je t'écoute — balance ce que t'as sur la tête."
+> "I'm listening — dump what's on your mind."
 
-Ne pas poser de questions à cette étape. Ne pas proposer de structure ni de thème. L'invitation doit être neutre pour ne pas orienter le dump avant qu'il commence.
+Do not ask questions at this stage. Do not propose structure or themes. The invitation should be neutral to avoid orienting the dump before it starts.
 
-## Étape 2 — Relance
+## Step 2 — Follow-up
 
-Lire attentivement ce que Victor a écrit. Identifier les fils qui méritent d'être tirés : tensions non nommées, décisions implicites, émotions sous-jacentes, contradictions, choses dites à demi-mot.
+Read carefully what Victor has written. Identify threads worth pulling : unnamed tensions, implicit decisions, underlying emotions, contradictions, things said in half-words.
 
-Poser 3 questions de relance adaptées à ce dump précis — ni plus ni moins, sauf si Victor dit "génère directement" (voir plus bas). Choisir les 3 angles qui ouvrent le plus, pas les plus évidents.
+Ask 3 follow-up questions tailored to this specific dump — no more, no less, unless Victor says "generate directly" (see below). Choose the 3 angles that open up the most, not the most obvious ones.
 
-Quelques angles utiles à adapter selon le contenu :
-- "C'est quoi l'enjeu derrière ça ?"
-- "Et alors, qu'est-ce que ça change pour toi ?"
-- "Qu'est-ce que tu ressens par rapport à X ?"
-- "Tu en fais quoi maintenant ?"
-- "C'est quoi le truc que tu n'as pas dit ?"
+A few useful angles to adapt based on content :
+- "What's the issue behind this?"
+- "So, what does that change for you?"
+- "What do you feel about X?"
+- "What are you doing with it now?"
+- "What's the thing you didn't say?"
 
-**Dump très court (2-3 mots ou fragment)** : demander "Tu veux développer, ou c'est juste une capture rapide ?" avant de poser des questions de relance.
+**Very short dump (2-3 words or fragment)** : ask "Do you want to expand, or is this just a quick capture?" before asking follow-up questions.
 
-**Victor dit "génère directement"** : sauter les questions et aller à l'Étape 3 immédiatement.
+**Victor says "generate directly"** : skip follow-up questions and go to Step 3 immediately.
 
-## Étape 3 — Génération et écriture dans la daily note
+## Step 3 — Generation and writing to daily note
 
-Générer un bloc qui synthétise l'échange. Distiller, pas transcrire : ce qui a été dit, ce qui a émergé, ce que Victor en retient.
+Generate a block that synthesizes the exchange. Distill, don't transcribe : what was said, what emerged, what Victor takes from it.
 
-Format du bloc :
+Block format :
 
 ```
 ### Thinking session — HH:MM
-[2-5 phrases condensant l'essentiel de la session]
+[2-5 sentences condensing the essence of the session]
 ```
 
-**Calcul de la date et de l'heure** :
-- Obtenir l'heure via `date +%H:%M` (bash) / `(Get-Date).ToString("HH:mm")` (PowerShell)
-- Si `heure < 04:00` → date cible = veille, ajouter `🌙 (après minuit)` au titre du bloc
-- Sinon → date cible = aujourd'hui, titre inchangé
+**Time calculation** :
+- Get time via `date +%H:%M` (bash) / `(Get-Date).ToString("HH:mm")` (PowerShell)
+- If `time < 04:00` → target date = yesterday, add `🌙 (after midnight)` to block title
+- Otherwise → target date = today, title unchanged
 
-Titre du bloc selon le contexte :
-- Heure normale : `### Thinking session — HH:MM`
-- Après minuit : `### Thinking session — HH:MM 🌙 (après minuit)`
+Block title based on context :
+- Normal time : `### Thinking session — HH:MM`
+- After midnight : `### Thinking session — HH:MM 🌙 (after midnight)`
 
-Écrire automatiquement le bloc dans la daily note correspondante :
-1. Trouver le fichier `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\[date cible].md`
-2. Insérer le bloc à la fin de la section `## 💡 Idées & Réflexions`
-3. Confirmer : "Noté dans ta daily du [date cible]."
+Automatically write the block to the daily note :
+1. Find file `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\[target date].md`
+2. Insert block at the end of `## 💡 Ideas & Reflections` section
+3. Confirm : "Noted in your daily note for [target date]."
 
-**Plusieurs sessions dans la même journée** : chaque bloc est horodaté séparément, inséré à la suite dans la section. Ne pas fusionner les sessions.
+**Multiple sessions same day** : each block is timestamped separately, inserted in sequence in the section. Do not merge sessions.
 
 ## Notes
 
-**Canal Telegram disponible** : si Victor est mobile, le dump peut être envoyé directement depuis le téléphone via le canal Telegram. Le comportement est identique — premier message = le dump, Claude pose 3 questions de relance directement (sans redemander "balance ce que t'as"), synthèse écrite dans la daily note du jour. Voir CLAUDE.md § `📱 Channel Telegram` pour le comportement détaillé.
+**Telegram channel available** : if Victor is mobile, the dump can be sent directly from the phone via Telegram channel. The behavior is identical — first message = the dump, Claude asks 3 follow-up questions directly (without re-asking "dump what's on your mind"), synthesis written to today's daily note. See CLAUDE.md § `📱 Channel Telegram` for detailed behavior.

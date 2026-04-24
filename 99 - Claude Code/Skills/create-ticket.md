@@ -1,160 +1,160 @@
 ---
 name: create-ticket
-description: Point d'entrée unique pour créer un ticket — fichier note + insertion kanban. Lit `04 - Projects/INDEX.md` pour résoudre le Kanban, le dossier tickets et le slug du projet. Auto-numérotation par scan du dossier tickets. Invoqué par les skills qui génèrent des tickets (drift, ideas, vault-harvest, today) et directement par Victor. Garantit un format cohérent et une position unique dans le kanban.
+description: Single entry point to create a ticket — note file + kanban insertion. Reads `04 - Projects/INDEX.md` to resolve Kanban, tickets folder, and project slug. Auto-numbering by scanning tickets folder. Invoked by skills that generate tickets (drift, ideas, vault-harvest, today) and directly by Victor. Guarantees consistent format and unique position in kanban.
 ---
 
-# Skill : Create Ticket
+# Skill: Create Ticket
 
-Middleware qui centralise la création de tickets. Les skills appelants (`/drift`, `/ideas`, `/vault-harvest`, `/today`) délèguent à ce skill en passant title, type, projet, colonne, contexte. Retourne le chemin du fichier créé.
+Middleware that centralizes ticket creation. Calling skills (`/drift`, `/ideas`, `/vault-harvest`, `/today`) delegate to this skill by passing title, type, project, column, context. Returns the path of created file.
 
-## Paramètres
+## Parameters
 
-| Paramètre | Requis | Valeurs                                      | Défaut                |
-| --------- | ------ | -------------------------------------------- | --------------------- |
-| `title`   | Oui    | Texte libre                                  | —                     |
-| `type`    | Oui    | `💡 Idée` / `⏫ Improvement` / `🐛 Bug`      | —                     |
-| `project` | Non    | Nom du projet (doit être dans INDEX.md)      | null (→ "Personnel")  |
-| `column`  | Non    | `Idea` / `Blocked` / `Ready` / `WIP`         | `Idea`                |
-| `context` | Non    | Phrase courte pour la carte kanban           | —                     |
+| Parameter | Required | Values                                      | Default                |
+| --------- | -------- | -------------------------------------------- | --------------------- |
+| `title`   | Yes      | Free text                                    | —                     |
+| `type`    | Yes      | `💡 Idea` / `⏫ Improvement` / `🐛 Bug`      | —                     |
+| `project` | No       | Project name (must be in INDEX.md)           | null (→ "Personal")    |
+| `column`  | No       | `Idea` / `Blocked` / `Ready` / `WIP`         | `Idea`                |
+| `context` | No       | Short phrase for kanban card                 | —                     |
 
-## Étape 1 — Résoudre la destination via INDEX.md
+## Step 1 — Resolve destination via INDEX.md
 
-Lire `04 - Projects/INDEX.md`. Chercher dans la table "Projets actifs" la ligne correspondant à `project` (comparaison insensible à la casse, accepte nom complet ou slug entre parenthèses — ex: `Rust deploy tool (Husker)` match aussi bien `Rust deploy tool` que `Husker`).
+Read `04 - Projects/INDEX.md`. Search in "Active projects" table for line matching `project` (case-insensitive comparison, accepts full name or slug in parentheses — ex: `Rust deploy tool (Husker)` matches both `Rust deploy tool` and `Husker`).
 
-**Si `project` fourni et trouvé dans INDEX.md** :
-- Extraire `kanban_path` depuis la colonne "Kanban" (lien Obsidian `[[...]]`, ou `—` si pas de kanban)
-- Extraire `tickets_folder` depuis la colonne "Tickets" (chemin entre backticks, ex: `04 - Projects/Rust - Deploy Tool/Tickets`)
-- Extraire `slug` depuis la colonne "Slug" (valeur entre backticks, ex: `HUSKER`)
-- Si `kanban_path` = `—` → signaler à Victor "Projet sans Kanban, impossible d'insérer — créer un Kanban d'abord ?" et attendre validation
+**If `project` provided and found in INDEX.md**:
+- Extract `kanban_path` from "Kanban" column (Obsidian link `[[...]]`, or `—` if no kanban)
+- Extract `tickets_folder` from "Tickets" column (path in backticks, ex: `04 - Projects/Rust - Deploy Tool/Tickets`)
+- Extract `slug` from "Slug" column (value in backticks, ex: `HUSKER`)
+- If `kanban_path` = `—` → signal to Victor "Project without Kanban, cannot insert — create Kanban first?" and wait for validation
 
-**Si `project` fourni mais absent d'INDEX.md** :
-- Signaler : "Projet `<nom>` absent de INDEX.md, j'utilise le fallback Inbox"
+**If `project` provided but absent from INDEX.md**:
+- Signal: "Project `<name>` missing from INDEX.md, using Inbox fallback"
 - `tickets_folder = 09 - Inbox/tickets`
 - `kanban_path = 99 - Claude code/Claude Code Kanban`
 - `slug = null`
 
-**Si `project` non fourni** :
+**If `project` not provided**:
 - `tickets_folder = 09 - Inbox/tickets`
 - `kanban_path = 99 - Claude code/Claude Code Kanban`
 - `slug = null`
 
-## Étape 2 — Auto-numérotation (si slug défini)
+## Step 2 — Auto-numbering (if slug defined)
 
-**Si `slug` est défini** :
+**If `slug` is defined**:
 - Glob `<tickets_folder>/<slug-lowercase>-*.md`
-- Pour chaque fichier trouvé, extraire NN via regex : `^<slug-lowercase>-(\d{2})-`
-- `max_nn` = max des NN trouvés (ou `0` si aucun match)
-- `next_nn` = `max_nn + 1`, formaté sur 2 chiffres zero-padded (`01`, `02`, …, `17`)
+- For each file found, extract NN via regex: `^<slug-lowercase>-(\d{2})-`
+- `max_nn` = max of NN found (or `0` if no match)
+- `next_nn` = `max_nn + 1`, formatted on 2 digits zero-padded (`01`, `02`, …, `17`)
 
-**Si `slug` est null** : `next_nn = null` (pas de préfixe, ancien format).
+**If `slug` is null**: `next_nn = null` (no prefix, old format).
 
-## Étape 3 — Slugifier le titre + calculer le nom de fichier
+## Step 3 — Slugify title + calculate filename
 
-Slugifier `title` : minuscules, espaces → tirets, supprimer accents et caractères spéciaux.
-Exemples :
+Slugify `title`: lowercase, spaces → dashes, remove accents and special characters.
+Examples:
 - "Refaire le bureau à Issy" → `refaire-bureau-issy`
 - "Bug OAuth" → `bug-oauth`
 - "Setup repo Cargo + structure src/" → `setup-repo-cargo-structure-src`
 
-**Nom du fichier** :
-- Avec slug : `<slug-lowercase>-<next_nn>-<slug-titre>.md` (ex: `husker-01-setup-repo-cargo.md`)
-- Sans slug : `<slug-titre>.md` (ex: `refaire-bureau-issy.md`)
+**Filename**:
+- With slug: `<slug-lowercase>-<next_nn>-<slug-title>.md` (ex: `husker-01-setup-repo-cargo.md`)
+- Without slug: `<slug-title>.md` (ex: `refaire-bureau-issy.md`)
 
-**Titre frontmatter** (`TITLE_FRONT`) :
-- Avec slug : `<SLUG>-<NN> — <title>` (ex: `HUSKER-01 — Setup repo Cargo`)
-- Sans slug : `<title>` (ex: `Refaire le bureau à Issy`)
+**Frontmatter title** (`TITLE_FRONT`):
+- With slug: `<SLUG>-<NN> — <title>` (ex: `HUSKER-01 — Setup repo Cargo`)
+- Without slug: `<title>` (ex: `Refaire le bureau à Issy`)
 
-## Étape 4 — Vérifier absence de doublon
+## Step 4 — Check for duplicate
 
-Glob `<tickets_folder>/*<slug-titre>*.md` — chercher un fichier existant avec le même slug de titre (titre trop proche).
+Glob `<tickets_folder>/*<slug-title>*.md` — search for existing file with similar title slug (title too close).
 
-**Si doublon détecté** : signaler à Victor et arrêter. Valider avant de continuer (peut-être le même ticket déjà créé, ou titre à nuancer).
+**If duplicate detected**: signal to Victor and stop. Validate before continuing (maybe same ticket already created, or title needs nuance).
 
-## Étape 5 — Créer le fichier note
+## Step 5 — Create note file
 
-Écrire le fichier `<tickets_folder>/<filename>` avec ce template :
+Write file `<tickets_folder>/<filename>` with this template:
 
 ````markdown
 ---
 title: <TITLE_FRONT>
 date: YYYY-MM-DD
 type: <type>
-project: <project ou "Personnel">
+project: <project or "Personal">
 ---
 
 # <TITLE_FRONT>
 
-## Résumé
+## Summary
 
-<!-- Ce que ça fait en 2-3 phrases -->
+<!-- What it does in 2-3 sentences -->
 
-## Contexte / Pourquoi
+## Context / Why
 
-<!-- Quel problème ça résout, pourquoi maintenant -->
+<!-- What problem it solves, why now -->
 
-## Comportement attendu
+## Expected behavior
 
-## Hors scope
+## Out of scope
 
-## Notes techniques
+## Technical notes
 
-<!-- Contraintes, idées d'implémentation, dépendances -->
+<!-- Constraints, implementation ideas, dependencies -->
 
-## Specs générées
+## Generated specs
 
-<!-- Rempli par /specs -->
+<!-- Filled by /specs -->
 ````
 
-**Règles** :
-- Ne **jamais** ajouter `status` au frontmatter — le kanban fait foi
-- `project` = "Personnel" si aucun projet fourni
-- Date : `YYYY-MM-DD` au format ISO (jour actuel)
-- Créer le dossier `<tickets_folder>` s'il n'existe pas encore (premier ticket du projet)
+**Rules**:
+- **Never** add `status` to frontmatter — kanban is the source of truth
+- `project` = "Personal" if no project provided
+- Date: `YYYY-MM-DD` ISO format (today)
+- Create `<tickets_folder>` directory if it doesn't exist yet (first project ticket)
 
-## Étape 6 — Insérer dans le Kanban
+## Step 6 — Insert into Kanban
 
-Lire le fichier Kanban cible (`kanban_path`). Localiser la section `## <column>` (ex : `## Idea`, `## Ready`).
+Read target Kanban file (`kanban_path`). Locate `## <column>` section (ex: `## Idea`, `## Ready`).
 
-**Si la section n'existe pas** : créer la section avant d'y insérer.
+**If section doesn't exist**: create section before inserting.
 
-Ajouter **à la fin de la section** (avant le prochain `##` ou la fin du fichier) :
+Add **at end of section** (before next `##` or end of file):
 
 ```markdown
-- [ ] [[<filename-sans-extension>|<TITLE_FRONT>]]<contexte optionnel>
+- [ ] [[<filename-without-extension>|<TITLE_FRONT>]]<optional context>
 ```
 
-Utiliser le nom court (sans chemin) — Obsidian résout via son index global. Si conflit de nom possible (doublon global), utiliser le chemin complet `[[<tickets_folder>/<filename-sans-extension>|<TITLE_FRONT>]]`.
+Use short name (no path) — Obsidian resolves via global index. If possible name conflict (global duplicate), use full path `[[<tickets_folder>/<filename-without-extension>|<TITLE_FRONT>]]`.
 
-**Si `context` fourni** : ajouter ` — <context>` à la suite du lien.
+**If `context` provided**: add ` — <context>` after link.
 
-## Retour attendu
+## Expected return
 
-Toujours retourner :
+Always return:
 ```
-Ticket créé : <tickets_folder>/<filename>
-Inséré dans : <kanban_path> (colonne <column>)
+Ticket created: <tickets_folder>/<filename>
+Inserted in: <kanban_path> (column <column>)
 ```
 
-## Règles absolues
+## Absolute rules
 
-1. **Toujours créer le fichier ET l'ajouter au Kanban** — un ticket sans kanban naît orphelin
-2. **Résolution INDEX.md first** — jamais de hardcoding de chemins ou de slugs par projet
-3. **Vérifier absence de doublon en Étape 4** — si doublon, signaler à Victor et attendre validation
-4. **Le Kanban est l'unique source de vérité pour le statut** — pas de `status` dans le frontmatter
-5. **Auto-numérotation atomique par scan** — pas de compteur persistant externe
-6. **Fallback Inbox jamais en silence** — toujours signaler à Victor si le projet est absent d'INDEX.md
+1. **Always create file AND add to Kanban** — ticket without kanban is born orphaned
+2. **INDEX.md resolution first** — never hardcode paths or slugs per project
+3. **Check for duplicate in Step 4** — if duplicate, signal to Victor and wait for validation
+4. **Kanban is sole source of truth for status** — no `status` in frontmatter
+5. **Atomic auto-numbering by scan** — no persistent external counter
+6. **Inbox fallback never silent** — always signal to Victor if project missing from INDEX.md
 
-## Utilisation par d'autres skills
+## Usage by other skills
 
-Skills appelants (`/drift`, `/ideas`, `/vault-harvest`, `/today`) :
+Calling skills (`/drift`, `/ideas`, `/vault-harvest`, `/today`):
 
 ```
-Appliquer create-ticket avec :
-- title: "<titre du ticket>"
+Apply create-ticket with:
+- title: "<ticket title>"
 - type: "<type>"
-- project: "<nom projet ou null>"
+- project: "<project name or null>"
 - column: "<Idea|Blocked|Ready|WIP>"
-- context: "<contexte optionnel>"
+- context: "<optional context>"
 ```
 
-Un seul point de maintenance pour format et logique. Toute évolution (nouveau champ frontmatter, nouveau format de slug) se fait ici et se propage à tous les skills appelants.
+Single point of maintenance for format and logic. Any evolution (new frontmatter field, new slug format) happens here and propagates to all calling skills.

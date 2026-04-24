@@ -1,186 +1,186 @@
 ---
 name: vault-link
-description: Analyser le vault et créer des liens [[]] entre les notes. Déclenche ce skill quand Victor dit "/link", "fais le linking", "relie mes notes" ou "vault link".
+description: Analyse the vault and create [[]] links between notes. Trigger this skill when {USER_NAME} says "/link", "do the linking", "connect my notes" or "vault link".
 ---
-# Skill : Vault Link
+# Skill: Vault Link
 
-Ce skill analyse le vault et propose des liens Obsidian `[[]]` entre les notes qui parlent des mêmes sujets. Il ne modifie jamais une note sans validation explicite de Victor.
+This skill analyses the vault and proposes Obsidian `[[]]` links between notes that cover the same subjects. It never modifies a note without explicit validation from {USER_NAME}.
 
-Philosophie d'ancrage : le rôle est de rendre le graphe traversable, pas de générer de la compréhension. Claude connecte. Victor pense. Un graphe bien traversable permet à d'autres commandes comme `/emerge`, `/trace` ou `/connect` de fonctionner correctement — c'est l'enjeu réel du linking.
+Anchoring philosophy: the role is to make the graph traversable, not to generate understanding. Claude connects. {USER_NAME} thinks. A well-traversable graph allows other commands like `/emerge`, `/trace` or `/connect` to function correctly — that is the real stake of linking.
 
-## Déclenchement
+## Trigger
 
-- Victor dit "/link", "fais le linking", "relie mes notes"
-- Victor précise un dossier : "/link mes notes Warhammer"
-- Sans précision → analyser tout le vault
+- {USER_NAME} says "/link", "do the linking", "connect my notes"
+- {USER_NAME} specifies a folder: "/link my Warhammer notes"
+- Without specification → analyse the entire vault
 
-## Heuristiques apprises — refus de Victor
+## Learned heuristics — {USER_NAME}'s rejections
 
-Ces règles s'appliquent dès la génération des suggestions, pas après.
+These rules apply from the moment suggestions are generated, not after.
 
-### Préférer le spécifique au général
-Ne pas lier vers une note agrégat/suivi quand une note spécifique au sujet existe. Exemple : une note sur les Drukhari doit pointer vers `[[Drukhari - Schema couleurs Squidmar]]`, pas vers `[[suivi-armees]]` (trop générique).
+### Prefer the specific over the general
+Do not link to an aggregate/tracking note when a specific note on the subject exists. Example: a note on Drukhari should point to `[[Drukhari - Squidmar colour scheme]]`, not to `[[army-tracking]]` (too generic).
 
-### Ne pas lier deux projets distincts qui partagent un sujet commun
-Warhammer (hobby) et FSTG (projet logiciel) parlent tous les deux de figurines, mais ce sont deux projets indépendants dans le vault. Ne pas créer de liens croisés entre eux — le sujet commun ne suffit pas, il faut que les notes se complètent fonctionnellement.
+### Do not link two distinct projects that share a common subject
+Warhammer (hobby) and FSTG (software project) both talk about miniatures, but they are two independent projects in the vault. Do not create cross-links between them — the common subject is not enough, the notes must functionally complement each other.
 
-### Ne pas lier l'organisation d'un projet avec les notes personnelles d'un autre domaine
-La note `Event warhammer.md` (organisation Ludisep) ne doit pas pointer vers `suivi-armees.md` (hobby perso). La gestion associative et la collection personnelle sont deux contextes séparés, même si le sujet (Warhammer) est le même.
+### Do not link the organisation of one project with the personal notes of another domain
+The note `Event warhammer.md` (Ludisep organisation) should not point to `army-tracking.md` (personal hobby). Associative management and personal collection are two separate contexts, even if the subject (Warhammer) is the same.
 
-### Vérifier l'existence du lien avant de le proposer
-Lire le contenu complet de la note source (corps du texte, sections "Voir aussi", "Connexions", liens inline `→ [[...]]`) avant de suggérer un lien. Ne jamais proposer un lien déjà présent, quelle que soit sa forme dans la note.
+### Check link existence before proposing
+Read the full content of the source note (body text, "See also", "Connections" sections, inline links `→ [[...]]`) before suggesting a link. Never propose a link already present, regardless of its form in the note.
 
-### Si Victor refuse l'ensemble du résultat
-Ne pas relancer une session similaire sans signal explicite. Noter le contexte du refus (type de notes, périmètre, thème) pour améliorer la détection future.
+### If {USER_NAME} rejects the entire result
+Do not re-run a similar session without an explicit signal. Note the context of the rejection (note type, scope, theme) to improve future detection.
 
-## Étape 1 — Périmètre et validation minimale
+## Step 1 — Scope and minimal validation
 
-Si Victor précise un dossier ou une note → se limiter à ce périmètre. Sans précision → scanner tous les dossiers sauf `00 - Daily notes/` (trop de volume, liens éphémères), en incluant obligatoirement `99 - Claude Code/Sessions/`.
+If {USER_NAME} specifies a folder or note → limit to that scope. Without specification → scan all folders except `00 - Daily notes/` (too much volume, ephemeral links), including obligatorily `99 - Claude Code/Sessions/`.
 
-Lister les dossiers qui seront analysés et attendre confirmation de Victor.
+List the folders that will be analysed and wait for {USER_NAME}'s confirmation.
 
-**Validation minimale avant de continuer :**
-- Si périmètre < 5 notes : proposer élargissement ("Périmètre insuffisant — analyser [dossier] en plus ?")
-- Si périmètre > 200 notes : proposer subdivision ("Périmètre trop large — prioriser [dossier] d'abord ?")
+**Minimal validation before continuing:**
+- If scope < 5 notes: propose broadening ("Insufficient scope — also analyse [folder]?")
+- If scope > 200 notes: propose subdivision ("Scope too large — prioritise [folder] first?")
 
 ---
 
-## Étape 2 — Inventaire structurel
+## Step 2 — Structural inventory
 
-Avant de lire le contenu des notes, faire un scan structurel pour prioriser la lecture. Les orphans et deadends sont les candidats prioritaires — ce sont eux qui bénéficient le plus du linking.
+Before reading note content, do a structural scan to prioritise reading. Orphans and deadends are the priority candidates — they benefit most from linking.
 
-### 2a. Énumérer et détecter les orphans / deadends
+### 2a. Enumerate and detect orphans / deadends
 
-Pour chaque dossier à analyser :
-- Utiliser Glob pour énumérer tous les fichiers `.md` (pattern : `dossier/**/*.md`)
-- Pour chaque fichier, utiliser Grep pour chercher `\[\[` : 0 résultat → deadend (note sans lien sortant)
-- Pour chaque fichier X, utiliser Grep pour chercher `\[\[X(\|[^\]]+)?\]\]` dans le périmètre analysé (remplacer X par le slug du fichier sans .md, accepter les alias via `|`) : 0 résultat → orphan (note sans lien entrant)
+For each folder to analyse:
+- Use Glob to enumerate all `.md` files (pattern: `folder/**/*.md`)
+- For each file, use Grep to look for `\[\[`: 0 results → deadend (note with no outgoing links)
+- For each file X, use Grep to look for `\[\[X(\|[^\]]+)?\]\]` in the analysed scope (replace X with the file slug without .md, accept aliases via `|`): 0 results → orphan (note with no incoming links)
 
-Prioriser les notes qui sont à la fois orphans ET deadends (isolation complète).
+Prioritise notes that are both orphans AND deadends (complete isolation).
 
-Résultat attendu : liste des orphans, deadends, et hubs (notes avec 5+ références entrantes).
+Expected result: list of orphans, deadends, and hubs (notes with 5+ incoming references).
 
-### 2b. Détecter les liens non résolus
+### 2b. Detect unresolved links
 
-Utiliser Grep avec le pattern `\[\[([^\]]+)\]\]` sur le périmètre pour extraire tous les liens. Pour chaque lien trouvé (sans le suffixe alias `|...`), utiliser Glob pour vérifier que le fichier `lien-cible.md` existe. Lister les liens qui ne correspondent à aucun fichier.
+Use Grep with pattern `\[\[([^\]]+)\]\]` on the scope to extract all links. For each found link (without the alias suffix `|...`), use Glob to verify that the target file `target-link.md` exists. List links that correspond to no file.
 
-**Si des liens brisés existent :** présenter à Victor avec raison supposée ("note à créer" vs "lien mal formé"). Attendre instruction avant d'agir.
+**If broken links exist:** present to {USER_NAME} with supposed reason ("note to create" vs "malformed link"). Wait for instruction before acting.
 
-## Étape 3 — Analyse des connexions
+## Step 3 — Connection analysis
 
-Lire les notes prioritaires identifiées à l'Étape 2 en cet ordre :
-1. Notes à la fois orphans et deadends (isolation complète)
-2. Orphans seuls, puis deadends seuls
-3. Notes dans les dossiers actifs (`03 - Knowledge/`, `04 - Projects/`, `99 - Claude Code/`) — ces dossiers contiennent les notes les plus récemment modifiées par défaut
-4. Hubs (notes avec 5+ références)
+Read the priority notes identified in Step 2 in this order:
+1. Notes that are both orphans and deadends (complete isolation)
+2. Orphans only, then deadends only
+3. Notes in active folders (`03 - Knowledge/`, `04 - Projects/`, `99 - Claude Code/`) — these folders contain the most recently modified notes by default
+4. Hubs (notes with 5+ references)
 
-Si le périmètre dépasse 30 notes, lancer plusieurs passes avec Read en parallèle (10-12 notes par pass). Pour chaque note :
-- Lire son contenu complet avec Read
-- Identifier les sujets et concepts clés
-- Utiliser Grep pour chercher ces termes dans le périmètre
-- Retourner les paires de notes candidates
+If scope exceeds 30 notes, launch several passes with parallel Read (10-12 notes per pass). For each note:
+- Read its full content with Read
+- Identify key subjects and concepts
+- Use Grep to search for these terms in the scope
+- Return candidate note pairs
 
-Identifier aussi les **ponts manquants entre clusters** : deux groupes de notes qui gravitent autour du même sujet sans se croiser. Proposer 1-2 liens de pont par paire de clusters identifiée.
+Also identify **missing bridges between clusters**: two groups of notes that revolve around the same subject without crossing. Propose 1-2 bridge links per identified cluster pair.
 
-Limiter à 30-40 suggestions max par session — qualité > quantité.
+Limit to 30-40 suggestions max per session — quality > quantity.
 
-### Règle des liens réciproques
+### Reciprocal links rule
 
-Si une note A propose un lien vers B, ne pas automatiquement proposer le lien B → A. Évaluer chaque direction séparément sur la base du contenu de la note source : A parle-t-elle de B de manière fonctionnelle ? Le lien A → B apporte-t-il de la valeur au lecteur de A ?
+If note A proposes a link to B, do not automatically propose link B → A. Evaluate each direction separately based on the source note content: does A talk about B functionally? Does the A → B link bring value to the reader of A?
 
-## Étape 4 — Scoring et présentation des liens
+## Step 4 — Scoring and link presentation
 
-Pour chaque lien candidat, évaluer sur 2 dimensions :
-- **Force conceptuelle** (1-5) : le lien est-il réel et non-trivial ?
-  - 1 = vague ou tangentiel
-  - 3 = sujet commun, connexion claire mais basique
-  - 5 = connexion profonde ou complémentaire
-- **Impact structurel** (1-5) : est-ce que ce lien améliore la traversabilité du graphe ?
-  - 1 = relie deux hubs déjà bien connectés
-  - 3 = crée un pont mineur entre deux clusters
-  - 5 = sort une note orphan/deadend de l'isolement ou crée un pont clé
+For each candidate link, evaluate on 2 dimensions:
+- **Conceptual strength** (1-5): is the link real and non-trivial?
+  - 1 = vague or tangential
+  - 3 = common subject, clear but basic connection
+  - 5 = deep or complementary connection
+- **Structural impact** (1-5): does this link improve graph traversability?
+  - 1 = links two already well-connected hubs
+  - 3 = creates a minor bridge between two clusters
+  - 5 = brings an orphan/deadend out of isolation or creates a key bridge
 
-Score = Force × Impact (max 25).
+Score = Strength × Impact (max 25).
 
-- Score > 15 → présenter en priorité
-- Score 5-15 → présenter si le quota n'est pas atteint
-- Score < 5 → rejeter silencieusement
+- Score > 15 → present as priority
+- Score 5-15 → present if quota not yet reached
+- Score < 5 → silently reject
 
-**Cas "aucun lien pertinent" :** si aucun lien candidat n'atteint score 5, indiquer à Victor "aucun lien proposé pour ce périmètre — notes trop isolées ou déjà bien connectées" et s'arrêter (ne pas continuer à l'Étape 5).
+**"No relevant link" case:** if no candidate link reaches score 5, indicate to {USER_NAME} "no links proposed for this scope — notes too isolated or already well connected" and stop (do not continue to Step 5).
 
-**Présenter les liens retenus sous forme de tableau :**
+**Present retained links as a table:**
 
 ```
-### Liens suggérés
+### Suggested links
 
-| Note source | Lien à ajouter | Note cible | Raison | Score |
-|-------------|----------------|------------|--------|-------|
-| vault-second-brain.md | [[Victor]] | {USER_NAME}.md | Contexte personnel directement lié | 20 |
-| NMM.md | [[Balthasar-Gold]] | Balthasar-Gold.md | Peinture mentionnée dans la technique | 16 |
+| Source note | Link to add | Target note | Reason | Score |
+|-------------|------------|------------|--------|-------|
+| vault-second-brain.md | [[{USER_NAME}]] | {USER_NAME}.md | Personal context directly linked | 20 |
+| NMM.md | [[Balthasar-Gold]] | Balthasar-Gold.md | Paint mentioned in the technique | 16 |
 ```
 
-**Attendre la validation de Victor avant d'ajouter quoi que ce soit.** Victor peut rejeter des liens individuellement ou l'ensemble des suggestions.
+**Wait for {USER_NAME}'s validation before adding anything.** {USER_NAME} can reject individual links or all suggestions.
 
-## Étape 5 — Ajout des liens et nettoyage
+## Step 5 — Link addition and cleanup
 
-Pour chaque lien validé par Victor, utiliser Edit pour ajouter `[[nom-note]]` à l'endroit pertinent dans la note source — en fin de note dans une section `## Voir aussi` si aucun endroit naturel n'existe.
+For each link validated by {USER_NAME}, use Edit to add `[[note-name]]` at the relevant location in the source note — at the end of the note in a `## See also` section if no natural location exists.
 
 ```markdown
-## Voir aussi
-- [[Victor]]
+## See also
+- [[{USER_NAME}]]
 - [[vault-second-brain]]
 ```
 
-**Après ajout de tous les liens :** continuer vers Étape 6 — ne pas s'arrêter ici.
+**After adding all links:** continue to Step 6 — do not stop here.
 
-## Étape 6 — Mise à jour des INDEX.md
+## Step 6 — Update INDEX.md files
 
-**Périmètre :** reprendre tous les dossiers définis à l'Étape 1 — pas seulement ceux où des liens ont été validés. Un dossier sans lien ajouté peut quand même manquer d'INDEX.md ou avoir des entrées manquantes.
+**Scope:** revisit all folders defined in Step 1 — not only those where links were validated. A folder without an added link may still lack an INDEX.md or have missing entries.
 
-Ne traiter que les dossiers avec un delta réel — ignorer les dossiers déjà à jour.
+Only process folders with a real delta — ignore folders already up to date.
 
-### 6a. Détection des changements
+### 6a. Change detection
 
-Pour chaque dossier du périmètre Étape 1 :
-- Glob `dossier/*.md` → liste des notes (exclure `INDEX.md` lui-même et les sous-dossiers)
-- **Si `INDEX.md` absent** → dossier candidat à la création
-- **Si `INDEX.md` présent** → lire son contenu, extraire les slugs déjà listés, comparer avec le Glob → noter les entrées manquantes
-- **Si aucun delta** → ignorer ce dossier silencieusement
+For each folder in the Step 1 scope:
+- Glob `folder/*.md` → list of notes (exclude `INDEX.md` itself and subfolders)
+- **If `INDEX.md` absent** → folder candidate for creation
+- **If `INDEX.md` present** → read its content, extract already listed slugs, compare with Glob → note missing entries
+- **If no delta** → silently ignore this folder
 
-### 6b. Génération des nouvelles entrées
+### 6b. New entry generation
 
-Pour chaque note absente de l'index (ou pour toutes si création) :
-- Lire le frontmatter : extraire `title` (ou `name`) et `tags`
-- Si pas de frontmatter utilisable → utiliser la première ligne H1 ou le slug du fichier
-- Construire la ligne : `| [[slug]] | Description 1 ligne | #tag1 #tag2 |`
-- Si la note n'a ni title, ni H1, ni tags : laisser Description et Tags vides plutôt qu'inventer
+For each note absent from the index (or for all if creating):
+- Read frontmatter: extract `title` (or `name`) and `tags`
+- If no usable frontmatter → use the first H1 line or the file slug
+- Build the line: `| [[slug]] | 1-line description | #tag1 #tag2 |`
+- If note has no title, H1 or tags: leave Description and Tags empty rather than inventing
 
-### 6c. Présentation et validation
+### 6c. Presentation and validation
 
-Afficher les dossiers concernés et les nouvelles entrées :
+Display concerned folders and new entries:
 
 ```
-### INDEX.md à mettre à jour
+### INDEX.md to update
 
-**03 - Knowledge/** — création
+**03 - Knowledge/** — creation
 | Note | Description | Tags |
 ...
 
-**02 - Hobbies/** — 2 entrées ajoutées
-| [[note-nouvelle]] | ... | ... |
+**02 - Hobbies/** — 2 entries added
+| [[new-note]] | ... | ... |
 ```
 
-**Attendre validation de Victor avant d'écrire.** Victor peut valider en bloc ou ajuster des entrées.
+**Wait for {USER_NAME}'s validation before writing.** {USER_NAME} can validate in bulk or adjust entries.
 
-### 6d. Écriture
+### 6d. Writing
 
-- **Création** : Write `INDEX.md` avec header `# Index — [Nom du dossier]` + tableau complet
-- **Ajout** : Edit `INDEX.md` — appender les nouvelles lignes dans le tableau existant (ne pas réécrire les entrées déjà présentes)
+- **Creation**: Write `INDEX.md` with header `# Index — [Folder name]` + complete table
+- **Addition**: Edit `INDEX.md` — append new lines to the existing table (do not rewrite already present entries)
 
-**Après écriture de tous les INDEX.md :** mettre à jour le tracker (`99 - Claude Code/command-tracker.md`) si le fichier existe — ligne `/link` → remplacer la date par la date du jour au format `YYYY-MM-DD`. Ne pas bloquer si le tracker n'existe pas.
+**After writing all INDEX.md files:** update tracker (`99 - Claude Code/command-tracker.md`) if the file exists — `/link` line → replace date with today's date in `YYYY-MM-DD` format. Do not block if tracker does not exist.
 
-## Étape 7 — Capitalisation des refus (optionnel)
+## Step 7 — Rejection capitalisation (optional)
 
-À chaque fois que Victor refuse un lien (ou l'ensemble des suggestions) avec une explication, proposer de capitaliser : ajouter l'heuristique dans la section "Heuristiques apprises" avec le pattern général (pas l'exemple spécifique) pour que la règle s'applique aux prochaines sessions.
+Each time {USER_NAME} rejects a link (or all suggestions) with an explanation, propose capitalising: add the heuristic in the "Learned heuristics" section with the general pattern (not the specific example) so the rule applies to future sessions.
 
-**Si Victor refuse l'ensemble du résultat :** noter le contexte (type de notes, périmètre, thème, raison du refus) — ne pas relancer une session similaire sans signal explicite.
+**If {USER_NAME} rejects the entire result:** note the context (note type, scope, theme, rejection reason) — do not re-run a similar session without an explicit signal.

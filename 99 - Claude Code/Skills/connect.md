@@ -1,226 +1,226 @@
 ---
 name: connect
-description: Trouver les bridges conceptuels non-évidents entre deux domaines précis du vault via recherche textuelle. Contrairement à emerge (inductif — quoi émerge du vault ?), connect est déductif — que partagent ces deux domaines précis ? Contrairement à vault-link (opérationnel — crée les liens), connect est analytique — trouve d'abord les connexions, Victor décide ensuite. Ex : /connect Warhammer dev, /connect TDAH workflow.
+description: Find non-obvious conceptual bridges between two specific vault domains via text search. Unlike emerge (inductive — what emerges from the vault?), connect is deductive — what do these two specific domains share? Unlike vault-link (operational — creates links), connect is analytical — finds connections first, {USER_NAME} decides next. E.g.: /connect Warhammer dev, /connect ADHD workflow.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimisation**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces a **qualitative narrative output**. Its effectiveness is measured by the **richness of the output produced**, not structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, highlights, open questions, tone, narration). Preserving qualitative content takes priority over reducing line count.
 
-# Skill : /connect
+# Skill: /connect
 
-Explore deux domaines du vault et révèle ce qu'ils partagent sans que Victor l'ait encore formulé — patterns communs, tensions parallèles, bridges conceptuels. Présenter les bridges, laisser Victor décider des liens à créer.
+Explores two vault domains and reveals what they share without {USER_NAME} having yet formulated it — common patterns, parallel tensions, conceptual bridges. Present the bridges, let {USER_NAME} decide which links to create.
 
-## Déclenchement
+## Trigger
 
 ```
-/connect [domaine A] [domaine B]    → ex: /connect Warhammer dev
-/connect TDAH workflow              → deux termes larges acceptés
-/connect "From Sprue to Glory" TDAH → guillemets pour les noms composés
+/connect [domain A] [domain B]    → e.g.: /connect Warhammer dev
+/connect ADHD workflow            → two broad terms accepted
+/connect "From Sprue to Glory" ADHD → quotes for compound names
 ```
 
 ---
 
-## Étape 1 — Cartographier chaque domaine
+## Step 1 — Map each domain
 
-Pour chaque domaine, construire une image de ce qui existe dans le vault via **recherche textuelle** (Grep sur les titres, corps de notes, liens `[[]]`).
+For each domain, build a picture of what exists in the vault via **text search** (Grep on titles, note bodies, `[[]]` links).
 
-### Méthode de recherche
+### Search method
 
-1. Grep le terme du domaine dans tout le vault — collecter les fichiers `.md` qui le mentionnent (limiter à 50 résultats)
-2. Identifier les **hub notes** : soit le titre est un exact match du domaine, soit la note est mentionnée 3+ fois dans les résultats de grep
-3. Lire ces hub notes et suivre les liens `[[]]` sortants sur une profondeur à déterminer à l'étape suivante
-4. Identifier les notes, concepts, personnes, tensions récurrentes et questions ouvertes dans chaque domaine
-5. Arrêter si une note est visitée 2 fois (cycle detection)
+1. Grep the domain term across the entire vault — collect `.md` files that mention it (limit to 50 results)
+2. Identify **hub notes**: either the title is an exact match of the domain, or the note is mentioned 3+ times in the grep results
+3. Read these hub notes and follow outgoing `[[]]` links to a depth determined at the next step
+4. Identify recurring notes, concepts, people, tensions and open questions in each domain
+5. Stop if a note is visited twice (cycle detection)
 
-### Adapter la profondeur selon la couverture (Depth Asymmetry)
+### Adapt depth based on coverage (Depth Asymmetry)
 
-L'équilibre documentaire détermine combien de hops explorer pour chaque domaine :
+Documentary balance determines how many hops to explore for each domain:
 
-| Couverture | Domaine A | Domaine B | Profondeur |
-|----------|-----------|-----------|-----------|
-| **Balanced** | > 15 résultats | > 15 résultats | Tous deux max 2 hops |
-| **Asymétrique** | > 20 résultats | 5-15 résultats | A: 2 hops, B: 3 hops + chercher hubs cachés |
-| **One sparse** | > 15 résultats | < 5 résultats | A: 1 hop (essentiel), B: 3 hops (marges) |
-| **Both sparse** | < 10 résultats | < 10 résultats | Tous deux max 3 hops |
+| Coverage | Domain A | Domain B | Depth |
+|----------|---------|---------|-------|
+| **Balanced** | > 15 results | > 15 results | Both max 2 hops |
+| **Asymmetric** | > 20 results | 5-15 results | A: 2 hops, B: 3 hops + search hidden hubs |
+| **One sparse** | > 15 results | < 5 results | A: 1 hop (essential), B: 3 hops (margins) |
+| **Both sparse** | < 10 results | < 10 results | Both max 3 hops |
 
-**Raison** : Les connexions intéressantes se trouvent aux marges du domaine minoritaire ; les domaines sous-documentés nécessitent une profondeur maximale.
-
----
-
-## Étape 2 — Trouver les overlaps
-
-Comparer les deux cartographies pour identifier les éléments communs. C'est une étape **analytique** : vous documentez ce qui existe, sans créer ou modifier quoi que ce soit. Chercher :
-
-- **Références partagées** — notes ou concepts qui apparaissent dans les deux domaines (bridges naturels via liens `[[]]`)
-- **Personnes partagées** — mentionnées dans les deux domaines, éventuellement dans des rôles différents
-- **Thèmes partagés** — même terme récurrent, même question, même type de tension dans le corps des notes (pas juste les titres)
-  - Exemple : "itération" apparaît dans hobby (peinture par couches) et dev (refacto agile) → thème partagé
-- **Patterns partagés** — même structure de problème, ex : blocage → dépendance → délai (même type d'obstacle)
-- **Tags partagés** — tags `#tag` identiques dans les deux domaines
+**Reason**: interesting connections are found at the margins of the minority domain; under-documented domains require maximum depth.
 
 ---
 
-## Étape 3 — Tracer les bridges
+## Step 2 — Find overlaps
 
-Pour chaque overlap identifié, approfondir sur **max 3 hops** depuis la note bridge. C'est encore une étape **analytique** : documentez les chemins, ne créez rien.
+Compare the two maps to identify shared elements. This is an **analytical step**: you document what exists, without creating or modifying anything. Look for:
 
-Tracez le chemin le plus court entre les deux hub notes via les liens `[[]]` — les notes intermédiaires se situent souvent à l'intersection sans appartenir pleinement à aucun des deux domaines. Ce sont vos bridges les plus forts.
+- **Shared references** — notes or concepts that appear in both domains (natural bridges via `[[]]` links)
+- **Shared people** — mentioned in both domains, possibly in different roles
+- **Shared themes** — same recurring term, same question, same type of tension in note bodies (not just titles)
+  - Example: "iteration" appears in hobby (painting in layers) and dev (agile refactoring) → shared theme
+- **Shared patterns** — same problem structure, e.g.: blockage → dependency → delay (same type of obstacle)
+- **Shared tags** — identical `#tag` tags in both domains
 
 ---
 
-## Étape 4 — Synthétiser
+## Step 3 — Trace the bridges
 
-### Format de chaque bridge
+For each identified overlap, deepen to **max 3 hops** from the bridge note. This is still an **analytical step**: document the paths, create nothing.
+
+Trace the shortest path between the two hub notes via `[[]]` links — the intermediate notes often sit at the intersection without fully belonging to either domain. These are your strongest bridges.
+
+---
+
+## Step 4 — Synthesise
+
+### Format for each bridge
 
 ```
-Bridge [#] : [Titre du bridge]
-Dans [Domaine A] : [comment ce concept apparaît]
-Dans [Domaine B] : [comment il apparaît différemment]
-La connexion : [ce qui les relie et pourquoi c'est intéressant]
-Profondeur : [Surface / Structural / Foundational]
-Implication : [ce que ça suggère pour l'un ou l'autre domaine]
+Bridge [#]: [Bridge title]
+In [Domain A]: [how this concept appears]
+In [Domain B]: [how it appears differently]
+The connection: [what links them and why it is interesting]
+Depth: [Surface / Structural / Foundational]
+Implication: [what this suggests for one or both domains]
 ```
 
-**Profondeur du bridge** :
-- **Surface** — même terminologie, overlap superficiel (peut se dissiper)
-- **Structural** — même structure de problème ou de solution, persistant
-- **Foundational** — même croyance de fond, même principe sous-jacent (invariant)
+**Bridge depth**:
+- **Surface** — same terminology, superficial overlap (may dissolve)
+- **Structural** — same problem or solution structure, persistent
+- **Foundational** — same underlying belief, same core principle (invariant)
 
-### Le bridge le plus fort
+### The strongest bridge
 
-Identifier le bridge unique le plus intéressant — celui qui recadre la façon de penser les deux domaines simultanément.
+Identify the single most interesting bridge — the one that reframes how you think about both domains simultaneously.
 
 ### Missing Links
 
-Connexions qui *devraient* exister mais n'ont pas encore été créées. **Proposer en prose** — ex : "Une note 'Mastery via iteration' pourrait relier hobby + dev" — jamais créer ou modifier des liens sans validation de Victor.
+Connections that *should* exist but have not yet been created. **Propose in prose** — e.g. "A 'Mastery via iteration' note could link hobby + dev" — never create or modify links without {USER_NAME}'s validation.
 
-### La question que ça soulève
+### The question this raises
 
-Quelle nouvelle question devient visible en voyant ces deux domaines connectés, qu'il était impossible de formuler tant qu'ils restaient séparés ?
+What new question becomes visible by seeing these two domains connected, that was impossible to formulate as long as they remained separate?
 
-Après avoir présenté la question, évaluer si elle est ticket-digne selon ce seuil :
-- **Oui** : la question ouvre un champ de réflexion nouveau OU remet en question une assomption existante
-- **Non** : la question reste rhétorique ou ne demande pas de suivi
+After presenting the question, assess whether it is ticket-worthy according to this threshold:
+- **Yes**: the question opens a new field of reflection OR challenges an existing assumption
+- **No**: the question remains rhetorical or requires no follow-up
 
-Si oui → proposer le ticket en prose (ex : "Voulez-vous créer un ticket Idea ?") et attendre la réponse explicite de Victor. Ne jamais créer, modifier, ou ajouter à un ticket sans validation.
+If yes → propose the ticket in prose (e.g. "Would you like to create an Idea ticket?") and wait for {USER_NAME}'s explicit response. Never create, modify, or add to a ticket without validation.
 
 ---
 
 ## Edge cases
 
-### Domaines disjoints
+### Disjoint domains
 
-Si après cartographie complète, **aucun overlap n'est trouvé** (domaines véritablement disjoints) :
-
-```
-CONNECT : [Domaine A] <-> [Domaine B]
-Trend : No overlap
-
-Résultat : Aucun bridge détecté après recherche approfondie.
-Les domaines restent structuralement indépendants.
-Implication : [optionnel] Réflexion sur pourquoi cette séparation existe.
-```
-
-Ne pas forcer un bridge inexistant. Rapporter l'absence est utile.
-
-### Un domaine introuvable (0 résultats Grep)
+If after complete mapping, **no overlap is found** (truly disjoint domains):
 
 ```
-CONNECT : [Domaine A] <-> [Domaine B]
-Status : [Domaine B] — Aucune mention dans le vault
+CONNECT: [Domain A] <-> [Domain B]
+Trend: No overlap
 
-Résultat : Impossible de mapper [Domaine B]. Domaine inexistant ou sous-documenté.
-Suggestion : Vérifier le terme utilisé ou créer une note hub pour [Domaine B].
+Result: No bridge detected after thorough search.
+Domains remain structurally independent.
+Implication: [optional] Reflection on why this separation exists.
 ```
 
-### Un domaine partiellement documenté (1-4 résultats Grep)
+Do not force a non-existent bridge. Reporting the absence is useful.
+
+### Domain not found (0 Grep results)
 
 ```
-CONNECT : [Domaine A] <-> [Domaine B]
-Trend : [Domaine B] — Minimal coverage (3 résultats)
+CONNECT: [Domain A] <-> [Domain B]
+Status: [Domain B] — No mention in vault
 
-Résultat : [Domaine B] est peu documenté mais identifiable. Avoir exploré 3 hops complets.
-Bridges trouvés : [liste]
-Limitation : Connexions possibles au-delà de ces 3 hops restent invisibles.
-Suggestion : Densifier [Domaine B] au vault si la connexion semble prometteuse.
+Result: Cannot map [Domain B]. Domain non-existent or under-documented.
+Suggestion: Check the term used or create a hub note for [Domain B].
 ```
 
-### Domaines identiques (A == B)
-
-Ne pas exécuter la recherche. Rapporter directement :
+### Partially documented domain (1-4 Grep results)
 
 ```
-CONNECT : [Domaine] <-> [Domaine]
-Status : Domaines identiques
+CONNECT: [Domain A] <-> [Domain B]
+Trend: [Domain B] — Minimal coverage (3 results)
 
-Résultat : Les deux entrées pointent le même domaine. Aucun bridge à trouver.
-Suggestion : Vérifier si vous vouliez connecter [Domaine] à un autre.
+Result: [Domain B] is poorly documented but identifiable. Explored 3 complete hops.
+Bridges found: [list]
+Limitation: Possible connections beyond these 3 hops remain invisible.
+Suggestion: Enrich [Domain B] in the vault if the connection seems promising.
 ```
 
-### Domaine mal formé ou très court (< 2 caractères)
+### Identical domains (A == B)
+
+Do not run the search. Report directly:
 
 ```
-CONNECT : [Domaine A] <-> [Domaine B]
-Status : Parsing error ou domaine invalide
+CONNECT: [Domain] <-> [Domain]
+Status: Identical domains
 
-Résultat : [Domaine B] est trop court ou mal formé. Grep produirait trop de bruit.
-Suggestion : Utiliser un terme de 2+ caractères, ou guillemets pour les noms composés.
-Exemple : /connect "From Sprue to Glory" Productivity
+Result: Both entries point to the same domain. No bridge to find.
+Suggestion: Check whether you meant to connect [Domain] to another.
 ```
 
----
-
-## Format de sortie
+### Malformed or very short domain (< 2 characters)
 
 ```
-CONNECT : [Domaine A] <-> [Domaine B]
-Coverage : [Balanced / Asymétrique / Un sparse / Tous sparse]
-Status : [OK / Partial / Disjoint / Identical / Invalid]
+CONNECT: [Domain A] <-> [Domain B]
+Status: Parsing error or invalid domain
 
-[Bridges trouvés — du plus fort au plus faible]
-Bridge [#] : [Titre]
-  Dans [Domaine A] : [apparition]
-  Dans [Domaine B] : [apparition différente]
-  La connexion : [ce qui les relie et pourquoi c'est intéressant]
-  Profondeur : [Surface / Structural / Foundational]
-  Implication : [ce que ça suggère]
-
-[Le bridge le plus fort et son implication]
-[Missing links — en prose]
-[La question qui émerge — évaluation ticket-digne]
-```
-
-**Exemple** :
-```
-CONNECT : Warhammer <-> Productivity
-Coverage : Asymétrique (Warhammer 45 résultats, Productivity 8)
-Status : OK
-
-Bridge 1 : Pile of Shame — Accumulation et friction
-  Dans Warhammer : figurines non peintes, backlog visuel croissant
-  Dans Productivity : tâches repoussées, accumulation psychologique
-  La connexion : même dynamique d'inertie croissante face à la quantité
-  Profondeur : Structural
-  Implication : les deux domaines bénéficient du même cadre de réduction progressive
-
-Le bridge le plus fort : Pile of Shame. Recadre comment penser l'inertie dans deux domaines distincts.
-Missing : Une note 'Accumulation et friction' pourrait expliciter ce lien.
-
-La question : Ma relation à la Pile of Shame dans deux domaines reflète-t-elle la même aversion à l'imperfection ?
-Seuil ticket-digne : Oui — remet en question mon assomption que l'inertie a des causes différentes selon le contexte.
+Result: [Domain B] is too short or malformed. Grep would produce too much noise.
+Suggestion: Use a 2+ character term, or quotes for compound names.
+Example: /connect "From Sprue to Glory" Productivity
 ```
 
 ---
 
-## Règles absolues
+## Output format
 
-- **Analytique pur** — Étapes 1-3 sont exploratoires ; vous présentez les bridges découverts sans créer, modifier, ou décider d'actions
-- **Vault uniquement** — les bridges viennent des notes existantes et de leurs liens, pas de la synthèse ou du modèle de Claude
-- **Ne pas forcer** — un overlap superficiel n'est pas un bridge ; écarter si pas étayé par au moins une note, un lien, ou un thème concret
-- **Depth Asymmetry obligatoire** — appliquer le tableau des couvertures pour déterminer les hops, jamais estimer à vue
-- **Validation explicite** — pour tout action (création de liens, ticket, modification), attendre l'approbation explicite de Victor
-- **Missing links en prose** — proposer les connexions manquantes sous forme de suggestions textuelles, jamais créer les notes
+```
+CONNECT: [Domain A] <-> [Domain B]
+Coverage: [Balanced / Asymmetric / One sparse / Both sparse]
+Status: [OK / Partial / Disjoint / Identical / Invalid]
+
+[Bridges found — from strongest to weakest]
+Bridge [#]: [Title]
+  In [Domain A]: [appearance]
+  In [Domain B]: [different appearance]
+  The connection: [what links them and why it is interesting]
+  Depth: [Surface / Structural / Foundational]
+  Implication: [what this suggests]
+
+[The strongest bridge and its implication]
+[Missing links — in prose]
+[The emerging question — ticket-worthy assessment]
+```
+
+**Example**:
+```
+CONNECT: Warhammer <-> Productivity
+Coverage: Asymmetric (Warhammer 45 results, Productivity 8)
+Status: OK
+
+Bridge 1: Pile of Shame — Accumulation and friction
+  In Warhammer: unpainted miniatures, growing visual backlog
+  In Productivity: deferred tasks, psychological accumulation
+  The connection: same dynamic of growing inertia in the face of quantity
+  Depth: Structural
+  Implication: both domains benefit from the same progressive reduction framework
+
+The strongest bridge: Pile of Shame. Reframes how to think about inertia in two distinct domains.
+Missing: A 'Accumulation and friction' note could make this link explicit.
+
+The question: Does my relationship with the Pile of Shame in two domains reflect the same aversion to imperfection?
+Ticket-worthy: Yes — challenges my assumption that inertia has different causes depending on context.
+```
+
+---
+
+## Absolute rules
+
+- **Pure analytical** — Steps 1-3 are exploratory; present discovered bridges without creating, modifying, or deciding on actions
+- **Vault only** — bridges come from existing notes and their links, not from Claude's synthesis or model
+- **Do not force** — a superficial overlap is not a bridge; discard if not supported by at least one note, link or concrete theme
+- **Depth Asymmetry mandatory** — apply the coverage table to determine hops, never estimate
+- **Explicit validation** — for any action (link creation, ticket, modification), wait for {USER_NAME}'s explicit approval
+- **Missing links in prose** — propose missing connections as textual suggestions, never create the notes

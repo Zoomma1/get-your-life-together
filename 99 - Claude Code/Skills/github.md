@@ -1,65 +1,65 @@
 ---
 name: github
-description: Interface GitHub unifiée via `gh` CLI — sélectionner un repo actif puis exécuter des actions (PRs, issues, CI, fichiers, commentaires) sans quitter Claude Code. Toutes les opérations passent par `gh` ou `gh api`, sans dépendance MCP.
+description: Unified GitHub interface via `gh` CLI — select an active repo then execute actions (PRs, issues, CI, files, comments) without leaving Claude Code. All operations go through `gh` or `gh api`, with no MCP dependency.
 ---
 
-# Skill : GitHub
+# Skill: GitHub
 
-Interface unifiée pour les opérations GitHub. Toutes les commandes utilisent `gh` CLI ou `gh api` — aucune dépendance MCP.
+Unified interface for GitHub operations. All commands use `gh` CLI or `gh api` — no MCP dependency.
 
-**Prérequis** : `gh` authentifié (`gh auth status` doit retourner un compte actif).
+**Prerequisites**: `gh` authenticated (`gh auth status` must return an active account).
 
 ## Invocation
 
 `/github [action]`
 
-Si `$ARGUMENTS` est vide → **Mode sélection repo** (Action 0).
+If `$ARGUMENTS` is empty → **Repo selection mode** (Action 0).
 
 ---
 
-## Action 0 — Sélection du repo (pas d'argument ou repo non défini en session)
+## Action 0 — Repo selection (no argument or repo not defined in session)
 
-1. Calculer la date d'il y a 2 mois (depuis la date du jour) au format `YYYY-MM-DD`
-2. Lancer :
+1. Calculate the date 2 months ago (from today's date) in `YYYY-MM-DD` format
+2. Run:
    ```bash
    gh repo list Zoomma1 --limit 30 --json name,updatedAt,defaultBranchRef \
      --jq '.[] | select(.updatedAt > "YYYY-MM-DD") | "\(.name) — \(.updatedAt[0:10]) — default: \(.defaultBranchRef.name)"'
    ```
-3. Afficher :
+3. Display:
    ```
-   Prêt à utiliser GitHub. Repos actifs (2 derniers mois) :
+   Ready to use GitHub. Active repos (last 2 months):
    1. FromSprueToGlory — 2026-04-14 — default: staging
    2. Waddle — 2026-04-12 — default: main
    ...
-   Sur quel repo on travaille ?
+   Which repo are we working on?
    ```
-4. Victor répond le numéro, le nom partiel, ou un nom hors liste
-   - Si hors liste → résoudre via `gh repo view Zoomma1/[nom] --json name,defaultBranchRef`
-5. Retenir `owner/repo` et `default_branch` pour toute la session
-6. Si une action était en attente (ex: `/github prs` avant sélection) → l'exécuter maintenant
+4. {USER_NAME} replies with the number, a partial name, or a name not in the list
+   - If not in list → resolve via `gh repo view Zoomma1/[name] --json name,defaultBranchRef`
+5. Retain `owner/repo` and `default_branch` for the entire session
+6. If an action was pending (e.g. `/github prs` before selection) → execute it now
 
-**Repo retenu en session** — ne plus redemander tant que Victor ne change pas explicitement de repo.
+**Repo retained in session** — do not ask again as long as {USER_NAME} does not explicitly change the repo.
 
 ---
 
-## Actions disponibles
+## Available actions
 
 ### `/github help`
 
-Afficher :
+Display:
 ```
-Actions disponibles :
-  (vide)                       Sélection du repo actif
-  prs                          Lister les PRs ouvertes
-  pr #123                      Lire une PR
-  issues                       Lister les issues ouvertes
-  issue #123                   Lire une issue
-  create issue [titre]         Créer une issue
-  comment [#123] [texte]       Commenter une issue ou PR
-  ci [branche?]                Statut CI — branche optionnelle (défaut: default_branch)
-  listFiles [chemin?]          Lister les fichiers d'un dossier du repo
-  readFile [chemin]            Lire le contenu d'un fichier du repo
-  help                         Cette aide
+Available actions:
+  (empty)                      Select the active repo
+  prs                          List open PRs
+  pr #123                      Read a PR
+  issues                       List open issues
+  issue #123                   Read an issue
+  create issue [title]         Create an issue
+  comment [#123] [text]        Comment on an issue or PR
+  ci [branch?]                 CI status — optional branch (default: default_branch)
+  listFiles [path?]            List files in a repo folder
+  readFile [path]              Read the content of a repo file
+  help                         This help
 ```
 
 ---
@@ -70,7 +70,7 @@ Actions disponibles :
 gh pr list --repo owner/repo --state open
 ```
 
-Afficher : numéro, titre, branche source, auteur, date.
+Display: number, title, source branch, author, date.
 
 ---
 
@@ -98,63 +98,63 @@ gh issue view 123 --repo owner/repo
 
 ---
 
-### `/github create issue [titre]`
+### `/github create issue [title]`
 
-1. Demander confirmation : "Créer l'issue '[titre]' sur [owner/repo] ?"
-2. Après confirmation :
+1. Ask for confirmation: "Create issue '[title]' on [owner/repo]?"
+2. After confirmation:
    ```bash
-   gh issue create --repo owner/repo --title "[titre]" --body ""
+   gh issue create --repo owner/repo --title "[title]" --body ""
    ```
-3. Retourner l'URL de l'issue créée
+3. Return the URL of the created issue
 
 ---
 
-### `/github comment #123 [texte]`
+### `/github comment #123 [text]`
 
-1. Détecter si #123 est une issue ou une PR :
+1. Detect whether #123 is an issue or PR:
    ```bash
    gh pr view 123 --repo owner/repo --json number 2>/dev/null || echo "issue"
    ```
-   - Si PR → `gh pr comment`
-   - Si issue → `gh issue comment`
-2. Demander confirmation : "Commenter #123 avec : '[texte]' ?"
-3. Après confirmation :
+   - If PR → `gh pr comment`
+   - If issue → `gh issue comment`
+2. Ask for confirmation: "Comment on #123 with: '[text]'?"
+3. After confirmation:
    ```bash
    # PR
-   gh pr comment 123 --repo owner/repo --body "[texte]"
+   gh pr comment 123 --repo owner/repo --body "[text]"
    # Issue
-   gh issue comment 123 --repo owner/repo --body "[texte]"
+   gh issue comment 123 --repo owner/repo --body "[text]"
    ```
 
 ---
 
-### `/github ci [branche?]`
+### `/github ci [branch?]`
 
-Si branche non précisée → utiliser `default_branch` retenu en session.
+If no branch specified → use `default_branch` retained in session.
 
-1. Lister les derniers runs sur la branche :
+1. List recent runs on the branch:
    ```bash
-   gh run list --repo owner/repo --branch [branche] --limit 5
+   gh run list --repo owner/repo --branch [branch] --limit 5
    ```
-2. Afficher le statut : ✅ success / ❌ failure / ⏳ in_progress / 🔵 queued
-3. **Si le dernier run est en échec** :
+2. Display status: ✅ success / ❌ failure / ⏳ in_progress / 🔵 queued
+3. **If the last run failed**:
    ```bash
    gh run view [run_id] --repo owner/repo --log-failed
    ```
-   Afficher les logs d'erreur directement dans le transcript pour investigation.
-4. Si aucun run trouvé → "Aucun workflow CI trouvé sur la branche [branche]"
+   Display error logs directly in the transcript for investigation.
+4. If no run found → "No CI workflow found on branch [branch]"
 
 ---
 
-### `/github listFiles [chemin?]`
+### `/github listFiles [path?]`
 
-Si chemin non précisé → racine du repo (`/`).
+If no path specified → repo root (`/`).
 
 ```bash
-gh api repos/owner/repo/contents/[chemin] --jq '[.[] | "\(.type) \(.name)"]'
+gh api repos/owner/repo/contents/[path] --jq '[.[] | "\(.type) \(.name)"]'
 ```
 
-Afficher sous forme d'arborescence simple :
+Display as a simple tree:
 ```
 📁 src/
 📄 README.md
@@ -163,22 +163,22 @@ Afficher sous forme d'arborescence simple :
 
 ---
 
-### `/github readFile [chemin]`
+### `/github readFile [path]`
 
 ```bash
-gh api repos/owner/repo/contents/[chemin] --jq '.content' | base64 -d
+gh api repos/owner/repo/contents/[path] --jq '.content' | base64 -d
 ```
 
-Afficher le contenu dans un bloc de code avec le bon langage selon l'extension.
+Display content in a code block with the correct language based on the extension.
 
-**Si le fichier est trop grand** (> 1 Mo) → signaler et proposer de lire une section via `--jq '.download_url'` puis `gh api [url]`.
+**If file is too large** (> 1 MB) → signal and propose reading a section via `--jq '.download_url'` then `gh api [url]`.
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- **Confirmation obligatoire** avant toute action d'écriture (`create issue`, `comment`)
-- **Repo et default_branch retenus en session** — sélection Action 0 une seule fois par session sauf changement explicite
-- **Chemin encodé** pour `gh api` : espaces → `%20` (ex: `99%20-%20Claude%20Code/Skills`)
-- **Détection issue vs PR** : tenter `gh pr view` d'abord, fallback `gh issue view` si erreur
-- **CI sans branche** : toujours utiliser `default_branch` — ne jamais hardcoder `main` ou `staging`
+- **Confirmation required** before any write action (`create issue`, `comment`)
+- **Repo and default_branch retained in session** — Action 0 selection done once per session unless explicitly changed
+- **Encode paths** for `gh api`: spaces → `%20` (e.g. `99%20-%20Claude%20Code/Skills`)
+- **Issue vs PR detection**: try `gh pr view` first, fallback to `gh issue view` on error
+- **CI without branch**: always use `default_branch` — never hardcode `main` or `staging`

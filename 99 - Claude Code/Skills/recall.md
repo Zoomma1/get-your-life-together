@@ -1,124 +1,123 @@
 ---
 name: recall
-description: Cherche dans le vault les 1-3 notes pertinentes au contexte. Appel manuel via /recall [sujet] ou /recall (infère depuis la conversation). Retourne silence si aucun match qualifié.
+description: Search vault for 1-3 relevant notes to the context. Manual call via /recall [subject] or /recall (infer from conversation). Return silence if no qualified match.
 ---
 
 # Skill `/recall`
 
-Recherche ciblée dans le vault : retrouve les notes vraiment utiles pour le contexte actuel.
+Targeted search in vault: find the really useful notes for the current context.
 
-## Déclenchement
+## Trigger
 
 ```
-/recall              → infère les mots-clés depuis la conversation en cours
-/recall [sujet]      → recherche ciblée sur ce sujet
-/recall auth FSTG    → plusieurs termes possibles (AND implicite)
+/recall              → infer keywords from current conversation
+/recall [subject]    → targeted search on this subject
+/recall auth FSTG    → multiple terms possible (implicit AND)
 ```
 
 ---
 
-## Étape 1 — Extraire les mots-clés (3 à 6)
+## Step 1 — Extract keywords (3 to 6)
 
-**Si argument fourni** : utiliser TOUS les termes, séparés par espace (ex: `/recall auth FSTG` = search "auth" AND "FSTG").
+**If argument provided**: use ALL terms, space-separated (ex: `/recall auth FSTG` = search "auth" AND "FSTG").
 
-**Si aucun argument** : inférer depuis la conversation (par priorité) :
-1. Titres ou chemins mentionnés dans les 5 derniers échanges
-2. Noms de projets explicites (FSTG, ML, HomeLabServeur, etc.)
-3. Termes techniques répétés 2+ fois dans la dernière requête
+**If no argument**: infer from conversation (by priority):
+1. Titles or paths mentioned in last 5 exchanges
+2. Explicit project names (FSTG, ML, HomeLabServeur, etc.)
+3. Technical terms repeated 2+ times in last request
 
-**Garder 3 à 6 mots-clés distincts** — ni trop larges ("code") ni trop spécifiques (noms variables).
+**Keep 3 to 6 distinct keywords** — neither too broad ("code") nor too specific (variable names).
 
-**Passer outre si** :
-- Conversation n'a aucun contexte (vide ou "hello" seulement)
-- Termes inférés sont trop génériques après filtrage → afficher "Contexte insuffisant pour inférer keywords."
+**Override if**:
+- Conversation has no context (empty or "hello" only)
+- Inferred terms are too generic after filtering → display "Insufficient context to infer keywords."
 
 ---
 
-## Étape 2 — Chercher dans le vault
+## Step 2 — Search in vault
 
-### Répertoires à scanner (toujours tous)
+### Directories to scan (always all)
 
-- `{VAULT_PATH}\{KNOWLEDGE_FOLDER}\` (récursif)
+- `{VAULT_PATH}\{KNOWLEDGE_FOLDER}\` (recursive)
 - `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\ADR\`
-- `{VAULT_PATH}\{PROJECTS_FOLDER}\[Projet actif]\claude-code\` (si en contexte)
-- `{VAULT_PATH}\{PROJECTS_FOLDER}\[Projet actif]\` (si en contexte ; chemin réel, pas "04 - My projects")
-- `{VAULT_PATH}\{HOBBIES_FOLDER}\` (si sujet hobby détecté)
+- `{VAULT_PATH}\{PROJECTS_FOLDER}\[Active Project]\claude-code\` (if in context)
+- `{VAULT_PATH}\{PROJECTS_FOLDER}\[Active Project]\` (if in context; real path, not "04 - My projects")
+- `{VAULT_PATH}\{HOBBIES_FOLDER}\` (if hobby subject detected)
 
-**Ne pas scanner** : `00 - Daily notes/`, `09 - Inbox/`, `Archive/`, `99 - Claude Code/Sessions/`.
+**Don't scan**: `00 - Daily notes/`, `09 - Inbox/`, `Archive/`, `99 - Claude Code/Sessions/`.
 
-### Limites d'exécution
+### Execution limits
 
-- Par répertoire : max 50 fichiers `.md` (garder les 50 les plus récemment modifiés)
-- Globalement : max 200 fichiers lus au total (stopword après)
+- Per directory: max 50 `.md` files (keep 50 most recently modified)
+- Globally: max 200 files read total (stopword after)
 
-### Algorithme de recherche
+### Search algorithm
 
-1. **Lister les fichiers** avec Glob `**/*.md`, limiter par mtime si nécessaire
-2. **Scorer chaque fichier** (prendre le score maximal, pas additif) :
-   - Si mot-clé dans titre → confirmer (20 lignes) → score 3
-   - Sinon si mot-clé dans 10 premières lignes → score 2
-   - Sinon si note déjà lue contient `[[nom-de-ce-fichier]]` → score 2
-   - Sinon si mot-clé au-delà ligne 10 → score 1
-3. **Écarter** les notes déjà signalées cette session
-4. **Trier** par score décroissant, garder **1 à 3 meilleures**
+1. **List files** with Glob `**/*.md`, limit by mtime if necessary
+2. **Score each file** (take max score, not cumulative):
+   - If keyword in title → confirm (20 lines) → score 3
+   - Else if keyword in first 10 lines → score 2
+   - Else if already-read note contains `[[file-name]]` → score 2
+   - Else if keyword beyond line 10 → score 1
+3. **Exclude** notes already signaled this session
+4. **Sort** by descending score, keep **1 to 3 best**
 
-### Scoring rapide (MAX, pas cumulatif)
+### Fast scoring (MAX, not cumulative)
 
 | Source | Score | Condition |
 |--------|-------|-----------|
-| Titre | 3 | Mot-clé dans nom + confirmé (20 lignes) |
-| Contenu | 2 | Mot-clé dans les 10 premières lignes |
-| Backlink | 2 | `[[nom-note]]` cité en session |
-| Corps | 1 | Mot-clé au-delà ligne 10 |
+| Title | 3 | Keyword in name + confirmed (20 lines) |
+| Content | 2 | Keyword in first 10 lines |
+| Backlink | 2 | `[[note-name]]` cited in session |
+| Body | 1 | Keyword beyond line 10 |
 
-**Prendre le meilleur score** pour chaque fichier. Cas d'égalité : favoriser plus de keywords matchés.
-
----
-
-## Étape 3 — Filtrer et présenter
-
-**Garder 1 à 3 notes max.**
-
-**Seuil minimum** : signaler seulement si score ≥ 2 (sinon silence).
-
-Format :
-```
-📎 Notes vault pertinentes :
-- [[nom-note]] — [une phrase : pourquoi utile maintenant]
-- [[autre-note]] — [pourquoi]
-```
-
-**Si aucun match ≥2** → silence total (pas de "aucun résultat").
+**Take the best score** for each file. Tie case: favor more matched keywords.
 
 ---
 
-## Étape 2bis — Recherche sémantique sessions (optionnel)
+## Step 3 — Filter and present
 
-**Condition** : lancer seulement si les mots-clés de l'Étape 1 sont techniques ou projets (Waddle, FSTG, Husker, pgvector…). Passer si requête purement personnelle/organisation.
+**Keep 1 to 3 notes max.**
 
-Appeler :
+**Minimum threshold**: signal only if score ≥ 2 (else silence).
+
+Format:
+```
+📎 Relevant vault notes:
+- [[note-name]] — [one sentence: why useful now]
+- [[other-note]] — [why]
+```
+
+**If no match ≥2** → total silence (no "no results").
+
+---
+
+## Step 2bis — Semantic search of sessions (optional)
+
+**Condition**: launch only if Step 1 keywords are technical or project-related (Waddle, FSTG, Husker, pgvector…). Skip if request is purely personal/organization.
+
+Call:
 ```bash
-uv run ~/.claude/semantic_search.py "<mots-clés joints>" --top-k 3
+uv run ~/.claude/semantic_search.py "<joined keywords>" --top-k 3
 ```
 
-**Si la commande échoue** (Postgres ou Ollama inaccessible) → non-bloquant, continuer vers Étape 3, mais afficher : `⚠️ Recherche sémantique sessions indisponible (Postgres/Ollama down) — résultats vault uniquement.`
+**If command fails** (Postgres or Ollama unreachable) → non-blocking, continue to Step 3, but display: `⚠️ Semantic search of sessions unavailable (Postgres/Ollama down) — vault results only.`
 
-**Si résultats** (similarity ≥ 0.45) → ajouter un bloc séparé après les notes vault :
+**If results** (similarity ≥ 0.45) → add separate block after vault notes:
 ```
-📎 Sessions pertinentes :
+📎 Relevant sessions:
 - [YYYY-MM-DD] — <session title> / <section_type>
 ```
-Max 3 sessions. Ne pas les mélanger avec les notes vault — blocs distincts.
+Max 3 sessions. Don't mix with vault notes — distinct blocks.
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- **1 à 3 max** — jamais plus
-- **Silence si aucun match ≥2** — qualité > quantité
-- **Ne pas re-signaler** une note déjà mentionnée cette session
-- **Ne pas scanner** Daily notes, Inbox, Archive, Sessions
-- **Faux positifs** : si match existe mais n'est pas sémantiquement lié (ex: "color" en art vs code), écarter après vérification
-- **Erreur Glob/Timeout** : ne rien afficher, logger silencieusement
-- **Accès refusé** : si le répertoire n'est pas accessible (permissions), continuer avec les autres sans bloquer
-
+- **1 to 3 max** — never more
+- **Silence if no match ≥2** — quality > quantity
+- **Don't re-signal** a note already mentioned this session
+- **Don't scan** Daily notes, Inbox, Archive, Sessions
+- **False positives**: if match exists but isn't semantically related (ex: "color" in art vs code), exclude after verification
+- **Glob/Timeout error**: display nothing, log silently
+- **Access denied**: if directory isn't accessible (permissions), continue with others without blocking

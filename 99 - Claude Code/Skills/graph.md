@@ -1,94 +1,94 @@
 ---
 name: graph
-description: Génère ou met à jour le knowledge graph d'un projet dev via graphify, puis produit un graph-context.md curé (~40 lignes) depuis GRAPH_REPORT.md pour chargement en contexte Claude. Invoquer quand : première session sur un nouveau projet dev, ou mise à jour manuelle après refacto majeure. Ex: /graph, /graph --update
+description: Generates or updates the knowledge graph of a dev project via graphify, then produces a curated graph-context.md (~40 lines) from GRAPH_REPORT.md for loading in Claude context. Invoke when: first session on new dev project, or manual update after major refactor. Ex: /graph, /graph --update
 ---
 
-Génère un knowledge graph via graphify puis produit un `graph-context.md` curé et annoté.
+Generates a knowledge graph via graphify then produces a curated and annotated `graph-context.md`.
 
-## Étape 1 — Identifier la cible
+## Step 1 — Identify the target
 
-Demander le chemin du repo. Output → `.claude/graph-context.md`
+Ask for the repo path. Output → `.claude/graph-context.md`
 
-**Attendre la réponse avant de continuer.**
+**Wait for response before continuing.**
 
-## Étape 2 — Vérifier l'existant
+## Step 2 — Check existing
 
-Vérifier si `graph-context.md` existe à l'emplacement cible.
+Verify if `graph-context.md` exists at the target location.
 
-**Si oui** → demander : "Un graph-context.md existe. **Update** (--update, fichiers modifiés seulement) ou **repartir de zéro** ?"
+**If yes** → ask: "A graph-context.md exists. **Update** (--update, modified files only) or **start fresh**?"
 
-**Attendre la réponse.**
+**Wait for response.**
 
-**Si non** → vérifier si `graphify-out/GRAPH_REPORT.md` existe déjà à la racine du workspace cible.
+**If no** → check if `graphify-out/GRAPH_REPORT.md` already exists at target workspace root.
 
-- **GRAPH_REPORT.md présent** → graphify a déjà tourné mais la curation n'a pas eu lieu. Passer directement à l'**Étape 4** (synthèse manuelle depuis le rapport existant — pas besoin de re-run).
-- **GRAPH_REPORT.md absent** → continuer à l'Étape 3 (lancer graphify).
+- **GRAPH_REPORT.md present** → graphify has already run but curation hasn't. Skip directly to **Step 4** (manual synthesis from existing report — no need to re-run).
+- **GRAPH_REPORT.md absent** → continue to Step 3 (run graphify).
 
-## Étape 3 — Lancer graphify
+## Step 3 — Run graphify
 
-Afficher la commande, expliquer en une phrase, **attendre OK de Victor** :
+Display the command, explain in one sentence, **wait for OK from Victor**:
 
 ```bash
-cd "<chemin-repo>" && graphify . [--update]
+cd "<repo-path>" && graphify . [--update]
 ```
 
-Lancer après confirmation. Attendre la fin.
+Run after confirmation. Wait for completion.
 
-## Étape 4 — Curation du graph-context.md
+## Step 4 — Curate graph-context.md
 
-Lire `graphify-out/GRAPH_REPORT.md` et produire un draft `graph-context.md` curé suivant ce format exact :
+Read `graphify-out/GRAPH_REPORT.md` and produce a draft `graph-context.md` following this exact format:
 
 ```markdown
-# graph-context — [NOM] (YYYY-MM-DD)
-# Généré depuis graphify-out/GRAPH_REPORT.md (run YYYY-MM-DD)
-# [X] nodes · [Y] edges · [Z] communities[· Stack: ... si projet dev]
+# graph-context — [NAME] (YYYY-MM-DD)
+# Generated from graphify-out/GRAPH_REPORT.md (run YYYY-MM-DD)
+# [X] nodes · [Y] edges · [Z] communities [· Stack: ... if dev project]
 
-## God Nodes (abstractions centrales)
-1. `[Nom]` — [N] edges ([annotation contextuelle : rôle dans le projet/vault])
+## God Nodes (central abstractions)
+1. `[Name]` — [N] edges ([contextual annotation: role in project/vault])
 ...
 
-## Communautés principales
-- **[Groupe]** : [membres ou description]
+## Main communities
+- **[Group]** : [members or description]
 ...
 
-## Hyperedges clés
-- **[Feature/Groupe]** : [membres liés]
+## Key hyperedges
+- **[Feature/Group]** : [linked members]
 ...
 
-## Connexions surprenantes (INFERRED)
-- `[A]` → `[B]` ([contexte court])
+## Surprising connections (INFERRED)
+- `[A]` → `[B]` ([short context])
 ...
 ```
 
-**Règles de curation :**
-- God Nodes : garder les 10 premiers, ajouter une annotation contextuelle sur chaque (pas juste le nombre d'edges — expliquer le rôle)
-- Communautés : regrouper par domaine fonctionnel, pas lister exhaustivement (viser ~10 groupes max)
-- Hyperedges : garder seulement les groupes significatifs (feature complète, stack, cluster métier)
-- Connexions surprenantes : INFERRED uniquement, max 5, ignorer les faux positifs évidents (ex: Istanbul → fichiers sources)
-- Taille cible : ~40 lignes — si plus, re-regrouper
+**Curation rules:**
+- God Nodes: keep top 10, add contextual annotation to each (not just edge count — explain the role)
+- Communities: group by functional domain, don't list exhaustively (aim for ~10 max groups)
+- Hyperedges: keep only significant groups (complete feature, stack, business cluster)
+- Surprising connections: INFERRED only, max 5, ignore obvious false positives (ex: Istanbul → source files)
+- Target size: ~40 lines — if more, re-group
 
-Présenter le draft à Victor : "Voilà le draft — tu veux annoter ou ajuster avant que j'écrive ?"
+Present draft to Victor: "Here's the draft — want to annotate or adjust before I write it?"
 
-**Attendre validation (ou "c'est bon") avant d'écrire le fichier.**
+**Wait for validation (or "looks good") before writing file.**
 
-## Étape 5 — Écriture et post-run
+## Step 5 — Write and post-run
 
-Écrire le `graph-context.md` validé à l'emplacement cible.
+Write validated `graph-context.md` to target location.
 
-### Premier run (pas --update)
-Proposer : "Tu veux installer le hook pre-commit pour que le graph se mette à jour automatiquement après chaque commit ?"
+### First run (no --update)
+Propose: "Want to install the pre-commit hook so the graph updates automatically after each commit?"
 
-Si oui → afficher la commande à lancer depuis la racine du repo :
+If yes → display command to run from repo root:
 ```bash
 graphify hook install
 ```
-Préciser : le hook utilise l'AST sans LLM pour les fichiers TS/JS — rebuild instantané.
+Clarify: the hook uses AST without LLM for TS/JS files — instant rebuild.
 
-## 🚫 Règle absolue
+## 🚫 Absolute rule
 
-**Ne jamais lancer graphify sur le vault** (`{VAULT_PATH}`). Le vault est exclu définitivement — coût LLM et temps d'exécution disproportionnés par rapport aux INDEX.md qui remplissent le même rôle. Si Victor demande `/graph` sur le vault, refuser et expliquer.
+**Never run graphify on the vault** (`{VAULT_PATH}`). The vault is permanently excluded — LLM cost and execution time disproportionate to INDEX.md files that fulfill the same role. If Victor requests `/graph` on the vault, refuse and explain.
 
-## Notes techniques
+## Technical notes
 
-- `.graphifyignore` à la racine pour les exclusions (syntaxe gitignore) — ex FSTG : `client/coverage/` + `graphify-out/`
-- Ne pas utiliser `tee` pour capturer le stdout — le GRAPH_REPORT.md est la source, pas le CLI output
+- `.graphifyignore` at root for exclusions (gitignore syntax) — ex FSTG: `client/coverage/` + `graphify-out/`
+- Don't use `tee` to capture stdout — GRAPH_REPORT.md is the source, not CLI output

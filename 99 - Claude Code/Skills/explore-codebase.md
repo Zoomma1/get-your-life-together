@@ -1,114 +1,114 @@
 ---
 name: explore-codebase
-description: Analyser l'architecture d'un codebase et produire un rapport structuré (stack, organisation, points notables) dans le chat. Déclencher dès que Victor donne un chemin de repo à explorer, dit "analyse ce projet", "qu'est-ce que fait ce code", "regarde l'archi de [projet]", "explore ce repo", ou veut documenter un ancien projet dev avant de créer une fiche Past Project.
+description: Analyze a codebase architecture and produce a structured report (stack, organization, key points) in the chat. Trigger as soon as Victor provides a repo path to explore, says "analyze this project", "what does this code do", "look at the architecture of [project]", "explore this repo", or wants to document an old dev project before creating a Past Project note.
 ---
 
 # Skill `/explore-codebase`
 
-Explore un repo et produit un rapport d'architecture structuré dans le chat.
+Explores a repo and produces a structured architecture report in the chat.
 
 ## Input
 
-`$ARGUMENTS` = chemin absolu du repo à analyser.
+`$ARGUMENTS` = absolute path of the repo to analyze.
 
-Si aucun chemin fourni → demander : "Quel est le chemin du repo ?" et attendre.
-
----
-
-## Étape 1 — Vérifier le chemin
-
-Vérifier que le chemin existe. Si absent → "Chemin introuvable : [chemin]. Correct ?" et attendre.
+If no path provided → ask: "What is the repo path?" and wait.
 
 ---
 
-## Étape 2 — README (optionnel)
+## Step 1 — Verify the path
 
-Utiliser Glob pour chercher `README*` à la racine du repo (depth 1 seulement).
-
-- Si trouvé → lire les 50 premières lignes et extraire un résumé 2-3 phrases
-- Si absent → noter "Absent" et continuer
+Verify that the path exists. If missing → "Path not found: [path]. Correct?" and wait.
 
 ---
 
-## Étape 3 — Configuration & Stack
+## Step 2 — README (optional)
 
-Utiliser Glob pour chercher les fichiers de configuration à la racine :
+Use Glob to search for `README*` at the repo root (depth 1 only).
+
+- If found → read the first 50 lines and extract a 2-3 sentence summary
+- If missing → note "Missing" and continue
+
+---
+
+## Step 3 — Configuration & Stack
+
+Use Glob to search for config files at the root:
 `package.json`, `pom.xml`, `requirements.txt`, `Cargo.toml`, `go.mod`, `build.gradle`, `composer.json`, `Gemfile`, `.csproj`, `pyproject.toml`, etc.
 
-Pour chaque fichier trouvé :
-- Lire le contenu (max 100 lignes)
-- Extraire : langage principal, framework/runtime, 5–10 dépendances clés
-- Si plusieurs configs → classer par priorité (ex: package.json + Dockerfile → Node + Docker)
+For each file found:
+- Read the content (max 100 lines)
+- Extract: primary language, framework/runtime, 5–10 key dependencies
+- If multiple configs → classify by priority (ex: package.json + Dockerfile → Node + Docker)
 
-Si **aucune config trouvée** → noter "Aucune config détectée — analyse structurelle seulement" et continuer à l'Étape 4.
-
----
-
-## Étape 4 — Structure des dossiers
-
-Utiliser Glob pour explorer la structure avec `**/*` (depth 2-3 suggéré).
-
-Exclure : `node_modules/`, `.git/`, `.github/`, `dist/`, `build/`, `target/`, `__pycache__/`, `.venv/`, `venv/`, `.next/`, `.nuxt/`, `out/`, `coverage/`.
-
-Produire un arbre condensé (max 15 lignes) montrant :
-- Dossiers principaux et leur contenu type
-- Chemins vers les sources (ex: `src/`, `lib/`, `app/`, `backend/`)
-- Fichiers d'entrée si détectés
+If **no config found** → note "No config detected — structural analysis only" and continue to Step 4.
 
 ---
 
-## Étape 5 — Entry points (optionnel)
+## Step 4 — Folder structure
 
-Utiliser Grep pour chercher `main.*`, `index.*`, `App.*`, `server.*` à la racine et dans `src/` (max 10 résultats).
+Use Glob to explore the structure with `**/*` (depth 2-3 suggested).
 
-Sélectionner max 2 fichiers pertinents. Lire les 50 premières lignes de chacun pour comprendre le point d'entrée.
+Exclude: `node_modules/`, `.git/`, `.github/`, `dist/`, `build/`, `target/`, `__pycache__/`, `.venv/`, `venv/`, `.next/`, `.nuxt/`, `out/`, `coverage/`.
+
+Produce a condensed tree (max 15 lines) showing:
+- Main folders and their typical content
+- Paths to sources (ex: `src/`, `lib/`, `app/`, `backend/`)
+- Entry files if detected
 
 ---
 
-## Étape 6 — Architecture & Patterns
+## Step 5 — Entry points (optional)
 
-En examinant la structure, la config et les entry points, identifier le pattern architectural :
+Use Grep to search `main.*`, `index.*`, `App.*`, `server.*` at the root and in `src/` (max 10 results).
+
+Select max 2 relevant files. Read the first 50 lines of each to understand the entry point.
+
+---
+
+## Step 6 — Architecture & Patterns
+
+By examining the structure, config, and entry points, identify the architectural pattern:
 
 - **MVC** : controllers/, models/, views/
 - **Layered** : controllers/, services/, repositories/, entities/
 - **Feature-based** : features/feature-A/, features/feature-B/
-- **Monolithique** : tout dans src/ sans séparation claire
-- **Monorepo** : packages/, workspaces/, plusieurs package.json
-- **Other** : décrire brièvement
+- **Monolithic** : everything in src/ without clear separation
+- **Monorepo** : packages/, workspaces/, multiple package.json
+- **Other** : describe briefly
 
-Justifier en 1 phrase basée sur l'evidence dans la structure.
+Justify in 1 sentence based on evidence in the structure.
 
 ---
 
-## Étape 7 — Rapport final
+## Step 7 — Final report
 
-Assembler le rapport en combinant tous les éléments précédents. Produire dans le chat ce format exact :
+Assemble the report by combining all previous elements. Produce in chat this exact format:
 
 ```
-## [Nom du projet]
+## [Project name]
 
-**Stack** : [langage(s) + framework(s) + runtime]
-**Architecture** : [pattern identifié] — [justification 1 phrase]
+**Stack** : [language(s) + framework(s) + runtime]
+**Architecture** : [identified pattern] — [1 sentence justification]
 
 **Structure** :
-[arbre condensé, 10-15 lignes]
+[condensed tree, 10-15 lines]
 
-**Dépendances clés** : [5-10 libs principales, ou "Aucune config détectée"]
+**Key dependencies** : [5-10 main libs, or "No config detected"]
 
-**Points notables** :
-- [observation sur patterns, structure, choix tech]
-- [dette technique visible ou limitation évidente]
-- [exemple: "Monorepo sans Lerna/pnpm", "TypeScript strict mode disabled", etc.]
+**Notable points** :
+- [observation on patterns, structure, tech choices]
+- [visible technical debt or obvious limitation]
+- [example: "Monorepo without Lerna/pnpm", "TypeScript strict mode disabled", etc.]
 - [max 5 points]
 
-**README** : [résumé 2-3 phrases, ou "Absent"]
+**README** : [2-3 sentence summary, or "Missing"]
 ```
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- Ne jamais créer de fichier, ne jamais modifier le repo analysé
-- Rapport uniquement dans le chat — pas de note vault créée
-- L'analyse reste descriptive : ne pas recommander de changements ni critiquer les choix du projet
-- Si une étape manque de données (pas de README, pas de config, pas d'entry point clair) → continuer quand même — le rapport est partiel mais complété
+- Never create a file, never modify the analyzed repo
+- Report only in the chat — no vault note created
+- Analysis remains descriptive: do not recommend changes or critique project choices
+- If a step lacks data (no README, no config, no clear entry point) → continue anyway — the report is partial but complete

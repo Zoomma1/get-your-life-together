@@ -1,109 +1,109 @@
 ---
 name: research-scout
-description: Veille quotidienne orientée vault × Claude Code — ce qui sort et trend cette semaine dans l'écosystème. Déclencher via /research-scout ou automatiquement à la fin de /digest.
+description: Daily monitoring focused on vault × Claude Code — what's trending and launching this week in the ecosystem. Trigger via /research-scout or automatically at end of /digest.
 ---
 
 # Skill : /research-scout
 
-Veille ciblée sur ce qui sort et trend dans l'espace **Claude Code × vault × agents IA** cette semaine. Format et logique proches de `/pulse`, mais quotidien et léger — pas de création de tickets (le `/harvest` s'en charge).
+Targeted monitoring on what's launching and trending in the **Claude Code × vault × AI agents** space this week. Format and logic close to `/pulse`, but daily and lightweight — no ticket creation (`/harvest` handles that).
 
 ---
 
-## Étape 1 — Calculer la date et fetcher les tendances (parallèle)
+## Step 1 — Calculate date and fetch trends (parallel)
 
-**Date dynamique** : calculer la date d'aujourd'hui et la date J-7. Utiliser le format `YYYY-MM-DD` dans les requêtes — ne jamais hardcoder une date.
+**Dynamic date** : calculate today's date and date J-7. Use `YYYY-MM-DD` format in queries — never hardcode a date.
 
-Lancer 4 recherches en parallèle :
+Run 4 searches in parallel:
 
 **A — GitHub trending vault/agents**
 ```
-WebSearch : "GitHub trending Claude Code vault Obsidian agents [mois courant] [année courante]"
+WebSearch : "GitHub trending Claude Code vault Obsidian agents [current month] [current year]"
 ```
 
-**B — HN discussions récentes**
+**B — Recent HN discussions**
 ```
-WebSearch : "Hacker News Claude Code Obsidian PKM agents [mois courant] [année courante]"
-```
-
-**C — Anthropic nouveautés**
-```
-WebSearch : "Anthropic Claude new product tool release [mois courant] [année courante]"
+WebSearch : "Hacker News Claude Code Obsidian PKM agents [current month] [current year]"
 ```
 
-**D — Écosystème IA dev tools**
+**C — Anthropic news**
 ```
-WebSearch : "AI developer tools release agents [mois courant] [année courante] new"
+WebSearch : "Anthropic Claude new product tool release [current month] [current year]"
 ```
 
-**Extraction** : pour chaque résultat, noter :
-- Titre + URL
-- Date de publication — **ignorer si > 7 jours** (comparer avec J-7 calculé au début)
-- Catégorie : [Claude Code] [Vault/PKM] [Agents IA] [Release Anthropic] [Outillage dev]
+**D — AI dev tools ecosystem**
+```
+WebSearch : "AI developer tools release agents [current month] [current year] new"
+```
+
+**Extraction** : for each result, note:
+- Title + URL
+- Publication date — **ignore if > 7 days** (compare with J-7 calculated at start)
+- Category : [Claude Code] [Vault/PKM] [AI Agents] [Anthropic Release] [Dev Tooling]
 
 ---
 
-## Étape 2 — Gap analysis contre le setup existant
+## Step 2 — Gap analysis against existing setup
 
-Lire en parallèle :
-1. `99 - Claude Code/Skills/INDEX.md` — skills actifs
-2. `99 - Claude Code/Claude Code Kanban.md` — colonnes Idea, Blocked, Ready (ce qui est déjà en backlog)
+Read in parallel:
+1. `99 - Claude Code/Skills/INDEX.md` — active skills
+2. `99 - Claude Code/Claude Code Kanban.md` — Idea, Blocked, Ready columns (already in backlog)
 
-Pour chaque résultat de l'Étape 1 :
-- Déjà couvert par un skill actif ? → ignorer
-- Déjà en backlog kanban ? → ignorer
-- URL déjà dans la section `## 📰 Digest` de la daily du jour ? → ignorer
-- Topic déjà présent dans `99 - Claude Code/` ou `03 - Knowledge/` (Grep rapide) ? → ignorer
+For each result from Step 1:
+- Already covered by active skill? → ignore
+- Already in kanban backlog? → ignore
+- URL already in today's daily note `## 📰 Digest` section? → ignore
+- Topic already present in `99 - Claude Code/` or `03 - Knowledge/` (quick Grep)? → ignore
 
 ---
 
-## Étape 3 — Filtrer et sélectionner
+## Step 3 — Filter and select
 
-Retenir **3 à 5 items maximum**. Critères stricts :
+Retain **3 to 5 items maximum**. Strict criteria:
 
-| Inclure | Exclure |
+| Include | Exclude |
 |---------|---------|
-| Release Anthropic (nouveau produit, nouveau modèle, nouvelle feature) | Tutoriels "top X", guides, "how to" génériques |
-| Outil concret ou repo sorti cette semaine | Contenu déjà présent dans le vault |
-| Discussion communauté avec signal fort (300+ HN, 100+ upvotes) | Articles > 7 jours |
-| Pattern ou outil dans l'écosystème Claude Code / agents / PKM qui mérite d'être sur le radar (même si ça demande un refacto ou l'ajout d'un MCP) | Contenu marketing sans substance |
+| Anthropic release (new product, new model, new feature) | Tutorials "top X", guides, generic "how to" |
+| Concrete tool or repo launched this week | Content already in vault |
+| Community discussion with strong signal (300+ HN, 100+ upvotes) | Articles > 7 days |
+| Pattern or tool in Claude Code / agents / PKM ecosystem worth watching (even if it requires refactor or adding MCP) | Marketing content without substance |
 
-**Si moins de 2 items pertinents** → terminer silencieusement, ne rien insérer.
+**If fewer than 2 relevant items** → finish silently, insert nothing.
 
 ---
 
-## Étape 4 — Présenter pour validation
+## Step 4 — Present for validation
 
-Format tableau proche de `/pulse` :
+Format table close to `/pulse`:
 
 ```
-🔭 Research intel — [N] items — semaine du [date]
+🔭 Research intel — [N] items — week of [date]
 
-| # | Item | Source | Angle vault |
+| # | Item | Source | Vault angle |
 |---|------|--------|-------------|
-| 1 | [Titre](url) | HN / GitHub / Reddit | [Claude Code / Vault / Agents / Release] |
+| 1 | [Title](url) | HN / GitHub / Reddit | [Claude Code / Vault / Agents / Release] |
 | 2 | ... | ... | ... |
 
-→ Quels numéros tu gardes ? ("1 3", "tout", "skip")
+→ Which numbers do you keep? ("1 3", "all", "skip")
 ```
 
-Timeout 45s → skip tout.
+Timeout 45s → skip all.
 
 ---
 
-## Étape 5 — Écrire dans la daily note
+## Step 5 — Write to daily note
 
-Date cible : si heure < 04:00 → veille, sinon aujourd'hui.
+Target date: if hour < 04:00 → yesterday's note, otherwise today.
 
-**Si items acceptés**, ajouter en bas de `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\[date cible].md` :
+**If items accepted**, add to bottom of `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\[target date].md`:
 
 ```markdown
 ## 🔭 Research intel
 
 | Item | Angle |
 |------|-------|
-| **[Titre](url)** | [Claude Code / Vault / Agents / Release] |
+| **[Title](url)** | [Claude Code / Vault / Agents / Release] |
 ```
 
-Confirmer : "✅ [N] item(s) ajoutés dans Research intel."
+Confirm: "✅ [N] item(s) added to Research intel."
 
-**Si tout skipé** → confirmer "Research intel — rien retenu." sans rien écrire.
+**If everything skipped** → confirm "Research intel — nothing retained." without writing anything.

@@ -1,77 +1,77 @@
 ---
 name: resumelastsession
-description: Reprendre la dernière session de travail — charge la session précédente, contexte du projet, et nouvelles données depuis hier.
+description: Resume last work session — loads previous session, project context, and new data since yesterday.
 ---
 
-# Skill : Reprise de session
+# Skill : Session resume
 
-## Étape 1 — Localiser le fichier session le plus récent
+## Step 1 — Locate most recent session file
 
-Utiliser Glob sur `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\Sessions\` avec le pattern `**/*.md` pour lister tous les fichiers `.md`.
-Trier par nom de fichier (format `YYYY-MM-DD.md`) et extraire le fichier avec la date la plus haute.
+Use Glob on `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\Sessions\` with pattern `**/*.md` to list all `.md` files.
+Sort by filename (format `YYYY-MM-DD.md`) and extract file with highest date.
 
-**Si aucun fichier n'existe** : signaler et proposer Victor de partir d'une daily note du jour (`00 - Daily notes/YYYY-MM-DD.md`).
+**If no file exists**: signal and propose Victor start from today's daily note (`00 - Daily notes/YYYY-MM-DD.md`).
 
-## Étape 2 — Extraire contexte session + projet
+## Step 2 — Extract session context + project
 
-Lire le fichier session en entier.
-Identifier la **dernière section** `## Session [HH:MM]` (la plus récente du fichier).
-- Si aucune section `## Session` n'existe → signaler "Fichier session mal formaté" et proposer fallback daily note
+Read entire session file.
+Identify the **last section** `## Session [HH:MM]` (most recent in file).
+- If no `## Session` section exists → signal "Session file malformed" and propose fallback daily note
 
-Extraire exactement dans cet ordre (et lister les sections trouvées) :
-1. **✅ Accompli** — ce qui a été fait (section dédiée ou bullet points)
-2. **⏭️ Prochaine étape / Next** — où reprendre (section ou liste)
-3. **🧭 État de Victor / Notes** — observations sur son état en fin de session
+Extract exactly in this order (and list found sections):
+1. **✅ Accomplished** — what was done (dedicated section or bullet points)
+2. **⏭️ Next step / Next** — where to resume (section or list)
+3. **🧭 Victor's state / Notes** — observations on his condition at session end
 
-**À noter explicitement dans le résumé** : toute section absente ou vide.
+**Explicitly note in summary**: any missing or empty section.
 
-En parallèle, **identifier le projet** parmi : FSTG, ML VUT, HomeLabServeur, Rust Deploy Tool, Ludisep, AirBnBoat, CryptoBot, Vault, ou autre.
-- Chercher le nom explicitement dans la dernière section session, ou dans le contenu des accomplissements
-- Si le nom n'est pas trouvable → signaler et demander à Victor de préciser le projet
+In parallel, **identify the project** among: FSTG, ML VUT, HomeLabServeur, Rust Deploy Tool, Ludisep, AirBnBoat, CryptoBot, Vault, or other.
+- Search name explicitly in last session section, or in accomplishment content
+- If name not findable → signal and ask Victor to clarify project
 
-## Étape 3 — Charger contexte du projet et nouvelles données
+## Step 3 — Load project context and new data
 
-Si le projet a pu être identifié :
-- Chercher son README : `{VAULT_PATH}\{PROJECTS_FOLDER}\[Projet]\claude-code\README.md`
-- Si le fichier existe → lire et mémoriser : stack, architecture, fichiers clés
-- Si absent → signaler "README projet introuvable" et demander si continuer sans, ou spécifier un autre projet
+If project could be identified:
+- Search its README: `{VAULT_PATH}\{PROJECTS_FOLDER}\[Project]\claude-code\README.md`
+- If file exists → read and memorize: stack, architecture, key files
+- If missing → signal "Project README not found" and ask to continue without, or specify another project
 
-Vérifier si la session date d'avant aujourd'hui (décalage temporel) :
-- Si oui → lire la daily note du jour (`00 - Daily notes/YYYY-MM-DD.md`)
-- Si la daily note existe et contient des plans/notes → extraire et mentionner
-- Si la daily note n'existe pas ou est vide → signaler "aucun changement depuis la dernière session"
+Check if session is dated before today (time gap):
+- If yes → read today's daily note (`00 - Daily notes/YYYY-MM-DD.md`)
+- If daily note exists and contains plans/notes → extract and mention
+- If daily note doesn't exist or empty → signal "no changes since last session"
 
-## Étape 4 — Afficher le résumé et charger
+## Step 4 — Display summary and load
 
-Afficher dans ce format :
+Display in this format:
 
 ```
-📂 Session du [date] à [HH:MM]
+📂 Session from [date] at [HH:MM]
 
-✅ Accompli :
-[liste chronologique des accomplissements, ou "(aucun noté)"]
+✅ Accomplished :
+[chronological list of accomplishments, or "(none noted)"]
 
-⏭️ Prochaine étape :
-[action définie, ou "(à définir)"]
+⏭️ Next step :
+[defined action, or "(to define)"]
 
-🧭 État de Victor :
-[observation ou "(pas de notes)"]
+🧭 Victor's state :
+[observation or "(no notes)"]
 
-[Si décalage temporel et daily note avec contenu]
-📋 Contexte nouveau depuis hier :
-[résumé de la daily du jour, ou "aucun changement"]
+[If time gap and daily note with content]
+📋 New context since yesterday :
+[summary of today's daily, or "no changes"]
 
 ---
-Projet identifié : [nom projet] | Contexte chargé.
+Identified project: [project name] | Context loaded.
 ```
 
-**Important** : À la fin du résumé, Victor doit valider avant d'enchaîner. Demander "Prêt à continuer ?" ou attendre sa prochaine instruction.
+**Important**: Before continuing, Victor must validate. Ask "Ready to continue?" or wait for next instruction.
 
-## Règles absolues
+## Absolute rules
 
-- Ne jamais inventer d'informations absentes du fichier session
-- Si une section est vide ou absente → le mentionner explicitement ("(aucun noté)", "(pas de notes)", etc.)
-- Si aucun fichier session n'existe → proposer fallback sur daily note du jour, attendre validation Victor
-- Si projet indéterminé → signaler et demander à Victor de le spécifier
-- Si README du projet est absent → signaler le problème, proposer continuer sans ou clarifier le projet
-- Ne pas charger des contextes de multiples projets si ambigu — chercher le plus pertinent ou demander
+- Never invent information absent from session file
+- If a section is empty or missing → mention it explicitly ("(none noted)", "(no notes)", etc.)
+- If no session file exists → propose fallback on today's daily note, wait for Victor validation
+- If project undetermined → signal and ask Victor to specify
+- If project README is missing → signal the issue, propose continue without or clarify project
+- Don't load contexts from multiple projects if ambiguous — find most relevant or ask
