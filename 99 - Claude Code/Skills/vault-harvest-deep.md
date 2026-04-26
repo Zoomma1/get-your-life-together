@@ -1,239 +1,263 @@
 ---
 name: vault-harvest-deep
-description: Full vault scan over a long period to detect emerging patterns, cross-context recurring ideas and deep connections. Use once a month or when {USER_NAME} says "harvest deep", "deep harvest", "analyse the vault".
+description: Scan complet du vault sur une longue période pour détecter les patterns émergents, les idées récurrentes inter-contextes et les connexions profondes. Utiliser une fois par mois ou quand Victor dit "harvest deep", "deep harvest", "analyse le vault".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protected against aggressive optimisation**
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
 >
-> This skill produces a **qualitative narrative output**. Its effectiveness is measured by the **richness of the output produced**, not structural compactness.
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
 >
-> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, highlights, open questions, tone, narration). Preserving qualitative content takes priority over reducing line count.
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
-# Skill: Vault Harvest Deep
+# Skill : Vault Harvest Deep
 
-This skill is the monthly version of the harvest — it analyses the entire vault to detect what the daily harvest does not see: patterns that emerge over time, ideas that recur in different contexts, connections between hobbies, projects and personal life.
+Ce skill est la version mensuelle du harvest — il analyse l'intégralité du vault pour détecter ce que le harvest quotidien ne voit pas : les patterns qui émergent sur la durée, les idées qui reviennent dans des contextes différents, les connexions entre hobbies, projets et vie personnelle.
 
-## Trigger
+## Déclenchement
 
-- {USER_NAME} says "harvest deep", "deep harvest", "analyse the vault"
-- Recommended frequency: once a month
-- Without period specification → analyse the last 30 days of daily notes + the entire vault
-- **Duration:** a few minutes to several hours depending on vault volume
+- Victor dit "harvest deep", "deep harvest", "analyse le vault"
+- Fréquence recommandée : une fois par mois
+- Sans précision de période → analyser les 30 derniers jours de daily notes + tout le vault
+- **Durée :** quelques minutes à plusieurs heures selon le volume du vault
 
-## Difference from normal harvest
+## Différence avec le harvest normal
 
 | Harvest | Harvest Deep |
 |---------|-------------|
-| Last 7 days | Last 30 days + entire vault |
-| Recent ideas | Patterns over time |
-| Immediate capitalisation | Detection of what is emerging |
-| Fast (5-10 min) | Long (can take several minutes) |
+| 7 derniers jours | 30 derniers jours + tout le vault |
+| Idées récentes | Patterns sur la durée |
+| Capitalisation immédiate | Détection de ce qui émerge |
+| Rapide (5-10 min) | Long (peut prendre plusieurs minutes) |
 
 ---
 
-## Step 0 — Optional /map proposal
+## Étape 0 — Proposition optionnelle du /map
 
-Propose to {USER_NAME}: *"Do you want to run `/map` before starting? (recommended — it contextualises the vault's topological patterns)"*
+Proposer à Victor : *"Veux-tu lancer `/map` avant de commencer ? (recommandé — il contextualise les patterns topologiques du vault)"*
 
-If {USER_NAME} accepts → run `/map`, wait for the result, then continue to Step 1. Otherwise continue directly.
+Si Victor accepte → lancer `/map`, attendre le résultat, puis continuer à l'Étape 1. Sinon continuer directement.
 
 ---
 
-## Step 1 — Read the full context
+## Étape 1 — Lire le contexte complet
 
-30 daily notes + 30 sessions + 5 vault folders = several hundred files to analyse. Proceed by **intelligent progressive scanning** in three phases without relying on external orchestration.
+30 daily notes + 30 sessions + 5 dossiers vault = plusieurs centaines de fichiers à analyser. Procéder par **scan intelligent et progressif** en trois phases sans dépendre d'une orchestration externe.
 
-### Phase A — Contextual references (fast)
+### Phase A — Références contextuelles (rapide)
 
-Read in this order:
-1. `99 - Claude Code/treated-links.md` → list of already-processed links (duplicate filter)
-2. `04 - Projects/INDEX.md` → active projects and kanbans (to contextualise emergences)
-3. `{PERSONAL_FOLDER}/{USER_NAME}.md` → profile, interests (baseline to detect personality-related drifts)
+Lire dans cet ordre :
+1. `99 - Claude Code/treated-links.md` → liste des liens déjà traités (filtre duplicatas potentiels)
+2. `04 - Projects/INDEX.md` → projets actifs et kanbans (pour contextualiser les émergences)
+3. `01 - Me/{USER_NAME}.md` → profil, centres d'intérêt (baseline pour détecter les drifts personality-related)
 
-### Phase B — Temporal content (long but sequential)
+### Phase B — Contenu temporel (long mais séquentiel)
 
-Read in reverse chronological order (most recent first):
-1. The **last 30 days of daily notes** in `00 - Daily notes/` (YYYY-MM-DD.md files)
-   - Extract: ideas mentioned 2+ times, explicit alert signals, unresolved intentions, energy patterns
-2. The **last 30 days of sessions** in `99 - Claude Code/Sessions/` (same or timestamped files)
-   - Extract: technical drifts not captured in daily notes, recurring decisions, work patterns
+Lire en ordre chronologique décroissant (le plus récent d'abord) :
+1. Les **30 derniers jours de daily notes** dans `00 - Daily notes/` (fichiers YYYY-MM-DD.md)
+   - Extraire : idées mentionnées 2+ fois, signaux d'alerte explicites, intentions sans suite, patterns d'énergie
+   - Pour les URLs rencontrées dans les daily notes : utiliser **defuddle d'abord** (`https://defuddle.md/<url>` via WebFetch), fallback WebFetch classique si invalide
+2. Les **30 derniers jours de sessions** dans `99 - Claude Code/Sessions/` (mêmes fichiers ou horodatés)
+   - Extraire : drifts techniques non capturés dans daily notes, décisions recurentes, patterns de travail
 
-**Note:** If fewer than 30 days of notes exist, adapt the period to what is available.
+**Note :** Si moins de 30 jours de notes existent, adapter la période à ce qui est disponible.
 
-### Phase C — Vault scan (breadth-first structure)
+### Phase C — Scan vault (structure breadth-first)
 
-Scan folders in this order:
-1. `04 - Projects/` → project state, unactioned debt, achievements
-2. `02 - Hobbies/` → active/stagnant hobby projects, unresolved intentions
-3. `01 - Me/` → existing notes, covered subjects, recent capitalisations
-4. `03 - Knowledge/` → capitalised concepts, gaps, missing links
-5. `09 - Inbox/` → waiting ideas, unresolved tickets
+Scanner les dossiers en cet ordre :
+1. `04 - Projects/` → état des projets, dette non actée, réalisations
+2. `02 - Hobbies/` → projets hobby actifs/stagnants, intentions non menées
+3. `01 - Me/` → notes existantes, sujets traités, capitalisations récentes
+4. `03 - Knowledge/` → concepts capitalisés, lacunes, liens manquants
+5. `09 - Inbox/` → idées en attente, tickets sans suite
 
-**Important:** Do not read the full content of each file — quickly examine by title, date and metadata to rapidly identify patterns without saturating context.
+**Important :** Ne pas lire le contenu complet de chaque fichier — examiner rapidement par titre, date et métadonnées pour identifier rapidement les patterns sans saturer le contexte.
 
-## Step 2 — Detect deep patterns
+## Étape 2 — Détecter les patterns profonds
 
-### Drifts — recurring non-capitalised ideas
+### Drifts — idées récurrentes non capitalisées
 
-**Criteria to identify a drift:**
-- Mentioned **2+ times** in daily notes or sessions over the period
-- **No existing note** (check in `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`)
-- **No existing ticket** in kanbans (`04 - Projects/`)
-- **Distinct contexts** (not the same day, on related but non-identical subjects)
+**Critères pour identifier un drift :**
+- Mentionné **2+ fois** dans les daily notes ou sessions sur la période
+- **Pas de note existante** (vérifier dans `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`)
+- **Pas de ticket existant** dans les kanbans (`04 - Projects/`)
+- Contextes **distincts** (pas la même journée, sur des sujets connexes mais non identiques)
 
-Example drift: the guitar theme mentioned on 2026-03-10 ("I want to get back to it") and 2026-03-25 ("too expensive here") but no existing "Guitar" note.
+Exemple de drift : le thème guitare mentionné le 2026-03-10 ("j'ai envie de reprendre") et le 2026-03-25 ("trop cher ici") mais pas de note "Guitare" existante.
 
-**Presentation:**
+**Présentation :**
 ```
-🌊 DRIFT: [subject]
-→ Appeared [X times]: [date 1] "[context 1]", [date 2] "[context 2]"
-→ Not capitalised
-→ Suggestion: create note / kanban ticket (Idea column)
-```
-
-If drifts are detected → present them in the `🌊 Drifts detected` section of the recap.
-To complete processing, propose {USER_NAME} run `/drift` as a follow-up.
-
-### Emerging patterns — clusters that form something larger
-
-**Criteria to identify an emerging pattern:**
-- **3+ related notes / ideas** discovered during the scan (in different contexts)
-- **Recent** appearances (in the last 30 days minimum; avoid linking notes older than 3 months)
-- The ideas **enrich each other** (together they make sense; alone they are fragmentary)
-- No existing project / essay / synthesis note that links them
-
-Example: notes "HomeLabServer", "DevOps learning", "Docker in prod" + daily note mentions (March) = cluster "Infrastructure hobby project"
-
-**Presentation:**
-```
-🌱 EMERGE: [cluster name]
-→ Related notes: [[note1]], [[note2]], [[note3]]
-→ What is forming: [description of the common idea]
-→ Status: [fragmentary / proto-project]
-→ Suggestion: create essay / project-note / kanban ticket
+🌊 DRIFT : [sujet]
+→ Apparu [X fois] : [date 1] "[contexte 1]", [date 2] "[contexte 2]"
+→ Non capitalisé
+→ Suggestion : créer note / ticket kanban (colonne Idea)
 ```
 
-If clusters are detected → present them in the `🌱 Emerging patterns` section of the recap.
-For full creation (project note or essay), propose {USER_NAME} run `/emerge` as a follow-up.
+Si des drifts sont détectés → les présenter dans la section `🌊 Drifts détectés` du récap.
+Pour le traitement complet, proposer à Victor de lancer `/drift` en suivi.
 
-## Step 3 — Alert signals over the period
+### Patterns émergents — clusters qui forment quelque chose de plus grand
 
-Scan the 30 days for **explicit negative signals only**.
+**Critères pour identifier un pattern émergent :**
+- **3+ notes / idées connexes** découvertes pendant le scan (dans des contextes différents)
+- Apparitions **récentes** (dans les 30 derniers jours minimum; éviter de linker des notes de plus de 3 mois)
+- Les idées **s'enrichissent mutuellement** (ensemble elles font sens ; seules elles sont fragmentaires)
+- Pas encore de projet / essay / note synthèse existant qui les lie
 
-**Signals to report:**
-- Explicit stress or exhaustion ("I'm burning out", "I'm too tired", "It's too much")
-- Shortened nights or insomnia ("4h sleep", "I've been sleeping badly for X days")
-- Isolation or withdrawal ("I feel alone", "I don't want to see anyone anymore")
-- Generalised loss of motivation ("Nothing interests me right now", "I've lost my motivation")
-- Radical decisions / breaks ("I'm going to stop everything", "I'm quitting my project")
+Exemple : notes "HomeLabServeur", "DevOps learning", "Docker en prod" + mentions en daily (mars) = cluster "Infrastructure hobby project"
 
-**NEVER report:**
-- Positive mentions ("I feel good", "It was a good day")
-- Ambiguous statements ("I'm sleeping less but I'm productive" = not an alert signal)
-- Short contextual stress ("Deadline tomorrow" = normal, not an alert)
-- Complaints without negative emotional context ("It was complicated" ≠ "I'm depressed")
-
-**Presentation:**
+**Présentation :**
 ```
-⚠️ Signals detected this month:
-- [date]: "[exact excerpt from daily note]"
-- [date]: "[exact excerpt]"
-
-No signal / Signals detected and recommended action:
-→ [Propose update to [[Signaux d'alerte]]? / No follow-up needed]
+🌱 EMERGE : [nom du cluster]
+→ Notes liées : [[note1]], [[note2]], [[note3]]
+→ Ce qui se forme : [description de l'idée commune]
+→ État : [fragmentaire / proto-projet]
+→ Suggestion : créer essay / note-projet / ticket kanban
 ```
 
-## Step 4 — Inbox review (optional if `09 - Inbox/` exists)
+Si des clusters sont détectés → les présenter dans la section `🌱 Patterns émergents` du récap.
+Pour la création complète (note projet ou essay), proposer à Victor de lancer `/emerge` en suivi.
 
-If `09 - Inbox/` exists and contains notes: propose {USER_NAME} an action for each note.
+## Étape 2.5 — Lint pass sur `03 - Knowledge/`
 
-**Let {USER_NAME} choose from:**
-1. **File** → destination in the vault (e.g. `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`)
-2. **Develop** → promising idea, deserves 200+ words and linking before filing
-3. **Archive** → outdated, past context, or redundant with an existing note
-4. **Keep** → still under reflection, revisit next month
+Scanner `03 - Knowledge/` (tous sous-dossiers) pour détecter les problèmes de qualité dans la base de connaissance.
 
-**If `09 - Inbox/` empty or absent**, silently proceed to Step 5.
+**Patterns à signaler :**
+- **Contradictions** : claim dans une note A contredit par une note B plus récente (ex: "Graphify recommandé pour le vault" vs ADR-034 "graphify scopé dev uniquement")
+- **Notes stales** : note datée de plus de 6 mois dont le contenu porte sur un outil ou pratique qui a évolué dans les sessions/daily notes récentes
+- **Orphelines sans inbound links** : notes Knowledge qui ne sont référencées par aucune autre note (`[[slug]]` absent de tout le vault) — candidates à l'archivage ou au linking
+- **Cross-refs manquants évidents** : deux notes Knowledge qui parlent manifestement du même sujet sans se lier mutuellement
 
-## Step 5 — Validation and creation
+**Présentation (section dédiée dans le récap Étape 5) :**
+```
+### 🔍 Lint Knowledge
+- ⚠️ Contradiction : [[note-A]] affirme X, [[note-B]] (2026-04-XX) dit Y
+- 🕸️ Orpheline : [[note-C]] — aucune note ne la référence
+- 🔗 Cross-ref manquant : [[note-D]] et [[note-E]] parlent de Y sans se lier
+```
 
-Present everything at once:
+Si aucun problème détecté → passer silencieusement à l'Étape 3.
+
+---
+
+## Étape 3 — Signaux d'alerte sur la période
+
+Scanner les 30 jours pour les **vrais signaux négatifs explicites uniquement**.
+
+**Signaux à rapporter :**
+- Stress ou épuisement explicite ("J'ai un burnout", "Je suis trop fatigué", "C'est trop")
+- Nuits écourtées ou insomnie ("4h de sommeil", "Je dors mal depuis X jours")
+- Isolement ou repli ("J'ai l'impression d'être seul", "Plus envie de voir personne")
+- Perte d'envie généralisée ("Rien ne m'intéresse en ce moment", "J'ai perdu ma motivation")
+- Décisions radicales / ruptures ("Je vais tout arrêter", "Je quitte mon projet")
+
+**Ne JAMAIS rapporter :**
+- Mentions positives ("Je me sens bien", "C'était un bon jour")
+- Énoncés ambigus ("Je dors moins mais je suis productif" = pas un signal d'alerte)
+- Stress contextuel court ("Deadline demain" = normal, pas alerte)
+- Plaintes sans contexte émotionnel négatif ("C'était compliqué" ≠ "Je suis déprimé")
+
+**Présentation :**
+```
+⚠️ Signaux détectés ce mois :
+- [date] : "[extrait exact du daily note]"
+- [date] : "[extrait exact]"
+
+Aucun signal / Signaux détectés et action recommandée :
+→ [Proposer mise à jour de [[Signaux d'alerte]] ? / Aucun suivi nécessaire]
+```
+
+## Étape 4 — Inbox review (optionnel si `09 - Inbox/` existe)
+
+Si `09 - Inbox/` existe et contient des notes : proposer à Victor une action pour chaque note.
+
+**Laisser Victor choisir parmi :**
+1. **Ranger** → destination dans le vault (ex: `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`)
+2. **Développer** → idée prometteuse, mérite 200+ mots et linking avant de ranger
+3. **Archiver** → date périmée, contexte passé, ou redondant avec une note existante
+4. **Garder** → toujours en cours de réflexion, repasser le mois prochain
+
+**Si `09 - Inbox/` vide ou absent**, passer silencieusement à l'Étape 5.
+
+## Étape 5 — Validation et création
+
+Présenter tout en une fois :
 
 ```
-## Deep Harvest [month]
+## Deep Harvest [mois]
 
-### 🌊 Drifts detected
+### 🌊 Drifts détectés
 ...
 
-### 🌱 Emerging patterns
+### 🌱 Patterns émergents
 ...
 
-### ⚠️ Alert signals
+### ⚠️ Signaux d'alerte
 ...
 
 ### 📥 Inbox review
 ...
 
-Validate what you want to process.
+Valide ce que tu veux traiter.
 ```
 
-**Wait for {USER_NAME}'s validation on each element.** Once validated:
-- Create Knowledge notes and approved kanban tickets via MCP
-- Respect vault naming conventions
+**Attendre la validation de Victor pour chaque élément.** Une fois validés :
+- Je crée via MCP les notes Knowledge et tickets kanban approuvés
+- Respecter le naming du vault
 
-**If {USER_NAME} approves 2+ Knowledge notes**, propose: *"Do you want me to search for existing notes to link with the new ones?"* Run `/link` as a follow-up if yes, otherwise continue.
+**Si Victor approuve 2+ notes Knowledge**, proposer : *"Tu veux que je cherche les notes existantes à lier avec les nouvelles ?"* Lancer `/link` en suivi si oui, sinon continuer.
 
-**If {USER_NAME} refuses all drifts/emerge**, go directly to Step 6 (tracker + session).
+**Si Victor refuse tous les drifts/emerge**, passer directement à l'Étape 6 (tracker + session).
 
-## Step 6 — Update tracker and session
+## Étape 6 — Mettre à jour le tracker et la session
 
-After completing the deep harvest (creation + {USER_NAME} validation included):
+Après completion du harvest deep (création + validation de Victor incluse) :
 
-1. Update `99 - Claude Code/command-tracker.md`:
-   - `/harvestdeep` (or `/harvest-deep`) line → replace date with today's date in `YYYY-MM-DD` format
+1. Mettre à jour `99 - Claude Code/command-tracker.md` :
+   - Ligne `/harvestdeep` (ou `/harvest-deep`) → remplacer la date par la date du jour au format `YYYY-MM-DD`
 
-2. Add a recap in today's session note `99 - Claude Code/Sessions/YYYY-MM-DD.md`:
+2. Ajouter un recap dans la note de session du jour `99 - Claude Code/Sessions/YYYY-MM-DD.md` :
 
 ```markdown
-## Session — /harvestdeep [month year]
+## Session — /harvestdeep [mois année]
 
-### ✅ Accomplished
+### ✅ Accompli
 
-**Analysis:** [X daily notes, X sessions, folders scanned]
+**Analyse :** [X daily notes, X sessions, dossiers scannés]
 
-**Drifts detected:**
-- **[drift name]** — [frequency + contexts]
+**Drifts détectés :**
+- **[nom drift]** — [fréquence + contextes]
 - ...
 
-**Emerging patterns:**
-- **[emerge name]** — [short description]
+**Patterns émergents :**
+- **[nom emerge]** — [description courte]
 - ...
 
-**Alert signals:** [summary or "no burnout signal"]
+**Signaux d'alerte :** [synthèse ou "aucun signal de burnout"]
 
-**Anomalies detected:** [kanbans, orphans, inconsistencies — or "none"]
+**Anomalies détectées :** [kanbans, orphelins, incohérences — ou "aucune"]
 
-### 🔧 Files created / modified
+### 🔧 Fichiers créés / modifiés
 
-- [list of actions taken]
+- [liste des actions réalisées]
 
-### 🧠 Decisions made
+### 🧠 Décisions prises
 
-- [non-trivial decisions made during the session]
+- [décisions non triviales prises pendant la session]
 
-### ⏭️ Next step
+### ⏭️ Prochaine étape
 
-- [what directly follows from the harvest]
+- [ce qui découle directement du harvest]
 ```
 
-## Edge case handling
+## Gestion des cas limites
 
-### Fewer than 30 daily notes or sessions absent
+### Moins de 30 daily notes ou sessions absentes
 
-- If the vault contains fewer than 30 daily notes: analyse **all available daily notes** and adapt the recap ("last X dates" instead of "last 30 days")
-- If `99 - Claude Code/Sessions/` does not exist or is empty: skip this phase and note "No session available"
+- Si le vault contient moins de 30 daily notes : analyser **toutes les daily notes disponibles** et adapter le récap ("X dernières dates" au lieu de "30 derniers jours")
+- Si `99 - Claude Code/Sessions/` n'existe pas ou est vide : passer cette phase et noter "Aucune session disponible"
 
-### Inaccessible or empty folders
+### Dossiers inaccessibles ou vides
 
-If a folder does not exist or is empty (e.g. `02 - Hobbies/` empty), silently ignore and continue to the next.
+Si un dossier n'existe pas ou est vide (ex: `02 - Hobbies/` vide), ignorer silencieusement et continuer au suivant.
+

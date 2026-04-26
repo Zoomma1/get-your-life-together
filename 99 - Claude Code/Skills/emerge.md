@@ -1,241 +1,241 @@
 ---
 name: emerge
-description: Detect clusters of scattered ideas in the vault that together form something new — a project or an essay. Unlike drift (individual recurring idea), emerge looks for inter-note connections that have not yet been synthesised, and conclusions the vault implies but has never drawn. Use manually or automatically after a /harvestdeep.
+description: Détecter les clusters d'idées éparpillées dans le vault qui forment ensemble quelque chose de nouveau — un projet ou un essay. Contrairement au drift (idée individuelle récurrente), emerge cherche des connexions inter-notes qui n'ont pas encore été synthétisées, et des conclusions que le vault implique mais n'a jamais tirées. Utiliser manuellement ou automatiquement après un /harvestdeep.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protected against aggressive optimisation**
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
 >
-> This skill produces a **qualitative narrative output**. Its effectiveness is measured by the **richness of the output produced**, not structural compactness.
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
 >
-> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, highlights, open questions, tone, narration). Preserving qualitative content takes priority over reducing line count.
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
-# Skill: /emerge
+# Skill : /emerge
 
-Analyses the vault to detect clusters of scattered ideas that, together, form something new — a project, an essay, an implicit direction.
+Analyse le vault pour détecter des clusters d'idées éparpillées qui, ensemble, forment quelque chose de nouveau — un projet, un essay, une direction implicite.
 
-**Key difference from `/drift`**:
-- drift = 1 individual idea keeps coming back
-- emerge = N distinct ideas converge towards 1 new structure
+**Différence clé avec `/drift`** : 
+- drift = 1 idée individuelle revient souvent
+- emerge = N idées distinctes convergent vers 1 nouvelle structure
 
-**Test of a true emergence**: "It's true but I had never said it" (not "I already know").
+**Test d'une vraie émergence** : "C'est vrai mais je ne l'avais jamais dit" (pas "je sais déjà").
 
 ---
 
-## Quick execution summary
+## Résumé d'exécution rapide
 
-**Input**: {USER_NAME} runs `/emerge` or system proposes after `/harvestdeep`
+**Entrée** : Victor lance `/emerge` ou système propose après `/harvestdeep`
 
-**Output**: Max 5 proposed clusters with score/confidence/source notes, waiting for {USER_NAME} validation before creation
+**Sortie** : Max 5 clusters proposés avec score/confiance/notes sources, attente validation Victor avant création
 
-**Time**: ~1-2h complete (depends on vault — Pass 1B/1C are the heavy phases)
+**Temps** : ~1-2h complet (dépend du vault — Pass 1B/1C sont les phases lourdes)
 
-**Key steps**:
-1. **Read references** (5-10 min) — INDEX, {USER_NAME}.md, command-tracker
-2. **Transverse pass** (15-20 min) — detect cross-domain candidates
-3. **Detail pass** (20-30 min) — apply Methods A/B/C/D to candidates
-4. **Fabrication check** (5-10 min) — reject existing ideas
-5. **Scoring** (10 min) — assign numerical scores, sort
-6. **Presentation** (5 min) — show top 5 to {USER_NAME}
-7. **Creation + linking** (15-20 min) — after {USER_NAME} validation
+**Étapes clés** :
+1. **Lire références** (5-10 min) — INDEX, {USER_NAME}.md, command-tracker
+2. **Pass transverse** (15-20 min) — détecter candidats inter-domaines
+3. **Pass détail** (20-30 min) — appliquer Méthodes A/B/C/D aux candidats
+4. **Fabrication check** (5-10 min) — rejeter idées existantes
+5. **Scoring** (10 min) — attribuer scores numériques, trier
+6. **Présentation** (5 min) — montrer top 5 à Victor
+7. **Création + linking** (15-20 min) — après validation Victor
 
-## Trigger
+## Déclenchement
 
-- **Manual**: {USER_NAME} says "/emerge", "do an emerge", "what's emerging from the vault"
-- **Automatic**: Harness proposes after a complete `/harvestdeep` if vault richness is OK (managed by post-harvest hook, not via the skill)
+- **Manuel** : Victor dit "/emerge", "fais un emerge", "qu'est-ce qui émerge du vault"
+- **Automatique** : Harness propose après `/harvestdeep` complet si richesse vault OK (gérée par post-harvest hook, pas via le skill)
 
 ---
 
-## Step 1 — Collect raw candidates
+## Étape 1 — Collecter les candidats bruts
 
-Scan the vault in 2 passes: first orientation + rapid detection, then formal capture.
+Scan du vault en 2 passes : d'abord orientation + détection rapide, puis capture formelle.
 
-### Phase 1A — Context and vault health (5-10 min)
+### Phase 1A — Contexte et santé du vault (5-10 min)
 
-Read to establish the baseline:
+Lire pour établir le baseline :
 ```
-1. `04 - Projects/INDEX.md` → active projects (exclude from analysis)
-2. `{PERSONAL_FOLDER}/{USER_NAME}.md` → profile, context (to interpret signals)
-3. `99 - Claude Code/command-tracker.md` → date of previous /emerge (avoid redundancy)
+1. `04 - Projects/INDEX.md` → projets actifs (exclure de l'analyse)
+2. `01 - Me/{USER_NAME}.md` → profil, context (pour interpréter signaux)
+3. `99 - Claude Code/command-tracker.md` → date /emerge précédent (éviter redondance)
 ```
 
-**Vault health**: If < 10 daily notes or 0 notes in key domains (Me/, Projects/, Knowledge/, Sessions/) → stop, signal "Vault insufficiently rich".
+**Santé du vault** : Si < 10 daily notes ou 0 notes dans domaines clés (Me/, Projects/, Knowledge/, Sessions/) → arrêter, signaler "Vault insuffisamment riche".
 
-### Phase 1B — Rapid detection (15-20 min)
+### Phase 1B — Détection rapide (15-20 min)
 
-Read a sample to identify potential candidates:
-- Last 3-5 daily notes: recurring ideas, unresolved tensions?
-- One standout note per domain (Me/, Hobbies/, Knowledge/, Projects/Project ideas/, Sessions/)
-- Question: "Does this idea from domain A resonate elsewhere in B or C?"
+Lire un échantillon pour identifier candidats potentiels :
+- Dernières 3-5 daily notes : idées récurrentes, tensions non résolues?
+- Une note marquante par domaine (Me/, Hobbies/, Knowledge/, Projects/Project ideas/, Sessions/)
+- Question : "Cette idée du domaine A résonne-t-elle ailleurs en B ou C?"
 
-**Raw candidates** to mark:
-- Idea X reappears in 2+ distinct contexts
-- Unresolved tension Y (want + obstacle + possible approach)
-- Decisional pattern Z revealing implicit belief
+**Candidats bruts** à marquer :
+- Idée X réapparaît 2+ contextes distincts
+- Tension Y non résolue (veux + obstacle + piste)
+- Pattern décisionnel Z révélant croyance implicite
 
-**If 0 candidates**: propose to {USER_NAME} (continue Phase 1C or stop?). **If > 15**: sort by domains, top 15.
+**Si 0 candidats** : proposer Victor (continuer Phase 1C ou arrêter?). **Si > 15** : trier par domaines, top 15.
 
-### Phase 1C — Candidate deepening (standardised structure) (20-30 min)
+### Phase 1C — Approfondissement des candidats (structure standardisée) (20-30 min)
 
-For each raw candidate, re-read sources and formally capture:
+Pour chaque candidat brut, relire les sources et capturer formellement :
 
 ```markdown
-## Candidate: [Temporary name]
+## Candidat : [Nom temporaire]
 
-**Domains**: Me/, Knowledge/, Projects/Project ideas/ (2-3)
+**Domaines** : Me/, Knowledge/, Projects/Project ideas/ (2-3)
 
-**Confirmed methods**: [added in Step 2]
+**Méthodes confirmées** : [ajout en Étape 2]
 
-**Sources**:
-- [[note1]] — signal/quote
-- [[note2]] — signal/quote
-- [[note3]] — signal/quote
+**Sources** : 
+- [[note1]] — signal/citation
+- [[note2]] — signal/citation
+- [[note3]] — signal/citation
 
-**Key signal**: [1-2 sentences: what links these sources together]
+**Signal clé** : [1-2 phrases : ce qui relie ces sources ensemble]
 
-**Status**: Raw (scoring Step 4)
+**État** : Brut (scoring Étape 4)
 ```
 
 ---
 
-## Step 2 — Validate with the 4 methods
+## Étape 2 — Valider avec les 4 méthodes
 
-For each raw candidate from Step 1, re-read sources and tag the methods that confirm the signal. Keep only candidates with 1+ methods.
+Pour chaque candidat brut de l'Étape 1, relire les sources et tagguer les méthodes qui confirment le signal. Garder seulement les candidats avec 1+ méthodes.
 
-**Process**:
-1. Candidate X: re-read sources [A, B, C]
-2. Apply filters A/B/C/D (see sections below)
-3. Mark confirmed methods: e.g. "A+C" (thematic + behavioural)
-4. If 0 confirmed methods → reject
-5. If 1+ methods → keep for Step 3
+**Processus** :
+1. Candidat X : relire sources [A, B, C]
+2. Appliquer filtres A/B/C/D (voir sections ci-après)
+3. Marquer méthodes confirmées : ex "A+C" (thématique + comportemental)
+4. Si 0 méthodes confirmées → rejeter
+5. Si 1+ méthodes → garder pour Étape 3
 
-### Summary of 4 methods (application guide)
+### Résumé des 4 méthodes (guide d'application)
 
-### Filter 1 — Thematic (Method A)
+### Filtre 1 — Thématique (Méthode A)
 
-Candidates grouping 3+ sources from at least 2-3 distinct domains, talking about the same theme.
+Candidats regroupant 3+ sources d'au moins 2-3 domaines distincts, parlant du même thème.
 
-Criteria:
-- No existing `[[]]` link between sources (not already connected)
-- Idea reappears in 2+ different contexts
-- Explicit tension: "want to do X" + "obstacle Y" + "possible approach Z"
+Critères :
+- Pas de lien `[[]]` existant entre les sources (pas déjà connectées)
+- Idée réapparaît dans 2+ contextes différents
+- Tension explicite : "veux faire X" + "obstacle Y" + "piste solution Z"
 
-### Filter 2 — Logical (Method B)
+### Filtre 2 — Logique (Méthode B)
 
-Candidates where premises A + B → conclusion C never written.
+Candidats où prémisses A + B → conclusion C jamais écrite.
 
-Explicit signals:
-- "I think...X" in note 1 + context where X applies elsewhere = implicit conclusion
-- "the problem is...Y" + sketched solution elsewhere = Y globally unresolved
-- Principle in domain 1 applied to domain 2 = new conclusion
+Signaux explicites :
+- "je pense que...X" dans note 1 + contexte où X s'applique ailleurs = conclusion implicite
+- "le problème c'est...Y" + solution esquissée ailleurs = Y non résolu globalement
+- Principe en domaine 1 appliqué à domaine 2 = conclusion nouvelle
 
-### Filter 3 — Behavioural (Method C)
+### Filtre 3 — Comportemental (Méthode C)
 
-Candidates where decision pattern 3+ occurrences reveals implicit belief.
+Candidats où pattern de décision 3+ occurrences révèle croyance implicite.
 
-Explicit signals in daily notes:
-- "I decided not to", "I cancelled", "I skipped" (same type of decision avoided 3+ times)
-- Energy systematically given to certain domains, procrastinated on others
-- Consistent avoidance = unspoken belief about risk or value
+Signaux explicites dans daily notes :
+- "j'ai décidé pas", "j'ai annulé", "j'ai sauté" (même décision type évitée 3+ fois)
+- Énergie systématiquement donnée à certains domaines, procrastinée sur d'autres
+- Évitement consistant = croyance non dite sur le risque ou la valeur
 
-**High confidence**: actions harder to fake than words.
+**Confiance haute** : actions + difficiles à faker que paroles.
 
-### Filter 4 — Convergence (Method D)
+### Filtre 4 — Convergence (Méthode D)
 
-Candidates where 3+ threads point towards the same unnamed destination.
+Candidats où 3+ threads pointent vers même destination non nommée.
 
-Examples: several different projects that, when completed, would produce a result never named as a goal.
+Exemples : plusieurs projets différents qui, achevés, produiraient résultat jamais nommé comme goal.
 
-**Low confidence**: speculative, consolidate only if convergence is clearly visible.
-
----
-
-## Step 3 — Fabrication check (mandatory before Step 4)
-
-Before scoring, verify a cluster does not already exist in the vault.
-
-**Process**:
-1. Search for the idea as it would be formulated: read `04 - Projects/INDEX.md` (active project?), `04 - Projects/Project ideas/` (existing idea note?), `03 - Knowledge/` (concept already synthesised?)
-2. If direct result → reject (repetition, not emergent)
-3. If idea formulated differently elsewhere → check if already linked by `[[]]`: if yes, existing connection, not emergent
-4. If passed check → proceed to Step 4 (scoring)
-
-**Trace rejections**: briefly note rejected candidates for transparency.
+**Confiance basse** : spéculatif, ne consolider que si convergence clairement visible.
 
 ---
 
-## Step 4 — Score confidence and consolidate
+## Étape 3 — Fabrication check (obligatoire avant Étape 4)
 
-For each cluster that passed the fabrication check, assign a numerical score then a level:
+Avant de scorer, vérifier qu'un cluster n'existe pas déjà dans le vault.
 
-**Scoring criteria**
+**Processus** :
+1. Chercher l'idée telle qu'elle serait formulée : lire `04 - Projects/INDEX.md` (projet actif?), `04 - Projects/Project ideas/` (idea note existante?), `03 - Knowledge/` (concept déjà synthétisé?)
+2. Si résultat direct → rejeter (répétition, pas émergent)
+3. Si idée formulée différemment ailleurs → vérifier si déjà liée par `[[]]` : si oui, connexion existante, pas émergent
+4. Si passé check → procéder à Étape 4 (scoring)
 
-| Element | Points | Notes |
+**Tracer les rejets** : noter brièvement les candidats rejetés pour transparency.
+
+---
+
+## Étape 4 — Scorer la confiance et consolider
+
+Pour chaque cluster ayant passé le fabrication check, attribuer un score numérique puis un niveau :
+
+**Critères de scoring**
+
+| Élément | Points | Notes |
 |---------|--------|-------|
-| **Data points** | +1 per note | Max +5 (beyond = more detail data useless) |
-| **Domains involved** | +1 per domain (min 2) | +1 if 2 domains, +2 if 3+. Capped +2. |
-| **Method A (thematic)** | +1 | If cluster groups 3+ notes thematically |
-| **Method B (logical)** | +1 | If premises A+B → conclusion C never written |
-| **Method C (behavioural)** | +2 | If pattern 3+ occurrences (more reliable than B) |
-| **Method D (convergence)** | +0.5 | Speculative, count as half-point |
-| **Explicit tension** | +1 | If cluster contains unresolved tension |
-| **Recurrence over period** | +1 | If signal appears over 7+ days (persistence) |
+| **Points de données** | +1 par note | Max +5 (au-delà = plus de données détail inutile) |
+| **Domaines impliqués** | +1 par domaine (min 2) | +1 si 2 domaines, +2 si 3+. Capped +2. |
+| **Méthode A (thématique)** | +1 | Si cluster regroupe 3+ notes thématiquement |
+| **Méthode B (logique)** | +1 | Si prémisses A+B → conclusion C jamais écrite |
+| **Méthode C (comportement)** | +2 | Si pattern 3+ occurrences (plus fiable que B) |
+| **Méthode D (convergence)** | +0.5 | Spéculatif, compter comme demi-point |
+| **Tension explicite** | +1 | Si cluster contient tension non résolue |
+| **Recurrence sur période** | +1 | Si signal apparaît sur 7+ jours (persistance) |
 
-**Final levels**
+**Niveaux finaux**
 
-| Score | Level |
+| Score | Niveau |
 |-------|--------|
-| 6+ | **High** — strong signal, ready to create or validate with {USER_NAME} |
-| 4-5 | **Medium** — clear but incomplete signal, to deepen with {USER_NAME} |
-| 2-3 | **Low** — speculative, propose as exploratory only |
-| <2 | **Rejected** — insufficient signal, do not present |
+| 6+ | **Haut** — fort signal, prêt à créer ou valider avec Victor |
+| 4-5 | **Moyen** — signal clair mais incomplet, à approfondir avec Victor |
+| 2-3 | **Faible** — spéculatif, proposer comme exploratoire seulement |
+| <2 | **Rejeté** — signal insuffisant, ne pas présenter |
 
-Present in order: High → Medium → Low. **Limit to max 5 clusters presented** (highest scores first).
+Présenter dans l'ordre : Haut → Moyen → Faible. **Limiter à max 5 clusters présentés** (les plus hauts scores d'abord).
 
 ---
 
-## Step 5 — Qualify each cluster and propose format
+## Étape 5 — Qualifier chaque cluster et proposer format
 
-For each detected cluster, determine what it calls for:
+Pour chaque cluster détecté, déterminer ce qu'il appelle :
 
-| Signal | Suggested output | {USER_NAME}'s case |
+| Signal | Output suggéré | Cas Victor |
 |--------|----------------|-----------|
-| **Technical / product idea cluster** — points towards a tool, system, app or SaaS to build | **Project** → note in `04 - Projects/Project ideas/` | Dev tools, automation, infra |
-| **Reflections, observations, tensions cluster** — observations about life, work, cognition or concepts without a concrete deliverable | **Essay** → narrative text in `04 - Projects/Project ideas/` | ADHD, systems, processes, reflections |
-| **Ambiguous cluster** — not yet clear whether it's a project or a reflection | **Propose to {USER_NAME}**: "I see two directions, which one do you want to explore?" |
+| **Cluster d'idées techniques / product** — pointe vers un outil, système, app ou SaaS à construire | **Projet** → note dans `04 - Projects/Project ideas/` | Outils dev, automation, infra |
+| **Cluster de réflexions, observations, tensions** — observations sur la vie, le travail, la cognition ou concepts sans déliverable concret | **Essay** → texte narratif dans `04 - Projects/Project ideas/` | TDAH, systèmes, processus, réflexions |
+| **Cluster ambigu** — pas encore assez clair si c'est un projet ou une réflexion | **Proposer à Victor** : "Je vois deux directions, laquelle tu veux explorer?" |
 
-Use context: if cluster mentions "build", "tool", "system", "app", "automation" → Project. If mentions "why", "pattern", "belief", "tension" → Essay.
-
----
-
-## Step 6 — Presentation to {USER_NAME}
-
-Format per cluster:
-
-```
-🌱 [Cluster title]
-- Confidence: [High/Medium/Low] | Score: X/10
-- Methods: [A/B/C/D] | Sources: [[note1]], [[note2]], [[note3]]
-- What is forming: [1-2 sentences on what these ideas compose]
-- Emergence: [Why this is not already in the vault]
-- Type: [Project / Essay / To clarify]
-```
-
-**No cluster**: Display ✅ No cluster — healthy vault, ideas well isolated or capitalised.
-
-**Limit**: Max 5 clusters, sorted by descending score. If > 5, present top 5 + propose batch 2.
-
-Wait for {USER_NAME} validation before creation.
+Utiliser le contexte : si cluster mentionne "build", "tool", "system", "app", "automation" → Projet. Si mentions "pourquoi", "pattern", "croyance", "tension" → Essay.
 
 ---
 
-## Step 7 — Creation + Linking (after validation)
+## Étape 6 — Présentation à Victor
 
-### 7A — Create the note (Project or Essay)
+Format par cluster :
 
-Only create after explicit {USER_NAME} validation.
+```
+🌱 [Titre du cluster]
+- Confiance : [Haut/Moyen/Faible] | Score : X/10
+- Méthodes : [A/B/C/D] | Sources : [[note1]], [[note2]], [[note3]]
+- Ce qui se forme : [1-2 phrases sur ce que ces idées composent]
+- Émergence : [Pourquoi ce n'est pas déjà dans le vault]
+- Type : [Projet / Essay / À clarifier]
+```
 
-**Project** — note in `04 - Projects/Project ideas/[slug-title].md`:
+**Aucun cluster** : Afficher ✅ Aucun cluster — vault sain, idées bien isolées ou capitalisées.
+
+**Limite** : Max 5 clusters, triés par score décroissant. Si > 5, présenter top 5 + proposer batch 2.
+
+Attendre validation Victor avant création.
+
+---
+
+## Étape 7 — Création + Linking (après validation)
+
+### 7A — Créer la note (Projet ou Essay)
+
+Ne créer qu'après validation explicite Victor.
+
+**Projet** — note dans `04 - Projects/Project ideas/[slug-titre].md` :
 
 ```markdown
 ---
@@ -245,32 +245,32 @@ tags: [project-idea]
 status: draft
 ---
 
-# [Title]
+# [Titre]
 
-## Why
+## Pourquoi
 
-[Context, motivation — where the idea comes from]
+[Contexte, motivation — d'où vient l'idée]
 
-## What it solves
+## Ce que ça résout
 
-[Concrete problem or need]
+[Problème concret ou besoin]
 
-## How
+## Comment
 
-[General approach, envisioned solution]
+[Approche générale, solution envisagée]
 
-## How to get there
+## Comment y arriver
 
-[3-5 concrete steps to get started]
+[3-5 étapes concrètes pour démarrer]
 
-## Related notes
+## Notes liées
 
 - [[note1]] — signal
 - [[note2]] — signal
 - [[note3]] — signal
 ```
 
-**Essay** — same path, tags `[essay, draft]`:
+**Essay** — même chemin, tags `[essay, draft]` :
 
 ```markdown
 ---
@@ -280,105 +280,105 @@ tags: [essay, draft]
 status: draft
 ---
 
-# [Title]
+# [Titre]
 
-## Why I'm writing this
+## Pourquoi j'écris ça
 
-[Impulse, reason for being]
+[Impulsion, raison d'être]
 
-## The problem or tension
+## Le problème ou la tension
 
-[What is missing, unanswered question]
+[Ce qui manque, question sans réponse]
 
-## What I think about it
+## Ce que j'en pense
 
-[Thesis, argument — to be filled in by {USER_NAME}]
+[Thèse, argument — à remplir par Victor]
 
-## Next steps
+## Prochaines étapes
 
-[Direction, how to deepen]
+[Direction, comment approfondir]
 
 ---
 
-*Draft — /emerge YYYY-MM-DD*
+*Brouillon — /emerge YYYY-MM-DD*
 
-## Source notes
+## Notes source
 
 - [[note1]] — A/B/C/D
 - [[note2]] — A/B/C/D
 - [[note3]] — A/B/C/D
 ```
 
-Use **Write tool** (not Obsidian API). Path: `{VAULT_PATH}\{PROJECTS_FOLDER}\Project ideas\[slug-title].md`
+Utiliser **Write tool** (pas Obsidian API). Chemin : `{VAULT_PATH}\{PROJECTS_FOLDER}\Project ideas\[slug-titre].md`
 
-### 7B — Link the sources (after creation)
+### 7B — Linker les sources (après création)
 
-Add bidirectional links in 3-5 key sources towards the new note.
+Ajouter liens bidirectionnels dans 3-5 sources clés vers la nouvelle note.
 
-**Process**:
-1. List sources from Step 1
-2. Propose to {USER_NAME} precise locations per source (which section, which sentence)
-3. {USER_NAME} validates
-4. Add via Edit: `[[NewParentNote]] — context` or `[[NewParentNote|label]]` as needed
+**Processus** :
+1. Lister sources Étape 1
+2. Proposer Victor emplacements précis par source (quelle section, quelle phrase)
+3. Valider Victor
+4. Ajouter via Edit : `[[NomNoteMere]] — contexte` ou `[[NomNoteMere|label]]` selon besoin
 
-Limit to 5-7 links (saturation risk); prioritise relevance.
+Limiter 5-7 liens (saturation) ; prioriser pertinence.
 
 ---
 
-## Step 8 — Finalisation
+## Étape 8 — Finalisation
 
-After creation + linking (or if 0 clusters):
+Après création + linking (ou si 0 cluster) :
 
-1. Update `99 - Claude Code/command-tracker.md`: `/emerge` → YYYY-MM-DD
-2. Optional (auto batch): recap in `99 - Claude Code/skills-autoresearch-log.md`
+1. Mettre à jour `99 - Claude Code/command-tracker.md` : `/emerge` → YYYY-MM-DD
+2. Optionnel (batch auto) : recap dans `99 - Claude Code/skills-autoresearch-log.md`
 
 ---
 
 ## Edge cases
 
-| Case | Behaviour |
-|------|-----------|
-| **Insufficient vault** | Stop at Step 1A: "Vault insufficiently rich" |
-| **0 candidates after Phase 1B** | Ask {USER_NAME}: "Continue Phase 1C (detail) or stop?" |
-| **> 15 raw candidates** | Sort by domains (richness), keep top 15, propose batch 2 |
-| **0 validated candidates (Step 2)** | Display ✅ "No cluster — healthy vault" |
-| **Timeout > 1h** | Limit Phase 1 to 30 days (instead of full), notify {USER_NAME} |
-| **Borderline (Step 3)** | Ask {USER_NAME}: "Rework existing or emergent?" |
-| **/emerge in progress** | Refuse: "Emerge in progress, please wait" |
-| **Method D cluster only** | Score < 3, propose exploratory only |
+| Cas | Comportement |
+|-----|--------------|
+| **Vault insuffisant** | Arrêter Étape 1A : "Vault insuffisamment riche" |
+| **0 candidats après Phase 1B** | Demander Victor : "Continuer Phase 1C (détail) ou arrêter?" |
+| **> 15 candidats bruts** | Trier par domaines (richesse), garder top 15, proposer batch 2 |
+| **0 candidats validés (Étape 2)** | Afficher ✅ "Aucun cluster — vault sain" |
+| **Timeout > 1h** | Limiter Phase 1 à 30j (au lieu de complet), signaler Victor |
+| **Borderline (Étape 3)** | Demander Victor : "Rework existante ou émergeant?" |
+| **/emerge en cours** | Refuser : "Emerge en cours, attendez fin" |
+| **Cluster Méthode D seule** | Scorer < 3, proposer exploratoire seulement |
 
 ---
 
-## Absolute rules
+## Règles absolues
 
-- **Never create without explicit validation** from {USER_NAME}
-- **Look for cross-domain connections** — the most interesting clusters are often cross-contextual
-- **Do not confuse with drift** — drift = repetition of the same idea; emerge = convergence of several distinct ideas
-- **Fabrication check mandatory** before any presentation — an idea already in the vault is not emergent
-- **One note = one cluster** — do not merge two clusters in the same note
-- **Never propose something that is already an active project** in `04 - Projects/INDEX.md`
-- **Max 5 clusters presented** — sort by descending score
-- **Validate linking before execution** — ask for OK on each added link
-
----
-
-## Pitfalls to avoid
-
-| Pitfall | Fix |
-|---------|-----|
-| **Connection disguise** — existing `[[]]` links | Check links: if they exist, reject |
-| **Forced emergence** — invented without vault data (Claude's intuition) | Require 3+ concrete sources, traced |
-| **Obvious emergence** — idea already in vault | Fabrication check mandatory, reject |
-| **Worldview creep** — signal comes from Claude not the vault | Trace each candidate to its sources; reject if unsourced |
+- **Jamais créer sans validation explicite** de Victor
+- **Chercher les connexions inter-domaines** — les clusters les plus intéressants sont souvent cross-contextes
+- **Ne pas confondre avec drift** — drift = répétition d'une même idée ; emerge = convergence de plusieurs idées distinctes
+- **Fabrication check obligatoire** avant toute présentation — une idée déjà dans le vault n'est pas émergente
+- **Une note = un cluster** — ne pas fusionner deux clusters dans la même note
+- **Jamais proposer quelque chose qui est déjà un projet actif** dans `04 - Projects/INDEX.md`
+- **Max 5 clusters présentés** — trier par score décroissant
+- **Validation de linking avant execution** — demander l'OK pour chaque lien ajouté
 
 ---
 
-## Checklist before presentation
+## Pièges à éviter
 
-- [ ] 3+ sources per cluster (Step 1)
-- [ ] Methods A/B/C/D applied (Step 2)
-- [ ] Fabrication check passed (Step 3)
-- [ ] Score 2+ otherwise reject (Step 4)
-- [ ] Max 5 clusters, descending score (Step 6)
-- [ ] Sources traced with cited signals (Step 6)
-- [ ] {USER_NAME} validation before creation (Step 7)
+| Piège | Correction |
+|-------|-----------|
+| **Connection disguise** — liens déjà existants `[[]]` | Vérifier links : si existe, rejeter |
+| **Forced emergence** — inventé sans données vault (intuition Claude) | Exiger 3+ sources concrètes, tracées |
+| **Obvious emergence** — idée déjà dans vault | Fabrication check obligatoire, rejeter |
+| **Worldview creep** — signal vient de Claude pas du vault | Tracer chaque candidat à ses sources ; rejeter si non-sourcé |
+
+---
+
+## Checklist avant présentation
+
+- [ ] 3+ sources par cluster (Étape 1)
+- [ ] Méthodes A/B/C/D appliquées (Étape 2)
+- [ ] Fabrication check passé (Étape 3)
+- [ ] Score 2+ sinon rejeter (Étape 4)
+- [ ] Max 5 clusters, score décroissant (Étape 6)
+- [ ] Sources tracées avec signaux cités (Étape 6)
+- [ ] Validation Victor avant création (Étape 7)

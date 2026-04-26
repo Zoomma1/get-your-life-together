@@ -1,126 +1,126 @@
 ---
 name: archivedone
-description: Archive Done tickets (with linked notes) to C:\Archive\ — all kanbans or just one. Ask confirmation before any physical action.
+description: Archiver les tickets Done (avec notes liées) dans C:\Archive\ — tous les kanbans ou un seul. Demander confirmation avant toute action physique.
 ---
 
-# Skill: Archive Done
+# Skill : Archive Done
 
-## Invocation parameters
+## Paramètres d'invocation
 
 ```bash
-/archivedone              # All kanbans
-/archivedone [kanban]     # One specific kanban (filename or path part)
+/archivedone              # Tous les kanbans
+/archivedone [kanban]     # Un kanban spécifique (nom du fichier ou partie du chemin)
 ```
 
-## Step 1 — Discover kanbans
+## Étape 1 — Découvrir les kanbans
 
-Read `{VAULT_PATH}\{PROJECTS_FOLDER}\INDEX.md` once.
+Lire `{VAULT_PATH}\{PROJECTS_FOLDER}\INDEX.md` une seule fois.
 
-Build list of kanbans to process:
+Construire la liste des kanbans à traiter :
 
-**Special kanbans** (always included unless kanban filter applied):
+**Kanbans spéciaux** (toujours inclus sauf si filtre kanban appliqué) :
 - `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\Claude Code Kanban.md`
 
-**Project kanbans** — for each project in "Active projects" table:
-- Ignore projects with "No kanban" mention
-- Resolve path (Obsidian link `[[...]]` or direct path)
-- If path = folder → search for kanban `.md` file (usually `Project management.md`)
+**Kanbans projets** — pour chaque projet dans la table "Projets actifs" :
+- Ignorer les projets avec mention "No kanban"
+- Résoudre le chemin (lien Obsidian `[[...]]` ou chemin direct)
+- Si chemin = dossier → chercher le fichier `.md` kanban (généralement `Project management.md`)
 
-If `[kanban]` parameter provided, filter list (pattern matching on filename or path).
+Si paramètre `[kanban]` fourni, filtrer la liste (pattern matching sur nom fichier ou chemin).
 
-Read all discovered kanban files **in parallel** with Read.
+Lire tous les fichiers kanbans découverts **en parallèle** avec Read.
 
-## Step 2 — Extract Done tickets
+## Étape 2 — Extraire les tickets Done
 
-For each kanban read, extract all items from `## Done` section.
+Pour chaque kanban lu, extraire tous les items de la section `## Done`.
 
-Classify each item by type:
-- **With linked note**: contains `[[FileName]]` or `[[FileName|alias]]` (Obsidian syntax)
-- **Without linked note**: plain text, no `[[...]]`
+Classer chaque item selon son type :
+- **Avec note liée** : contient `[[NomFichier]]` ou `[[NomFichier|alias]]` (syntaxe Obsidian)
+- **Sans note liée** : texte brut, pas de `[[...]]`
 
-Build two lists per kanban: tickets with link + tickets without link.
+Construire deux listes par kanban : tickets avec lien + tickets sans lien.
 
-## Step 3 — Display summary and wait for validation
+## Étape 3 — Afficher le résumé et attendre validation
 
-If **all** Done columns are empty → stop, signal Victor, do nothing.
+Si **toutes** les colonnes Done sont vides → arrêter, signaler à Victor et ne rien faire.
 
-Otherwise, display what will be proposed for archival:
+Sinon, afficher ce qui sera proposé à l'archivage :
 
-**[Kanban name 1]** — [X archivable tickets] + [Y without link]
+**[Nom kanban 1]** — [X tickets archivables] + [Y sans lien]
 
-Archivable (with linked note):
-- [[TicketName]] | Ticket title
-- _(repeat)_
+Archivables (avec note liée) :
+- [[NomTicket]] | Titre du ticket
+- _(répéter)_
 
-Will stay in Done (without linked note):
-- Ticket title (plain text)
-- _(repeat)_
+Resteront en Done (sans note liée) :
+- Titre du ticket (texte brut)
+- _(répéter)_
 
-_(repeat for each kanban with non-empty Done)_
+_(répéter pour chaque kanban avec Done non-vide)_
 
 ---
 
-Ask Victor:
-1. Confirm archival of all listed tickets above?
-2. Any tickets to exclude?
-3. Any ADRs to handle separately (highlight bold `**ADR-XXX**`)?
+Demander à Victor :
+1. Confirmes-tu l'archivage de tous les tickets listés ci-dessus ?
+2. Des tickets à exclure ?
+3. Des ADRs à traiter séparément (surligner en gras `**ADR-XXX**`) ?
 
-Wait for explicit response before Step 4.
+Attendre réponse explicite avant Étape 4.
 
-## Step 4 — Pre-archival
+## Étape 4 — Pré-archivage
 
-Before any file move:
-- Verify `{VAULT_PATH}\Archive\` exists (create via bash if missing, signal Victor)
-- Verify each file to archive physically exists (display resolved paths)
-- Signal any broken link and ask Victor: archive anyway or skip?
+Avant tout déplacement de fichier :
+- Vérifier que `{VAULT_PATH}\Archive\` existe (créer si absent via bash, signaler à Victor)
+- Vérifier chaque fichier à archiver existe physiquement (afficher les chemins résolus)
+- Signaler tout lien cassé et demander à Victor : archiver quand même ou ignorer ?
 
-Wait for confirmation before Step 5.
+Attendre confirmation avant Étape 5.
 
-## Step 5 — Execute archival
+## Étape 5 — Exécuter l'archivage
 
-For each validated ticket in Step 3:
-1. Copy file to `{VAULT_PATH}\Archive\` via bash
-2. Rename to `[TicketName].[ext]` if collision (add `_YYYYMMDD-HHMM` before ext)
+Pour chaque ticket validé en Étape 3 :
+1. Copier le fichier vers `{VAULT_PATH}\Archive\` via bash
+2. Renommer en `[NomTicket].[ext]` si collision (ajouter `_YYYYMMDD-HHMM` avant ext)
 
-For each processed kanban, clear only archived tickets:
+Pour chaque kanban traité, vider uniquement les tickets archivés :
 ```markdown
 ## Done
 
 ```
 
-For each successfully copied ticket, delete original from source folder via bash.
+Pour chaque ticket copié avec succès, supprimer l'original du dossier source via bash.
 
-Display to Victor:
-- List of archived and deleted files
-- Ready for Step 6 (command-tracker update)
+Afficher à Victor :
+- Liste des fichiers archivés et supprimés
+- Prêt pour Étape 6 (mise à jour command-tracker)
 
-## Step 6 — Update command-tracker
+## Étape 6 — Mettre à jour command-tracker
 
-Read `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`.
+Lire `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`.
 
-Search for `/archivedone` line and update its date to `YYYY-MM-DD` format (today).
+Chercher la ligne `/archivedone` et mettre à jour sa date au format `YYYY-MM-DD` (jour actuel).
 
-If file missing or line missing: signal Victor, don't create.
+Si fichier absent ou ligne absente : signaler à Victor, ne pas créer.
 
-## Edge cases and alternate flow
+## Edge cases et déroulement alternatif
 
-| Situation | Behavior |
-|-----------|----------|
-| Broken link (file doesn't exist) | Step 4: display impossible path, ask Victor: ignore or continue anyway |
-| Ticket without linked note (plain text) | Display as "Will stay in Done", **never archive** |
-| Empty kanban (0 Done items) | Include in report with count=0, no processing for this kanban |
-| Missing INDEX | Fatal error → stop, signal Victor, don't guess |
-| `## Done` section missing or malformed | Signal Victor, skip kanban, continue |
-| Victor says "no" in Step 3 | Stop, do nothing, return without action |
-| Victor excludes certain tickets | Skip excluded tickets, archive others |
-| Collision in Archive (file exists) | Add `_YYYYMMDD-HHMM` before extension |
-| Archive/ doesn't exist | Step 4: create via bash, signal Victor |
+| Situation | Comportement |
+|-----------|-------------|
+| Lien cassé (fichier n'existe pas) | Étape 4 : afficher le chemin impossible, demander à Victor : ignorer ou continuer malgré tout |
+| Ticket sans note liée (texte brut) | Afficher en "Resteront en Done", **jamais archiver** |
+| Kanban vide (0 items Done) | Inclure dans rapport avec count=0, aucun traitement pour ce kanban |
+| INDEX absent | Erreur fatale → arrêter, signaler à Victor, ne pas deviner |
+| Section `## Done` absente ou malformée | Signaler à Victor, ignorer le kanban, continuer |
+| Victor dit "non" en Étape 3 | Arrêter, ne rien faire, retour sans action |
+| Victor exclut certains tickets | Ignorer les tickets exclus, archiver les autres |
+| Collision en Archive (fichier existe déjà) | Ajouter `_YYYYMMDD-HHMM` avant l'extension |
+| Archive/ n'existe pas | Étape 4 : créer via bash, signaler à Victor |
 
-## Absolute rules (pair-programming)
+## Règles absolues (pair-programming)
 
-- **No physical action without Victor validation** — structured confirmations in Steps 3 and 4
-- **Leave header `## Done`** — just empty it, never delete section
-- **Tickets without link = never archived** — stay in Done
-- **ADRs = ask confirmation separately** before archiving (highlight bold)
-- **Broken link or missing file = block** — ask instead of assume
-- **Victor chooses** total or partial archival (which tickets, which kanbans)
+- **Aucune action physique sans validation Victor** — confirmations structurées en Étapes 3 et 4
+- **Laisser le header `## Done`** — juste le vider, ne jamais supprimer la section
+- **Tickets sans lien = jamais archivés** — restent en Done
+- **ADRs = demander confirmation séparée** avant d'archiver (surligner en gras)
+- **Lien cassé ou fichier absent = bloquer** — demander au lieu de supposer
+- **Victor choisit** archivage total ou partiel (quels tickets, quels kanbans)

@@ -1,186 +1,186 @@
 ---
 name: ghost
-description: Answer a question in {USER_NAME}'s voice based solely on what the vault contains. Use when {USER_NAME} wants to know "what they would think about X" without brainstorming from scratch, to draft an essay from their existing positions, or to test whether the vault truly captures their thinking. Examples: "/ghost What do you think of DDD applied to solo projects?", "/ghost How do you handle procrastination?".
+description: Répondre à une question dans la voix de Victor en s'appuyant uniquement sur ce que le vault contient. Utiliser quand Victor veut savoir "ce qu'il penserait de X" sans brainstormer depuis zéro, pour drafter un essay depuis ses positions existantes, ou pour tester si le vault capture vraiment sa pensée. Exemples : "/ghost Qu'est-ce que tu penses du DDD appliqué aux projets solo ?", "/ghost Comment tu gères la procrastination ?".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protected against aggressive optimisation**
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
 >
-> This skill produces a **qualitative narrative output**. Its effectiveness is measured by the **richness of the output produced**, not structural compactness.
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
 >
-> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, highlights, open questions, tone, narration). Preserving qualitative content takes priority over reducing line count.
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
-# Skill: /ghost
+# Skill : /ghost
 
-Answers a question as {USER_NAME} would have written it — based solely on what the vault contains. Then reveals the mechanics behind the answer.
+Répond à une question comme Victor l'aurait écrit — en s'appuyant uniquement sur ce que le vault contient. Puis révèle la mécanique derrière la réponse.
 
-The fundamental rule: every claim must be sourced in the vault (VAULT), strongly implicit from multiple sources (INFERRED), or explicitly marked as extrapolated (EXTRAPOLATED). Beyond 50% EXTRAPOLATED or UNKNOWN → refuse and report what the vault actually contains.
-
----
-
-## Step 0 — Classify the question and define the refusal threshold
-
-**Decision 1: Question type**
-
-| Type | Example | Refusal threshold |
-|------|---------|-------------------|
-| Factual | "What is your current stack?" | >20% EXTRAPOLATED |
-| Opinion | "What do you think of X?" | >40% EXTRAPOLATED |
-| Advice | "What would you say to someone about X?" | >50% EXTRAPOLATED |
-| Personal | "How do you feel about X?" | >25% EXTRAPOLATED |
-| Prediction | "What do you think is going to happen?" | >60% EXTRAPOLATED |
-
-Classify the question, note its refusal threshold. This threshold guides everything else.
-
-**Decision 2: Vocal profile needed?**
-
-- Stack/architecture/TDD/DDD → NO (implicit) → go directly to Step 2
-- Other → YES → do Step 1 (1-2 notes close to the subject to extract tone)
-
-**Edge cases to refuse upfront:**
-- Out-of-scope questions (subject does not concern {USER_NAME}) → refuse with "The vault does not talk about [subject]"
-- Request for judgement on third parties (e.g. "What do you think of [Person X]?") → refuse ("The vault talks about {USER_NAME}, not [Person X]")
+La règle fondamentale : chaque claim doit être sourcé dans le vault (VAULT), fortement implicite depuis plusieurs sources (INFERRED), ou explicitement marqué comme extrapolé (EXTRAPOLATED). Au-delà de 50% d'EXTRAPOLATED ou UNKNOWN → refuser et rapporter ce que le vault contient réellement.
 
 ---
 
-## Step 1 — Extract the vocal profile (if Decision 2 = YES)
+## Étape 0 — Classer la question et définir le seuil de refus
 
-**Quick search (max 2 notes):**
-1. Find 1 essay or daily note _on the exact subject_ (not "nearby")
-2. If absent: find 1 note on **parent domain** (e.g. if subject = procrastination, read productivity, ADHD, or time management patterns) — find context that explains {USER_NAME}'s posture
+**Décision 1 : Type de question**
 
-**Explicitly identify these 6 dimensions:**
-1. **Sentence structure**: short and declarative? Long and exploratory? Mixed?
-2. **Vocabulary**: what words does {USER_NAME} use? What words do they never use?
-3. **Rhetorical patterns**: analogies, lists, questions, provocations?
-4. **Emotional register**: direct and dry? Passionate? Measured? When does it change?
-5. **Characteristic formulations**: recurring sentence structures, favourite metaphors
-6. **What they do NOT do**: conspicuously absent stylistic choices (e.g. "it is important to note", excessive hedging)
+| Type | Exemple | Seuil refus |
+|------|---------|-------------|
+| Factuelle | "Quelle est ta stack actuelle ?" | >20% EXTRAPOLATED |
+| Opinion | "Qu'est-ce que tu penses de X ?" | >40% EXTRAPOLATED |
+| Conseil | "Que dirais-tu à quelqu'un sur X ?" | >50% EXTRAPOLATED |
+| Personnelle | "Comment tu te sens par rapport à X ?" | >25% EXTRAPOLATED |
+| Prédiction | "Qu'est-ce que tu penses qu'il va se passer ?" | >60% EXTRAPOLATED |
 
-This vocal profile is a **hard constraint** on the ghost response — use it to anchor the tone and structure the response, not to copy-paste phrases.
+Classer la question, noter son seuil refus. Ce seuil guide tout le reste.
+
+**Décision 2 : Profil vocal nécessaire ?**
+
+- Stack/architecture/TDD/DDD → NON (implicite) → aller directement à Étape 2
+- Autre → OUI → faire Étape 1 (1-2 notes proches du sujet pour extraire ton)
+
+**Edge cases à refuser d'emblée :**
+- Questions hors-scope (sujet ne concerne pas Victor) → refuser avec "Le vault ne parle pas de [sujet]"
+- Demande de jugement sur tiers (ex : "Qu'est-ce que tu penses d'[Personne X] ?") → refuser ("Le vault parle de Victor, pas de [Personne X]")
 
 ---
 
-## Step 2 — Collect and tag evidence
+## Étape 1 — Extraire le profil vocal (si Décision 2 = OUI)
 
-**Search in:** `00 - Daily notes/`, `03 - Knowledge/`, `{PERSONAL_FOLDER}/{USER_NAME}.md`, `99 - Claude Code/ADR/`, `99 - Claude Code/Sessions/`
+**Recherche rapide (max 2 notes) :**
+1. Chercher 1 essay ou daily note _sur le sujet exact_ (pas "voisin")
+2. Si absent : chercher 1 note sur **domaine parent** (ex : si sujet = procrastination, lire productivité, TDAH, ou patterns de gestion du temps) — chercher contexte qui explique la posture Victor
 
-**Strategy:**
-1. Read 1-2 relevant notes in the closest zone
-2. Extract 3-5 adjacent terms / {USER_NAME}'s jargon (e.g. refactoring → design debt, legacy, TDD)
-3. Refine searches with these terms (expand corpus)
+**Identifier explicitement ces 6 dimensions :**
+1. **Structure des phrases** : courtes et déclaratives ? Longues et exploratoires ? Mixte ?
+2. **Vocabulaire** : quels mots Victor utilise ? Quels mots il n'utilise jamais ?
+3. **Patterns rhétoriques** : analogies, listes, questions, provocations ?
+4. **Registre émotionnel** : direct et sec ? Passionné ? Mesuré ? Quand est-ce que ça change ?
+5. **Formulations caractéristiques** : tournures de phrase récurrentes, métaphores favorites (ex : "c'est pas grave", "on vise quoi", "le truc c'est que")
+6. **Ce qu'il ne fait PAS** : choix stylistiques conspicuement absents (ex : "il est important de noter", hedging excessif)
 
-**For each piece of information, tag immediately:**
+Ce profil vocal est une **contrainte dure** sur la réponse ghost — à utiliser pour ancrer le ton et structurer la réponse, pas pour copier-coller des phrases.
 
-| Tag | Definition |
+---
+
+## Étape 2 — Collecter et tagger les preuves
+
+**Recherche dans :** `00 - Daily notes/`, `03 - Knowledge/`, `01 - Me/{USER_NAME}.md`, `99 - Claude Code/ADR/`, `99 - Claude Code/Sessions/`
+
+**Stratégie :**
+1. Lire 1-2 notes pertinentes dans la zone la plus proche
+2. Extraire 3-5 termes adjacents / jargon Victor (ex : refactoring → design debt, legacy, TDD)
+3. Affiner recherches avec ces termes (élargir corpus)
+
+**Pour chaque information, tagger immédiatement :**
+
+| Tag | Définition |
 |-----|-----------|
-| **VAULT** | Direct explicit citation |
-| **INFERRED** | Implicit but supported by 2+ independent sources |
-| **EXTRAPOLATED** | Consistent with vault, goes beyond what is written |
-| **UNKNOWN** | Vault silent after search |
+| **VAULT** | Citation directe explicite |
+| **INFERRED** | Implicite mais soutenu par 2+ sources indépendantes |
+| **EXTRAPOLATED** | Cohérent avec vault, va au-delà de ce qui est écrit |
+| **UNKNOWN** | Vault silencieux après recherche |
 
-**Mandatory rule: list ALL tagged evidence BEFORE Step 3. No composition without inventory.**
+**Règle obligatoire : lister TOUTES les preuves taggées AVANT Étape 3. Pas de composition sans inventaire.**
 
 ---
 
-## Step 2.5 — Refusal decision (before Step 3)
+## Étape 2.5 — Décision de refus (avant Étape 3)
 
-**Count the evidence:**
+**Compter les preuves :**
 - % VAULT, % INFERRED, % EXTRAPOLATED, % UNKNOWN
 
-**Compare % EXTRAPOLATED to the refusal threshold from Step 0:**
+**Comparer % EXTRAPOLATED au seuil refus de Étape 0 :**
 
 | Situation | Action |
 |-----------|--------|
-| EXTRAPOLATED ≤ threshold - 10% | Continue to Step 3 (green) |
-| threshold - 10% < EXTRAPOLATED ≤ threshold | Add warning at the top: "Note: [X%] extrapolated" → continue |
-| EXTRAPOLATED > threshold | Block: **propose refusal to {USER_NAME} (see below) + option "continue anyway?"** |
+| EXTRAPOLATED ≤ seuil - 10% | Continuer à Étape 3 (vert) |
+| Seuil - 10% < EXTRAPOLATED ≤ seuil | Ajouter warning en tête : "Attention : [X%] extrapolé" → continuer |
+| EXTRAPOLATED > seuil | Bloquer : **proposer le refus à Victor (voir ci-dessous) + option "continue quand même ?"** |
 
-**If refusal triggered — offer two paths:**
+**Si refus déclenché — offrir deux chemins :**
 
-**Option A (default):** refuse with honest exposition
+**Option A (par défaut) :** refuser avec exposition honnête
 ```
-Ghost mode impossible — too much extrapolation.
+Mode ghost impossible — trop d'extrapolation.
 
-Type: [TYPE] | Threshold: [Y%] | Extrapolation: [X%]
+Type : [TYPE] | Seuil : [Y%] | Extrapolation : [X%]
 
-Vault content:
-- [VAULT claim + source]
-- [INFERRED claim + source]
-- [Gap: vault silent on...]
+Contenu du vault :
+- [Claim VAULT + source]
+- [Claim INFERRED + source]
+- [Gap : vault silencieux sur...]
 
-To enrich: add [Gap 1], [Gap 2]
+Pour enrichir : ajouter [Gap 1], [Gap 2]
 ```
 
-**Option B ({USER_NAME} can request):** "Answer anyway but score vocal fidelity low (< 7/10)" → accept, add explicit disclaimer in Step 4
+**Option B (Victor peut demander) :** "Réponds quand même mais scorer bas la fidélité vocale (< 7/10)" → accepter, ajouter disclaimer explicite en Étape 4
 
 ---
 
-## Step 3 — Compose and validate the ghost response
+## Étape 3 — Composer et valider la réponse ghost
 
-**If Step 1 = NO:** ignore "vocal profile"
-**If Step 1 = YES:** open with 1-2 extracted traits (tone anchoring)
+**Si Étape 1 = NON :** ignorer "profil vocal"
+**Si Étape 1 = OUI :** ouvrir par 1-2 traits extraits (anchrage ton)
 
-**Write as {USER_NAME}:**
-- Natural length (no padding) — if response should be short, it will be short; if discourse, discourse. Follow the vault's tone, not convention
-- Integrate tags inline: `[VAULT: note]`, `[INFERRED: source1 + source2]`
+**Rédiger comme Victor :**
+- Longueur naturelle (pas de padding) — si réponse doit être courte, elle sera courte; si discours, discours. Suivre le ton du vault, pas la convention
+- Intégrer tags inline : `[VAULT: note]`, `[INFERRED: source1 + source2]`
 
-**Anti-pattern review (unfold the 6 below):**
-1. **Wikipedia ghost**: neutral response instead of {USER_NAME}'s position → add the stance
-2. **Confident fabricator**: fluent but without vault data → list evidence first
-3. **Claude ghost**: generic voice (bullet points, "it is important") → would {USER_NAME} write this? If not, redo
-4. **Therapist ghost**: general wisdom instead of a real answer → stay technical / personal to {USER_NAME}
-5. **Yes ghost**: assume agreement when vault shows resistance → check INFERRED, signal contradictions
-6. **Soft ghost**: soften firmly held positions → read VAULT/INFERRED, do not "moderate"
+**Relecture anti-patterns (dépliez les 6 ci-dessous) :**
+1. **Ghost Wikipédia** : réponse neutre au lieu de position Victor → ajouter la prise de position
+2. **Fabricateur confiant** : fluide mais sans données vault → lister preuves d'abord
+3. **Ghost Claude** : voix générique (bullet points, "il est important") → Victor l'écrirait-il ? Si non, refaire
+4. **Ghost Thérapeute** : sagesse générale au lieu de vraie réponse → rester technique / personnel Victor
+5. **Ghost Oui** : supposer accord quand vault montre résistance → vérifier INFERRED, signaler contradictions
+6. **Ghost Soft** : adoucir positions fermement tenues → lire VAULT/INFERRED, ne pas "mesurer"
 
-**Quick test:** Does {USER_NAME} use parentheses for lateral thoughts? "Anyway"? Direct rhetorical questions? If response does not imitate this → redo or score ≤6 vocal fidelity
-
----
-
-## Step 4 — Exposition (immediately after response)
-
-**3 mandatory sections:**
-
-**Distribution:**
-```
-VAULT: X% | INFERRED: X% | EXTRAPOLATED: X% | UNKNOWN: X%
-```
-
-**Evidence (max 4 claims):**
-- [1-line claim] → `[source: note, line N]`
-
-**Gap:** 1-2 sentences on what is missing for full confidence.
-
-**Vocal fidelity: X/10**
-- 9-10: {USER_NAME} would say "I could have written that"
-- 7-8: positions correct, {USER_NAME}'s voice, 1-2 "Claude" turns of phrase
-- 5-6: directionally correct, inference visible
-- 3-4: correct content, generic voice
-- 1-2: fabricated content or opposite tone
+**Test rapide :** Victor utilise parenthèses pour pensées latérales ? "Anyway" ? Questions rhétoriques directes ? Si réponse ne l'imite pas → refaire ou scorer ≤6 fidélité vocale
 
 ---
 
-## Step 5 — {USER_NAME} validation (if needed)
+## Étape 4 — Exposition (immédiatement après réponse)
 
-**Invoke ONLY IF:**
-- Vocal fidelity < 7/10, OR
+**3 sections obligatoires :**
+
+**Distribution :**
+```
+VAULT : X% | INFERRED : X% | EXTRAPOLATED : X% | UNKNOWN : X%
+```
+
+**Preuves (max 4 claims) :**
+- [Claim 1 ligne] → `[source: note, ligne N]`
+
+**Lacune :** 1-2 phrases sur ce qui manque pour pleine confiance.
+
+**Fidélité vocale : X/10**
+- 9-10 : Victor dirait "j'aurais pu écrire ça"
+- 7-8 : positions juste, voix Victor, 1-2 tournures "Claude"
+- 5-6 : directionnellement juste, inférence visible
+- 3-4 : contenu correct, voix générique
+- 1-2 : contenu fabricé ou ton opposé
+
+---
+
+## Étape 5 — Validation Victor (si besoin)
+
+**Invoquer SEULEMENT SI :**
+- Fidélité vocale < 7/10, OU
 - EXTRAPOLATED > 30%
 
-**Offer to {USER_NAME}:**
-- Validate / correct the response
-- Add nuances / clarify real position
-- Enrich the vault for future sessions
+**Offrir à Victor :**
+- Valider / rectifier la réponse
+- Ajouter nuances / clarifier position vraie
+- Enrichir le vault pour sessions futures
 
-**If {USER_NAME} validates:** response immediately usable.
+**Si Victor valide :** réponse utilisable immédiatement.
 
 ---
 
-## Absolute rules — checklist
+## Règles absolues — checklist
 
-- [ ] Tag ALL evidence BEFORE Step 3 (no composition without inventory)
-- [ ] Refusal threshold (Step 0) → refuse immediately if exceeded (Step 2.5)
-- [ ] Step 1: decide consciously (NO for stack/archi/TDD, YES otherwise)
-- [ ] INFERRED = 2+ sources minimum (1 alone is not enough)
-- [ ] Ghost response + Step 4 in one block (never split)
-- [ ] If fidelity < 7/10 or EXTRAPOLATED > 30% → propose {USER_NAME} validation
-- [ ] Explicit refusal (never silent) + standardised format Step 2.5
+- [ ] Tagger TOUTES preuves AVANT Étape 3 (pas de composition sans inventaire)
+- [ ] Seuil refus (Étape 0) → refuser immédiatement si dépassé (Étape 2.5)
+- [ ] Étape 1 : décider consciemment (NON pour stack/archi/TDD, OUI sinon)
+- [ ] INFERRED = 2+ sources minimum (1 seule n'suffit pas)
+- [ ] Réponse ghost + Étape 4 en un bloc (jamais de découpage)
+- [ ] Si fidélité < 7/10 ou EXTRAPOLATED > 30% → proposer validation Victor
+- [ ] Refus explicit (jamais silencieux) + format standardisé Étape 2.5

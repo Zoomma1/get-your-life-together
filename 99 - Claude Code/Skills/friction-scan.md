@@ -1,52 +1,52 @@
 ---
 name: friction-scan
-description: Detects friction patterns in Claude Code sessions — repeated corrections, CLAUDE.md rules not followed, skills not invoked. Runs parallel Haiku agents on JSONL files, consolidates with Sonnet. Integrated into /closeweek.
+description: Détecte les patterns de friction dans les sessions Claude Code — corrections répétées, rules CLAUDE.md non respectées, skills non invoqués. Lance agents Haiku parallèles sur les JSONL, consolide avec Sonnet. Intégré dans /closeweek.
 ---
 
-# Skill: /friction-scan
+# Skill : /friction-scan
 
-Analyses raw JSONL files from `~/.claude/projects/` to detect recurring frictions. Produces a prioritised report and updates state in Postgres.
+Analyse les JSONL bruts de `~/.claude/projects/` pour détecter les frictions récurrentes. Produit un rapport priorisé + mise à jour de l'état dans Postgres.
 
-## Step 0 — Check Postgres
+## Étape 0 — Vérifier Postgres
 
 ```powershell
 docker ps --filter name=claude-postgres --filter status=running --format "{{.Names}}"
 ```
 
-If absent: `docker compose -f ~/.claude/docker-compose.yml up -d` and wait 3s.
+Si absent : `docker compose -f ~/.claude/docker-compose.yml up -d` et attendre 3s.
 
 ---
 
-## Step 1 — Parse JSONL files
+## Étape 1 — Parser les JSONL
 
 ```bash
-uv run ~/.claude/parse_jsonl_friction.py --days 7 2>/dev/null
+uv run ~/.claude/parse_jsonl_friction.py 2>/dev/null
 ```
 
-- Without argument: window since last scan (Postgres state)
-- Returns JSON: `[{session_id, project, exchanges: [{user, assistant, has_correction, has_ack}]}]`
-- If 0 sessions → display "No friction detected since last scan." and stop
+- Sans argument : fenêtre depuis le dernier scan (état Postgres)
+- Retourne JSON : `[{session_id, project, exchanges: [{user, assistant, has_correction, has_ack}]}]`
+- Si 0 sessions → afficher "Aucune friction détectée depuis le dernier scan." et stop
 
 ---
 
-## Step 2 — Analysis by Haiku agents (parallel, batches of 5)
+## Étape 2 — Analyse par agents Haiku (parallèles, batches de 5)
 
-For each session in the JSON (batches of 5 simultaneous) → launch a Haiku Agent with this prompt:
+Pour chaque session dans le JSON (batch de 5 simultanés) → lancer un Agent Haiku avec ce prompt :
 
 ```
-You are analysing a Claude Code session to detect frictions.
+Tu analyses une session Claude Code pour détecter des frictions.
 
-Here are the exchanges with friction signals (user → assistant):
-[session exchanges]
+Voici les échanges avec signaux de friction (user → assistant) :
+[échanges de la session]
 
-Project: [project]
+Projet : [project]
 
-Identify:
-1. Repeated corrections: same error made multiple times
-2. CLAUDE.md rules violated: git touched, code without request, response too verbose, etc.
-3. Skills not invoked: situation that should have triggered /create-ticket, /harvest, etc.
+Identifie :
+1. Corrections répétées : même erreur commise plusieurs fois
+2. Règles CLAUDE.md violées : git touché, code sans demande, réponse trop verbose, etc.
+3. Skills non invoqués : situation qui aurait dû déclencher /create-ticket, /harvest, etc.
 
-Return strict JSON:
+Retourne un JSON strict :
 {
   "session_id": "...",
   "project": "...",
@@ -54,82 +54,89 @@ Return strict JSON:
     {"type": "correction|rule_violation|missed_skill", "description": "...", "evidence": "...", "severity": "low|medium|high"}
   ]
 }
-Return [] if no real friction detected. Maximum 5 frictions per session.
+Retourne [] si aucune friction réelle détectée. Maximum 5 frictions par session.
 ```
 
-Collect all returned JSON.
+Collecter tous les JSON retournés.
 
 ---
 
-## Step 3 — Sonnet consolidation
+## Étape 3 — Consolidation Sonnet
 
-Pass all Haiku results to a Sonnet Agent:
+Passer tous les résultats Haiku à un Agent Sonnet :
 
 ```
-You are consolidating frictions detected by Haiku agents across [N] Claude Code sessions.
+Tu consolides les frictions détectées par des agents Haiku sur [N] sessions Claude Code.
 
-Here are all the raw results:
-[consolidated JSON]
+Voici tous les résultats bruts :
+[JSON consolidé]
 
-Produce:
-1. Top 10 global frictions (deduplicated, prioritised by frequency + severity) with corrective action
-2. Detail per project (max 5 frictions per project)
+Produis :
+1. Top 10 frictions globales (dédupliquées, priorisées par fréquence + sévérité) avec action corrective
+2. Détail par projet (max 5 frictions par projet)
 
-Output format: structured Markdown, ready to copy into a vault file.
+Format de sortie : Markdown structuré, prêt à copier dans un fichier vault.
 ```
 
 ---
 
-## Step 4 — Write the report
+## Étape 4 — Écrire le rapport
 
-Create `99 - Claude Code/Friction scans/YYYY-MM-DD.md`:
+Créer `99 - Claude Code/Friction scans/YYYY-MM-DD.md` :
 
 ```markdown
 # Friction scan — YYYY-MM-DD
-Period: YYYY-MM-DD → YYYY-MM-DD
-Sessions analysed: N (X projects)
+Période : YYYY-MM-DD → YYYY-MM-DD
+Sessions analysées : N (X projets)
 
-## Top 10 global frictions
-1. [friction] → [corrective action]
+## Top 10 frictions globales
+1. [friction] → [action corrective]
 ...
 
-## Detail per project
-### [Project]
+## Détail par projet
+### [Projet]
 - [friction] → [action]
 ...
 ```
 
-Create the `Friction scans/` folder if it does not exist.
+Créer le dossier `Friction scans/` s'il n'existe pas.
 
 ---
 
-## Step 5 — Update Postgres state
+## Étape 5 — Mettre à jour l'état Postgres
 
 ```sql
 UPDATE friction_scan_state SET last_scan = NOW(), updated_at = NOW() WHERE id = 1;
 
 INSERT INTO friction_scan_runs (period_start, period_end, sessions_count, output_file, summary_md)
-VALUES ('[start]', '[end]', [N], '99 - Claude Code/Friction scans/YYYY-MM-DD.md', '[top 10 in markdown]');
+VALUES ('[début]', '[fin]', [N], '99 - Claude Code/Friction scans/YYYY-MM-DD.md', '[top 10 en markdown]');
 ```
 
-Via: `docker exec claude-postgres psql -U claude -d claude_sessions -c "..."`
+Via : `docker exec claude-postgres psql -U claude -d claude_sessions -c "..."`
 
 ---
 
-## Conversational summary
+## Étape 6 — Mettre à jour le command-tracker
 
-Display after the report:
+- Ouvrir `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
+- Ligne `/friction-scan` → remplacer la date par la date du jour au format `YYYY-MM-DD`
+
+---
+
+## Résumé conversationnel
+
+Afficher après le rapport :
 
 ```
-Friction scan complete — [N] sessions analysed over [X] days.
-Report: 99 - Claude Code/Friction scans/YYYY-MM-DD.md
-Top friction: [#1 from top 10]
+Friction scan terminé — [N] sessions analysées sur [X] jours.
+Rapport : 99 - Claude Code/Friction scans/YYYY-MM-DD.md
+Top friction : [#1 du top 10]
 ```
 
 ---
 
-## Absolute rules
+## Règles absolues
 
-- Never modify CLAUDE.md or skills directly — the scan detects, {USER_NAME} decides
-- If Postgres unavailable: signal and stop (no JSON file fallback — state must be reliable)
-- Batches of 5 agents max in parallel — do not overload the shared quota
+- Ne jamais modifier CLAUDE.md ou les skills directement — le scan détecte, Victor décide
+- Si Postgres indisponible : signaler et arrêter (pas de fallback fichier JSON — l'état doit être fiable)
+- Batches de 5 agents max en parallèle — ne pas surcharger le quota partagé Victor+Jay

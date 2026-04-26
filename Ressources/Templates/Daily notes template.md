@@ -5,6 +5,7 @@ month: <% tp.date.now("MMMM") %>
 week: <% tp.date.now("WW") %>
 energy:
 score:
+ressenti:
 work_hours:
 personal_hours:
 hobby_hours:

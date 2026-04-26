@@ -1,81 +1,81 @@
 ---
 name: inbox-sort
-description: Scan 09 - Inbox/ and sort its content. Flow A: detect orphan tickets (not referenced in kanbans) and propose reattachment. Flow B: detect root files and move them to destination with wikilink patching.
+description: Scanne 09 - Inbox/ et trie son contenu. Flow A : détecte les tickets orphelins (non référencés dans les kanbans) et propose un rattachement. Flow B : détecte les fichiers racine et les déplace vers leur destination avec patch des wikilinks.
 ---
 
-Scan `09 - Inbox/` and propose structured sorting in two distinct flows.
+Scanne `09 - Inbox/` et propose un rangement structuré en deux flows distincts.
 
-## Scanned Kanbans
+## Kanbans scannés
 
-Always scan these files for Flow A:
-- `04 - Projects/*/Project management.md` (all active projects)
+Toujours scanner ces fichiers pour Flow A :
+- `04 - Projects/*/Project management.md` (tous les projets actifs)
 - `02 - Hobbies/Hobby Kanban.md`
 - `99 - Claude Code/Claude Code Kanban.md`
 
-A ticket is **referenced** if its basename (without `.md`) appears in one of these files.
-Daily notes and Sessions **don't count** as reference — kanban only.
+Un ticket est **référencé** si son basename (sans `.md`) apparaît dans l'un de ces fichiers.
+Les daily notes et Sessions **ne comptent pas** comme référence — uniquement les kanbans.
 
 ---
 
-## Flow A — `09 - Inbox/tickets/*` (no file moved)
+## Flow A — `09 - Inbox/tickets/*` (aucun fichier déplacé)
 
-### Step A1 — Scan
+### Étape A1 — Scan
 
-For each `.md` file in `09 - Inbox/tickets/`:
-- Search basename in all kanbans (grep)
-- Classify: **referenced** (source kanban) or **orphan**
+Pour chaque fichier `.md` dans `09 - Inbox/tickets/` :
+- Chercher le basename dans tous les kanbans (grep)
+- Classer : **référencé** (kanban source) ou **orphelin**
 
-### Step A2 — Orphan table
+### Étape A2 — Tableau orphelins
 
-Display orphans only as numbered table:
+Afficher uniquement les orphelins sous forme de tableau numéroté :
 
 ```
-| n | file | summary | proposed kanban | column | reason |
+| n | fichier | résumé | kanban proposé | colonne | raison |
 ```
 
-**Proposal rules:**
-- `project: [X]` in frontmatter → project X's kanban
-- `status: Done` → Done column + signal ("already finished, reattachment for traceability")
-- `status: Ready` → Ready column
-- `status: Idea / Backlog` or missing → Idea column
-- If ticket describes vault/Claude Code task without explicit project → CC Kanban
-- If same task exists in a kanban (without wikilink) → signal duplicate, propose Done with wikilink or skip
+**Règles de proposition :**
+- `project: [X]` dans le frontmatter → kanban du projet X
+- `status: Done` → colonne Done + signaler ("déjà terminé, rattachement pour traçabilité")
+- `status: Ready` → colonne Ready
+- `status: Idea / Backlog` ou absent → colonne Idea
+- Si le ticket décrit une tâche vault/Claude Code sans projet explicite → CC Kanban
+- Si la même tâche existe déjà dans un kanban (sans wikilink) → signaler le doublon, proposer de passer en Done avec wikilink ou de skip
 
-**Blocked case:** if ticket contains explicit blocking note (ex: "blocked: …"), indicate in reason column and propose adding this note in kanban line.
+**Cas bloqué :** si un ticket contient une note de blocage explicite (ex: "blocked: …"), l'indiquer dans la colonne raison et proposer d'ajouter cette note dans la ligne kanban.
 
-### Step A3 — Validation
+### Étape A3 — Validation
 
-Victor validates or corrects each line. Inverted batch allowed:
-- `all` → validate all
-- `all except 1,3` → validate all except
-- `only 2,4` → validate only these
+Victor valide ou corrige chaque ligne. Batch inversé autorisé :
+- `tout` → valide tous
+- `tout sauf 1,3` → valide tous sauf
+- `seulement 2,4` → valide uniquement ceux-là
 
-### Step A4 — Execution
+### Étape A4 — Exécution
 
-For each validated ticket:
-- Insert line in target column kanban, format:
-  `- [ ] [[09 - Inbox/tickets/slug|Title]] — short description`
-- If blocking note: add at end of line ` — blocked: "…"`
-- **No ticket file moved or modified.**
+Pour chaque ticket validé :
+- Insérer une ligne dans la colonne cible du kanban, format :
+  `- [ ] [[09 - Inbox/tickets/slug|Titre]] — description courte`
+- Si note de blocage : ajouter en fin de ligne ` — blocked: "…"`
+- **Aucun fichier ticket n'est déplacé ni modifié.**
 
 ---
 
-## Flow B — Files at root of `09 - Inbox/` (move + patch)
+## Flow B — Fichiers à la racine de `09 - Inbox/` (déplacement + patch)
 
-### Step B1 — Scan
+### Étape B1 — Scan
 
-List all `.md` directly at root of `09 - Inbox/` (outside subdirectories).
-Read first lines (frontmatter + title + first paragraphs) of each file.
+Lister tous les `.md` directement à la racine de `09 - Inbox/` (hors sous-dossiers).
+Lire les premières lignes (frontmatter + titre + premiers paragraphes) de chaque fichier.
 
-### Step B2 — Destinations table
+### Étape B2 — Tableau destinations
 
-Display numbered table:
+Afficher un tableau numéroté :
 
 ```
-| n | file | detected type | proposed destination | reason |
+| n | fichier | type détecté | destination proposée | raison |
 ```
 
-**Destination heuristic (pattern matching on name + content):**
+**Heuristique destination (pattern matching sur nom + contenu) :**
 
 | signal | destination |
 |--------|-------------|
@@ -83,70 +83,70 @@ Display numbered table:
 | `angular`, `theodo` | `03 - Knowledge/Dev/` |
 | `fstg` | `04 - Projects/From sprue to glory/` |
 | `warhammer`, `hobby` | `02 - Hobbies/Warhammer/` |
-| tag `meeting-note` or `vut-*` | `04 - Projects/[detected project]/Meeting notes/` |
-| tag `ludisep` or `partner` | `04 - Projects/Ludisep/` |
-| tag `reading`, `book` | `03 - Knowledge/Lectures/` |
-| tag `identity`, `vault`, `context` | `01 - Me/` |
-| already processed / one-shot artifact | `Archive/` |
+| tag `meeting-note` ou `vut-*` | `04 - Projects/[projet détecté]/Meeting notes/` |
+| tag `ludisep` ou `partenaire` | `04 - Projects/Ludisep/` |
+| tag `lecture`, `livre` | `03 - Knowledge/Lectures/` |
+| tag `identité`, `vault`, `contexte` | `01 - Me/` |
+| déjà traitée / artefact one-shot | `Archive/` |
 
-If destination ambiguous → propose 2-3 numbered options, Victor chooses.
-If destination folder doesn't exist → signal ("will be created on execution").
+Si la destination est ambiguë → proposer 2-3 options numérotées, Victor choisit.
+Si le dossier destination n'existe pas → le signaler ("sera créé à l'exécution").
 
-### Step B3 — Free corrections
+### Étape B3 — Corrections libres
 
-Victor can correct destinations in free language **before** validation:
-> "3 goes to 03 - Knowledge/Dev/"
+Victor peut corriger les destinations en langage libre **avant** validation :
+> "3 va dans 03 - Knowledge/Dev/"
 
-Skill updates table and redisplays it completely.
+Le skill met à jour le tableau et le réaffiche intégralement.
 
-### Step B4 — Batch validation
+### Étape B4 — Validation batch
 
-- `all` → validate all
-- `all except 1,3` → validate all except
-- `only 2,4` → validate only these
+- `tout` → valide tous
+- `tout sauf 1,3` → valide tous sauf
+- `seulement 2,4` → valide uniquement ceux-là
 
-### Step B5 — Dry-run mandatory
+### Étape B5 — Dry-run obligatoire
 
-Before any execution, display:
+Avant toute exécution, afficher :
 
-**Moves:**
+**Déplacements :**
 ```
-09 - Inbox/file.md  →  destination/file.md
-```
-
-**Wikilinks to patch** (citing files):
-```
-path/citing-file.md  :  [[09 - Inbox/file]] → [[destination/file]]
+09 - Inbox/fichier.md  →  destination/fichier.md
 ```
 
-Wikilink detection rules:
-- Search `[[09 - Inbox/file-name` everywhere in vault (glob `**/*.md`)
-- Patch only `[[]]` (not backticks or plain text paths)
-- Preserve aliases: `[[09 - Inbox/xxx|label]]` → `[[destination/xxx|label]]`
-- Handle variants `.md` explicit and `#heading`
+**Wikilinks à patcher** (fichiers citeurs) :
+```
+chemin/citeur.md  :  [[09 - Inbox/fichier]] → [[destination/fichier]]
+```
 
-Ask explicit confirmation: **"Confirm to execute?"**
+Règles de détection des wikilinks :
+- Chercher `[[09 - Inbox/nom-fichier` dans tout le vault (glob `**/*.md`)
+- Patcher uniquement les `[[]]` (pas les backticks ni les chemins en texte brut)
+- Préserver les aliases : `[[09 - Inbox/xxx|label]]` → `[[destination/xxx|label]]`
+- Gérer les variantes `.md` explicites et `#heading`
 
-### Step B6 — Execution
+Demander confirmation explicite : **"Confirme pour exécuter ?"**
 
-For each validated file:
-1. Create destination folder if missing
-2. Move file (path rename)
-3. Patch wikilinks in all citing files
+### Étape B6 — Exécution
+
+Pour chaque fichier validé :
+1. Créer le dossier destination si absent
+2. Déplacer le fichier (renommage de chemin)
+3. Patcher les wikilinks dans tous les fichiers citeurs
 
 ---
 
-## Associated actions (first successful execution)
+## Actions associées (première exécution réussie)
 
-Archive `09 - Inbox/tickets/triage-tickets-orphelins.md` with note in file:
-> "Replaced by `/inbox-sort` skill — first successful execution on [date]"
+Archiver `09 - Inbox/tickets/triage-tickets-orphelins.md` avec une note dans le fichier :
+> "Remplacé par le skill `/inbox-sort` — première exécution réussie le [date]"
 
 ---
 
-## Absolute rules
+## Règles absolues
 
-- **Never move without validated dry-run** (Flow B only)
-- **Flow A moves no files** — kanban insertions only
-- **Don't modify ticket content** (Flow A) — kanban only
-- **Dry-run → confirmation → execution**: strict order, never skip
-- **Daily notes and Sessions ≠ kanban anchors**: don't count as reference for Flow A
+- **Jamais de déplacement sans dry-run validé** (Flow B uniquement)
+- **Flow A ne déplace aucun fichier** — uniquement des insertions kanban
+- **Pas de modification du contenu des tickets** (Flow A) — uniquement les kanbans
+- **Dry-run → confirmation → exécution** : ordre strict, jamais sauter une étape
+- **Daily notes et Sessions ≠ ancres kanban** : ne pas compter comme référence pour Flow A

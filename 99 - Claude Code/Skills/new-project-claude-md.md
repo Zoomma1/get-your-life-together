@@ -1,139 +1,139 @@
 ---
 name: new-project-claude-md
-description: Generates Claude Code files for a new project — project CLAUDE.md (< 50 lines, strict filter) and claude-code/README.md (codebase context). Analyzes local repo if a path is provided.
+description: Génère les fichiers Claude Code pour un nouveau projet — CLAUDE.md projet (< 50 lignes, filtre strict) et claude-code/README.md (contexte codebase). Analyse le repo local si un chemin est fourni.
 ---
 
-Executes the workflow for generating Claude Code files for a new project.
+Exécute le workflow de génération des fichiers Claude Code pour un nouveau projet.
 
-## Step 1 — Collect info or detect a path
+## Étape 1 — Collecter les infos ou détecter un chemin
 
-**Option A : Local path provided**
-- Victor provides a path → verify that folder exists and contains source code
-- Skip directly to step 2 (analyze codebase)
+**Option A : Chemin local fourni**
+- Victor fournit un chemin → vérifier que le dossier existe et contient du code source
+- Passer directement à l'étape 2 (analyse du codebase)
 
-**Option B : No path**
-- Ask Victor:
-  - Project name
-  - Primary tech stack (ex: "Express + TypeScript + Prisma + Angular")
-  - Real key commands: dev, test, build, migrate
-  - Local ports if applicable
-  - GitHub repo URL (optional)
-- Skip to step 3 (generate without analysis)
+**Option B : Pas de chemin**
+- Demander à Victor :
+  - Nom du projet
+  - Stack technique principale (ex: "Express + TypeScript + Prisma + Angular")
+  - Commandes clés réelles : dev, test, build, migrate
+  - Ports locaux si applicable
+  - URL du repo GitHub (optionnel)
+- Passer à l'étape 3 (génération sans analyse)
 
-## Step 2 — Analyze codebase (if local path available)
+## Étape 2 — Analyser le codebase (si chemin local disponible)
 
-From the provided local path, search and read in this order (try each file; continue if missing):
+Depuis le chemin local fourni, chercher et lire dans cet ordre (essayer chaque fichier ; continuer si absent) :
 
-**Config files to read:**
-1. `package.json` → name, scripts (dev, test, build, migrate), main dependencies
-2. `pom.xml` → if Java, groupId, artifactId, dependencies
-3. `docker-compose.yml` or `docker-compose.yaml` → services, ports, startup order
-4. `.env.example` or `.env.sample` → required environment variables
-5. `prisma/schema.prisma` → if Prisma ORM
-6. Entry point: `src/index.ts`, `src/main.ts`, `src/app.ts`, `main.py`, etc.
-7. `README.md` existing → startup instructions
+**Fichiers de config à lire :**
+1. `package.json` → nom, scripts (dev, test, build, migrate), dépendances principales
+2. `pom.xml` → si Java, groupId, artifactId, dépendances
+3. `docker-compose.yml` ou `docker-compose.yaml` → services, ports, ordre de démarrage
+4. `.env.example` ou `.env.sample` → variables d'environnement requises
+5. `prisma/schema.prisma` → si ORM Prisma
+6. Entry point : `src/index.ts`, `src/main.ts`, `src/app.ts`, `main.py`, etc.
+7. `README.md` existant → instructions de démarrage
 
-**Analyze folder structure:**
-- Identify primary structure: `src/` direct or monorepo (`client/`, `server/`, `frontend/`, `backend/`) ?
-- List first-level folders under identified source folder
-- Identify layers: routes, services, controllers, features, models, etc.
-- Spot front vs back if monorepo
+**Analyser la structure des dossiers :**
+- Identifier structure principal : `src/` direct ou monorepo (`client/`, `server/`, `frontend/`, `backend/`) ?
+- Lister les dossiers de premier niveau sous le dossier source identifié
+- Identifier les couches : routes, services, controllers, features, models, etc.
+- Repérer front vs back si monorepo
 
-**Fallback if files missing:**
-- If no `package.json` AND no `pom.xml` → ask Victor for stack manually
-- If no docker-compose → search ports in scripts or `.env.example`
-- If no `.env.example` → mark ports/vars as `[To confirm with Victor]`
+**Fallback si fichiers manquent :**
+- Si pas de `package.json` ET pas de `pom.xml` → demander le stack à Victor manuellement
+- Si pas de docker-compose → chercher les ports dans les scripts ou `.env.example`
+- Si pas de `.env.example` → marquer ports/vars comme `[À confirmer par Victor]`
 
-**Deduce from this reading:**
-- Tech stack (framework, ORM, test runner, etc.)
-- Real key commands (from npm/Maven/Gradle scripts)
-- Local ports (from docker-compose, .env or scripts)
-- Key files with their role (entry points, config, shared services)
-- Gotchas: required startup order, required env vars, custom commands
+**Déduire depuis cette lecture :**
+- Stack technique (framework, ORM, test runner, etc.)
+- Commandes clés réelles (tirées des scripts npm/Maven/Gradle)
+- Ports locaux (tirés de docker-compose, .env ou scripts)
+- Fichiers clés avec leur rôle (entry points, config, services partagés)
+- Gotchas : ordre de démarrage obligatoire, variables d'env requises, commandes custom
 
-## Step 3 — Generate project CLAUDE.md
+## Étape 3 — Générer CLAUDE.md projet
 
-Apply strict filter: **"Would Claude make an error without this line?"**
+Appliquer le filtre strict : **"Claude ferait-il une erreur sans cette ligne ?"**
 
-**Include:**
-- Non-obvious or non-standard commands (ex : required startup order, custom commands)
-- Conventions differing from language or framework defaults
-- Methodological rules if applicable (TDD, DDD, etc.)
-- Environment gotchas (required variables, services to start first, etc.)
-- Non-standard ports
+**Inclure :**
+- Commandes non-devinables ou non-standard (ex : ordre de démarrage obligatoire, commandes custom)
+- Conventions qui diffèrent des defaults du langage ou du framework
+- Règles méthodologiques si applicables (TDD, DDD, etc.)
+- Gotchas d'environnement (variables requises, services à démarrer avant, etc.)
+- Ports si non-standard
 
-**Exclude:**
-- Standard language conventions (indentation, basic naming)
-- API docs or endpoint descriptions
-- Anything Claude can infer directly from code
-- Information already in project README Claude Code
+**Exclure :**
+- Conventions standard du langage (indentation, naming basique)
+- Doc API ou description des endpoints
+- Tout ce que Claude peut inférer directement depuis le code
+- Informations déjà dans le README projet Claude Code
 
-**Target format (< 50 lines) :**
+**Format cible (< 50 lignes) :**
 
 ```markdown
-# CLAUDE.md — [Project name]
+# CLAUDE.md — [Nom du projet]
 
-## Commands
+## Commandes
 
-| Command | Folder | Action |
-|---------|--------|--------|
-| `[dev command]` | `[folder]/` | Start dev |
-| `[test command]` | `[folder]/` | Run tests |
-| `[migrate command]` | `[folder]/` | Apply DB migrations |
+| Commande | Dossier | Action |
+|----------|---------|--------|
+| `[commande dev]` | `[dossier]/` | Lancer le dev |
+| `[commande test]` | `[dossier]/` | Lancer les tests |
+| `[commande migrate]` | `[dossier]/` | Appliquer les migrations DB |
 
 ## Architecture
 
-[3-5 lines max describing structure]
+[Structure en 3-5 lignes max]
 
-## Mandatory rules
+## Règles obligatoires
 
-[Only non-obvious and project-specific]
+[Uniquement ce qui est non-évident et spécifique au projet]
 ```
 
-If no non-obvious mandatory rule exists → omit section rather than invent.
+Si aucune règle obligatoire non-évidente n'existe → omettre la section plutôt qu'inventer.
 
-**Target path:** `{VAULT_PATH}/{PROJECTS_FOLDER}/[Project]/CLAUDE.md`
+**Chemin cible :** `{VAULT_PATH}/{PROJECTS_FOLDER}/[Projet]/CLAUDE.md`
 
-## Step 4 — Generate claude-code/README.md
+## Étape 4 — Générer claude-code/README.md
 
-Use template `{VAULT_PATH}/Ressources/Templates/Claude Code - Project template.md` as structural base.
+Utiliser le template `{VAULT_PATH}/Ressources/Templates/Claude Code - Project template.md` comme base structurelle.
 
-Fill each section with collected information:
+Remplir chaque section avec les informations collectées :
 
-- **Header** : name + short description + repo URL if known
-- **Stack** : complete table with all identified layers
-- **Running the project** : real commands in correct order (include startup order gotchas)
-- **Architecture** : folder structure as observed, separated front/back if monorepo
-- **Key files** : table of important files with their actual role
-- **Associated skills** : select from `99 - Claude Code/Skills/INDEX.md` relevant skills for detected stack
-- **Non-fillable sections** → keep the callout `> [!danger] To be completed by Victor`
+- **En-tête** : nom + description courte + URL repo si connue
+- **Stack** : tableau complet avec toutes les couches identifiées
+- **Lancer le projet** : commandes réelles dans l'ordre correct (inclure les gotchas d'ordre de démarrage)
+- **Architecture** : structure des dossiers telle qu'observée, séparée front/back si monorepo
+- **Fichiers clés** : tableau des fichiers importants avec leur rôle réel
+- **Skills associés** : sélectionner depuis `99 - Claude Code/Skills/INDEX.md` les skills pertinents à la stack détectée
+- **Sections non remplissables** → garder le callout `> [!danger] À compléter par Victor`
 
-**Target path:** `{VAULT_PATH}/{PROJECTS_FOLDER}/[Project]/claude-code/README.md`
+**Chemin cible :** `{VAULT_PATH}/{PROJECTS_FOLDER}/[Projet]/claude-code/README.md`
 
-## Step 5 — Propose and validate
+## Étape 5 — Proposer et valider
 
-Display both generated files to Victor in chat:
-- `CLAUDE.md` in markdown code block with lang `markdown`
-- `claude-code/README.md` in markdown code block with lang `markdown`
+Afficher les deux fichiers générés à Victor dans le chat :
+- `CLAUDE.md` en bloc code markdown avec lang `markdown`
+- `claude-code/README.md` en bloc code markdown avec lang `markdown`
 
-Clearly indicate target paths before each block.
+Indiquer clairement les chemins cibles avant chaque bloc.
 
-Wait for Victor's explicit validation (ex: "ok", "looks good", "change X") before moving to step 6.
+Attendre la validation explicite de Victor (ex: "ok", "looks good", "change X") avant de passer à l'étape 6.
 
-## Step 6 — Create structure and write files
+## Étape 6 — Créer la structure et écrire les fichiers
 
-Once Victor validates (or requests changes, iterate step 5 → 6):
+Une fois Victor a validé (ou demandé des changements, faire l'étape 5 → 6 en itération) :
 
-1. Verify parent folder `{VAULT_PATH}/{PROJECTS_FOLDER}/[Project]/` exists — create if needed
-2. Create `claude-code/` subfolder if doesn't exist
-3. Write `{VAULT_PATH}/{PROJECTS_FOLDER}/[Project]/CLAUDE.md` (file Write)
-4. Write `{VAULT_PATH}/{PROJECTS_FOLDER}/[Project]/claude-code/README.md` (file Write)
-5. Confirm both complete paths to Victor with summary: "✓ Files created: CLAUDE.md + claude-code/README.md"
+1. Vérifier que le dossier parent `{VAULT_PATH}/{PROJECTS_FOLDER}/[Projet]/` existe — créer si nécessaire
+2. Créer le sous-dossier `claude-code/` s'il n'existe pas
+3. Écrire `{VAULT_PATH}/{PROJECTS_FOLDER}/[Projet]/CLAUDE.md` (file Write)
+4. Écrire `{VAULT_PATH}/{PROJECTS_FOLDER}/[Projet]/claude-code/README.md` (file Write)
+5. Confirmer les deux chemins complets à Victor avec un résumé : "✓ Fichiers créés : CLAUDE.md + claude-code/README.md"
 
-## Absolute rules
+## Règles absolues
 
-- **Mandatory validation** : never write files before Victor's explicit validation (wait for "ok", "looks good", or explicit refactor)
-- **Strict CLAUDE.md filter** : if information wouldn't pass the test "Would Claude make an error without this line?", exclude it
-- **No invention** : never invent commands, ports or conventions — if uncertain, mark `[To confirm with Victor]`
-- **Mandatory template** : always start from template `{VAULT_PATH}/Ressources/Templates/Claude Code - Project template.md` for README
-- **Fallback if file missing** : if config file doesn't exist, search in proposed step 2 order — if all missing, mark info as `[To confirm with Victor]`
+- **Validation obligatoire** : ne jamais écrire les fichiers avant la validation explicite de Victor (attendre "ok", "looks good", ou refonte explicite)
+- **Filtre strict CLAUDE.md** : si une information ne passerait pas le test "Claude ferait-il une erreur sans cette ligne ?", l'exclure
+- **Pas d'invention** : ne jamais inventer des commandes, ports ou conventions — si incertain, marquer `[À confirmer par Victor]`
+- **Template obligatoire** : toujours partir du template `{VAULT_PATH}/Ressources/Templates/Claude Code - Project template.md` pour le README
+- **Fallback si fichier manque** : si un fichier de config n'existe pas, la chercher dans l'ordre proposé à l'étape 2 — si tous manquent, marquer les infos comme `[À confirmer par Victor]`

@@ -1,238 +1,238 @@
 ---
 name: trace
-description: Retrace the evolution of an idea in the vault — when it appeared, how it changed, where it stands now. Chronological pair-programming: Claude searches + synthesises, {USER_NAME} validates at 3 key points (synonyms, raw results, timeline). Trigger when {USER_NAME} wants to understand how a thought has matured, detect a contradiction, or map a concept's trajectory. Examples: "/trace ADHD", "/trace software architecture", "/trace Brno", "/trace pair programming".
+description: Retracer l'évolution d'une idée dans le vault de Victor — quand elle est apparue, comment elle a changé, où elle en est maintenant. Pair-programming chronologique : Claude cherche + synthétise, Victor valide à 3 points clés (synonymes, résultats bruts, timeline). Déclencher quand Victor veut comprendre comment une pensée a mûri, détecter une contradiction, ou cartographier la trajectoire d'un concept. Exemples : "/trace TDAH", "/trace architecture software", "/trace Brno", "/trace pair programming".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protected against aggressive optimisation**
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
 >
-> This skill produces a **qualitative narrative output**. Its effectiveness is measured by the **richness of the output produced**, not structural compactness.
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
 >
-> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, highlights, open questions, tone, narration). Preserving qualitative content takes priority over reducing line count.
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
-# Skill: /trace
+# Skill : /trace
 
-An idea in a vault is never fixed. It appears under one name, changes form, merges with others, contradicts itself. The `/trace` skill follows this evolution chronologically — not to tell a clean story, but to make visible what actually happened in {USER_NAME}'s thinking.
+Une idée dans un vault n'est jamais figée. Elle apparaît sous un nom, change de forme, fusionne avec d'autres, se contredit. Le skill `/trace` suit cette évolution chronologiquement — pas pour raconter une histoire propre, mais pour rendre visible ce qui s'est réellement passé dans la pensée de Victor.
 
-**Difference from `/recall`**: `recall` looks for *what exists* on a subject; `trace` looks for *how that subject changed over time*.
-
----
-
-## Trigger
-
-```
-/trace [concept]         → traces the evolution of this concept in the vault
-/trace ADHD              → how the understanding of ADHD has evolved
-/trace architecture      → how the vision of software architecture has changed
-/trace pair programming  → how the vision of working with Claude Code has evolved
-```
+**Différence avec `/recall`** : `recall` cherche *quoi existe* sur un sujet ; `trace` cherche *comment ce sujet a changé dans le temps*.
 
 ---
 
-## Step 0 — Check viability
+## Déclenchement
 
-**Before launching the trace**, determine whether the concept exists in the vault over a significant duration.
-
-Claude runs a light initial grep (max 10 seconds) on the obvious terms of the concept. Three possible cases:
-
-1. **Rich concept** (10+ occurrences, 2+ months of evolution) → continue to Step 1
-2. **Very new or rare concept** (1-5 occurrences, <1 month) → notify {USER_NAME}: "This concept has very few traces. The trace will be short/thin. Continue?"
-3. **Absent concept** (0 occurrences) → stop and tell {USER_NAME}: "I cannot find any trace of [concept] in the vault. Do you want me to search for variants?" → return to Step 1 if {USER_NAME} provides variants
-
-This is a mini-validation BEFORE investing 5 minutes in Steps 1-2.
+```
+/trace [concept]         → trace l'évolution de ce concept dans le vault
+/trace TDAH              → comment la compréhension du TDAH a évolué
+/trace architecture      → comment la vision de l'architecture logicielle a changé
+/trace pair programming  → comment la vision du travail avec Claude Code a évolué
+```
 
 ---
 
-## Step 1 — Build and validate the synonym map
+## Étape 0 — Vérifier la viabilité
 
-**Before searching for anything**, generate the full list of terms to search. An idea often changes names over time — searching only the original term misses earlier or parallel occurrences.
+**Avant de lancer la trace**, déterminer si le concept existe dans le vault sur une durée significative.
 
-For the concept passed as argument, list:
-- The exact term + its spelling variants
-- Direct synonyms
-- Adjacent terms (concepts that often co-evolve with this one)
-- Negative formulations (e.g. "I can't manage to..." reveals a relationship with a concept)
-- Abbreviations and acronyms used by {USER_NAME}
+Claude exécute un grep initial léger (10 secondes max) sur les termes évidentes du concept. Trois cas possibles :
 
-Example for `/trace ADHD`:
-```
-Terms: ADHD, ADD, attention, focus, concentration, procrastination,
-       hyperfocus, executive dysfunction, motivation, drift, "taking control of"
-```
+1. **Concept riche** (10+ occurrences, 2+ mois d'évolution) → continuer vers Étape 1
+2. **Concept très neuf ou rare** (1-5 occurrences, <1 mois) → signaler à Victor : "Ce concept a très peu de traces. La trace sera courte/mince. Continuer ?"
+3. **Concept absent** (0 occurrence) → arrêter et dire à Victor : "Je ne trouve aucune trace de [concept] dans le vault. Voulez-vous que je cherche des variantes ?" → revenir à Étape 1 si Victor donne des variantes
 
-**{USER_NAME} VALIDATION REQUIRED** — Present this list and wait for their response:
-- If {USER_NAME} says "looks good" or implicitly validates → Step 2.
-- If {USER_NAME} adds terms, reformulates or removes → integrate and ask for confirmation again.
-- If {USER_NAME} says "this concept doesn't exist in my vault" or "too new" → stop and signal.
+C'est une mini-validation AVANT d'investir 5 minutes en Étape 1-2.
 
 ---
 
-## Step 2 — Search in sources (5 directories in parallel)
+## Étape 1 — Construire et valider la carte des synonymes
 
-The validated synonym list is known → launch the search across the 5 directories in parallel. **Claude runs the 5 Greps in parallel, {USER_NAME} validates the results afterwards.**
+**Avant de chercher quoi que ce soit**, générer la liste complète des termes à chercher. Une idée change souvent de nom au fil du temps — chercher uniquement le terme original rate les occurrences antérieures ou parallèles.
 
-Each search returns matches with their context (file, date, exact excerpt):
+Pour le concept passé en argument, lister :
+- Le terme exact + ses variantes orthographiques
+- Les synonymes directs
+- Les termes adjacents (concepts qui co-évoluent souvent avec celui-ci)
+- Les formulations négatives (ex: "je n'arrive pas à..." révèle une relation avec un concept)
+- Les abréviations et sigles utilisés par Victor
 
+Exemple pour `/trace TDAH` :
 ```
-Agent 1: `00 - Daily notes/` → search all terms + [[term]]
-Agent 2: `03 - Knowledge/` → search all terms + [[term]]
-Agent 3: `99 - Claude Code/ADR/` → search all terms + [[term]]
-Agent 4: `99 - Claude Code/Sessions/` → search all terms + [[term]]
-Agent 5: `04 - Projects/*/claude-code/` → search all terms + [[term]]
+Termes : TDAH, TDA/H, attention, focus, concentration, procrastination,
+         hyperfocus, dysexécutif, motivation, drift, "prendre la main sur"
 ```
 
-**Processing results** (Claude):
-- Aggregate the 5 returns by uniqueness (file + line)
-- For each match: extract **file, date (deduced from name or frontmatter), exact excerpt**
-- Mark backlinks `[[term]]` as "high confidence"
-- Signal if a term has ZERO occurrences → note `[absent from vault]`
-
-**Pause for validation**: present raw results to {USER_NAME}. They can request additional searches or validate for Step 3.
+**VALIDATION DE VICTOR OBLIGATOIRE** — Présenter cette liste et attendre sa réponse :
+- Si Victor dit "c'est bon" ou valide implicitement → Étape 2.
+- Si Victor ajoute des termes, reformule ou retire → intégrer et redemander confirmation.
+- Si Victor dit "ce concept n'existe pas dans mon vault" ou "trop neuf" → arrêter et signaler.
 
 ---
 
-## Step 3 — Detect implicit patterns and gaps
+## Étape 2 — Rechercher dans les sources (5 répertoires en parallèle)
 
-**Claude analyses the results from Step 2** to identify implicit traces: moments where the concept appears *without being named*.
+La liste de synonymes validée est connue → lancer la recherche dans les 5 répertoires en parallèle. **Claude exécute les 5 Grep en parallèle, Victor valide les résultats ensuite.**
 
-Patterns to look for:
-- **Decisions that reveal a position**: an ADR may reflect a belief without ever naming the concept
-- **Emotional reactions**: "that frustrated me", "that's exactly it" indicate a relationship with an underlying idea
-- **Recurring approaches**: if {USER_NAME} always solves the same problems the same way, that's an implicit pattern
-- **Significant absences**: a subject that suddenly disappears from the vault after having been frequent
+Chaque recherche retourne les matches avec leur contexte (fichier, date, extrait exact) :
 
-These implicit patterns will be marked `[implicit]` in the timeline.
+```
+Agent 1 : `00 - Daily notes/` → cherche tous les termes + [[terme]]
+Agent 2 : `03 - Knowledge/` → cherche tous les termes + [[terme]]
+Agent 3 : `99 - Claude Code/ADR/` → cherche tous les termes + [[terme]]
+Agent 4 : `99 - Claude Code/Sessions/` → cherche tous les termes + [[terme]]
+Agent 5 : `04 - Projects/*/claude-code/` → cherche tous les termes + [[terme]]
+```
 
-**Claude also signals gaps**:
-- Empty periods (e.g. concept abundant until date X, then silence for 6 months)
-- Terms absent from the vault (marked `[absent]`)
-- Expected but missing files (e.g. project CLAUDE.md not showing a decision on the subject)
+**Traitement des résultats** (Claude) :
+- Agréger les 5 retours par unicité (fichier + ligne)
+- Pour chaque match : extraire **fichier, date (déduite du nom ou frontmatter), extrait exact**
+- Marquer les backlinks `[[terme]]` comme "confiance élevée"
+- Signaler si un terme n'a ZÉRO occurrence → note `[absent du vault]`
 
-**Note on temporal breakdown**: if the trace covers > 2 years or > 50 entries, Claude asks {USER_NAME}: "The trace is very long. Do you want to see it complete or segmented by period/theme?" and waits for the response before Step 4.
+**Pause pour validation** : présenter les résultats bruts à Victor. Il peut demander une recherche supplémentaire ou valider pour Étape 3.
 
 ---
 
-## Step 4 — Build and validate the timeline
+## Étape 3 — Détecter les patterns implicites et les gaps
 
-**Claude builds** the timeline from Steps 2-3 results, organising chronologically.
+**Claude analyse les résultats de Étape 2** pour identifier les traces implicites : des moments où le concept apparaît *sans être nommé*.
 
-For each timeline entry:
+Patterns à chercher :
+- **Décisions qui révèlent une position** : un ADR peut refléter une croyance sans jamais nommer le concept
+- **Réactions émotionnelles** : "ça m'a frustré", "c'est exactement ça" indiquent une relation avec une idée sous-jacente
+- **Approches récurrentes** : si Victor résout toujours les mêmes problèmes de la même façon, c'est un pattern implicite
+- **Absences significatives** : un sujet qui disparaît soudainement du vault après avoir été fréquent
 
-```
-[DATE] — [SOURCE] — [confidence]
-"[exact excerpt, verbatim quote]"
-→ [context in one sentence: what was happening at that moment?]
-```
+Ces patterns implicites seront marqués `[implicit]` dans la timeline.
 
-**Confidence markers (mandatory on each entry):**
+**Claude signale aussi les gaps** :
+- Périodes vides (ex: concept abondant jusqu'à date X, puis silence 6 mois)
+- Termes absents du vault (marqués `[absent]`)
+- Fichiers attendus mais manquants (ex: CLAUDE.md de projet ne montrant pas une décision sur le sujet)
 
-| Marker | Meaning |
-|--------|---------|
-| `[solid]` | Clearly stated position, unambiguous |
-| `[evolving]` | Position in transition, signs of change |
-| `[hypothesis]` | Tentative idea, explored without firm conviction |
-| `[questioning]` | Explicit doubt, questioning a previous position |
-| `[implicit]` | Deduced from a pattern, not directly named |
-| `[absent]` | Period without occurrences or term not found |
-
-**Citation rule**: always use {USER_NAME}'s exact words, in quotes. Never paraphrase. If the excerpt is too long, cut with `[...]` but preserve key formulations.
-
-**Catalysts**: if a change is visible between two entries, identify what caused it — a reading, an event, a project, a decision. Mark them `→ ⚡ Catalyst: ...`.
-
-**{USER_NAME} VALIDATION REQUIRED** — Before Step 5:
-- Present the raw timeline
-- {USER_NAME} can flag: wrong dates, misinterpretation, forgotten entry, incorrect context
-- Integrate feedback, then proceed to Step 5
+**Note sur le découpage temporel** : si la trace couvre > 2 ans ou > 50 entrées, Claude demande à Victor : "La trace est très longue. Veux-tu la voir complète ou segmentée par période/theme ?" et attend la réponse avant Étape 4.
 
 ---
 
-## Step 5 — Identify and present the arc
+## Étape 4 — Construire et valider la timeline
 
-**Claude builds** a narrative analysis from the validated timeline. Mandatory sections:
+**Claude construit** la timeline à partir des résultats de Étape 2-3, en organisant chronologiquement.
 
-### Initial appearance
-- When did the concept first appear?
-- In what form? With what initial confidence?
+Pour chaque entrée de la timeline :
 
-### Inflection points
-- What moments made the thinking evolve?
-- What caused each pivot?
+```
+[DATE] — [SOURCE] — [confiance]
+"[extrait exact, citation verbatim]"
+→ [contexte en une phrase : qu'est-ce qui se passait à ce moment ?]
+```
 
-### Current position
-- Where does {USER_NAME} stand on this subject now?
-- With what level of confidence?
+**Marqueurs de confiance (obligatoires sur chaque entrée) :**
 
-### Evolution pattern
+| Marqueur | Sens |
+|----------|------|
+| `[solid]` | Position clairement affirmée, sans ambiguïté |
+| `[evolving]` | Position en transition, indices de changement |
+| `[hypothesis]` | Idée tentative, explorée sans conviction affirmée |
+| `[questioning]` | Doute explicite, remise en question d'une position antérieure |
+| `[implicit]` | Déduit d'un pattern, non nommé directement |
+| `[absent]` | Période sans occurrences ou terme introuvable |
 
-Classify the arc among these types:
+**Règle des citations** : toujours utiliser les mots exacts de Victor, entre guillemets. Ne jamais paraphraser. Si l'extrait est trop long, couper avec `[...]` mais préserver les formulations clés.
 
-| Type | Definition |
+**Catalyseurs** : si un changement est visible entre deux entrées, identifier ce qui l'a provoqué — une lecture, un événement, un projet, une décision. Les marquer `→ ⚡ Catalyseur : ...`.
+
+**VALIDATION DE VICTOR OBLIGATOIRE** — Avant Étape 5 :
+- Présenter la timeline brute
+- Victor peut signaler : maldates, mauvaise interprétation, entrée oubliée, contexte erroné
+- Intégrer les retours, puis passer à Étape 5
+
+---
+
+## Étape 5 — Identifier et présenter l'arc
+
+**Claude construit** une analyse narrative à partir de la timeline validée. Sections obligatoires :
+
+### Apparition initiale
+- Quand le concept est-il apparu pour la première fois ?
+- Sous quelle forme ? Avec quelle confiance initiale ?
+
+### Points d'inflexion
+- Quels moments ont fait évoluer la pensée ?
+- Qu'est-ce qui a provoqué chaque pivot ?
+
+### Position actuelle
+- Où en est Victor sur ce sujet maintenant ?
+- Avec quel niveau de confiance ?
+
+### Pattern d'évolution
+
+Classifier l'arc parmi ces types :
+
+| Type | Définition |
 |------|-----------|
-| **Linear** | Progressive deepening of the same position |
-| **Pivot** | Abandonment of a previous position — clear break |
-| **Convergence** | Several distinct threads that come together into a unified position |
-| **Divergence** | An initial idea that splits into two distinct positions |
-| **Circular** | Return to a previous position after exploring others |
+| **Linéaire** | Approfondissement progressif d'une même position |
+| **Pivot** | Abandon d'une position antérieure — rupture claire |
+| **Convergence** | Plusieurs threads distincts qui se rejoignent en une position unifiée |
+| **Divergence** | Une idée initiale qui se scinde en deux positions distinctes |
+| **Circulaire** | Retour à une position antérieure après en avoir exploré d'autres |
 
-### Unresolved contradictions
-What tensions persist in current thinking?
+### Contradictions non résolues
+Quelles tensions persistent dans la pensée actuelle ?
 
-### Probable trajectories
-Where does this thinking seem to be heading? What questions remain open?
+### Trajectoires probables
+Où cette pensée semble-t-elle se diriger ? Quelles questions restent ouvertes ?
 
 ---
 
-## Output format (Step 5, final synthesis)
+## Format de sortie (Étape 5, synthèse finale)
 
 ```
-## Trace: [concept] — [analysis date]
+## Trace : [concept] — [date d'analyse]
 
-### Terms searched (validated by {USER_NAME})
-[list of synonyms + adjacent terms used]
+### Termes cherchés (validés par Victor)
+[liste des synonymes + termes adjacents utilisés]
 
 ### Timeline
-[DATE] — [source] [confidence]
-"[exact quote]"
-→ [context]
+[DATE] — [source] [confiance]
+"[citation exacte]"
+→ [contexte]
 
-[DATE] — [source] [confidence]
-"[exact quote]"
-→ [context]
-→ ⚡ Catalyst: [what caused the change]
+[DATE] — [source] [confiance]
+"[citation exacte]"
+→ [contexte]
+→ ⚡ Catalyseur : [ce qui a provoqué le changement]
 
-[Note on detected gaps or absences]
+[Nota bene sur les gaps ou absences détectées]
 
 ### Arc
-**Type**: [linear / pivot / convergence / divergence / circular]
-**Appearance**: [when, in what form, confidence]
-**Inflections**: [list of key moments + catalysts]
-**Current position**: [summary] [confidence]
-**Contradictions**: [unresolved tensions, or "none detected"]
-**Trajectory**: [where it seems to be heading, open questions]
+**Type** : [linéaire / pivot / convergence / divergence / circulaire]
+**Apparition** : [quand, sous quelle forme, confiance]
+**Inflexions** : [liste des moments-clés + catalyseurs]
+**Position actuelle** : [résumé] [confiance]
+**Contradictions** : [tensions non résolues, ou "aucune détectée"]
+**Trajectoire** : [où ça semble aller, questions ouvertes]
 ```
 
-**Note**: Synonyms appear AT THE TOP (validated by {USER_NAME} in Step 1), not at the end. Gaps and absences are noted after the timeline for context.
+**Note** : Les synonymes apparaissent EN TÊTE (validés par Victor à Étape 1), pas à la fin. Les gaps et absences sont notés après la timeline pour contexte.
 
 ---
 
-## Absolute rules
+## Règles absolues
 
-### Citations and dates
-- **Exact citations mandatory** — never paraphrase {USER_NAME}'s words, always use quotes and `[...]` to cut
-- **Date every entry** — an undated entry is useless for a timeline. If the date is approximate, note it `[~DATE]`
-- **Confidence markers on every entry** — `[solid]`, `[evolving]`, `[hypothesis]`, `[questioning]`, `[implicit]`, or `[absent]`
+### Citations et dates
+- **Citations exactes obligatoires** — ne jamais paraphraser les mots de Victor, toujours utiliser guillemets et `[...]` pour couper
+- **Dater chaque entrée** — une entrée sans date est inutile pour une timeline. Si la date est approximative, le noter `[~DATE]`
+- **Confidence markers sur chaque entrée** — `[solid]`, `[evolving]`, `[hypothesis]`, `[questioning]`, `[implicit]`, ou `[absent]`
 
-### Workflow and validation
-- **Step 1 → {USER_NAME} VALIDATION** — never start the Grep without agreement on synonyms
-- **Step 2 → present raw results** — {USER_NAME} can request additional searches
-- **Step 4 → {USER_NAME} VALIDATION** — before synthesising the arc, validate dates and contexts
-- **No solo interpretation** — if a position is ambiguous, mark it `[hypothesis]` or `[questioning]`, not `[solid]`
+### Workflow et validation
+- **Étape 1 → VALIDATION VICTOR** — ne jamais commencer le Grep sans accord sur les synonymes
+- **Étape 2 → présenter résultats bruts** — Victor peut demander des recherches supplémentaires
+- **Étape 4 → VALIDATION VICTOR** — antes de synthétiser l'arc, valider les dates et contextes
+- **Pas d'interprétation solo** — si une position est ambiguë, la marquer `[hypothesis]` ou `[questioning]`, pas `[solid]`
 
-### Content
-- **Explicitly signal gaps**: empty periods, unfindable terms, missing files
-- **No judgement**: the skill describes an evolution, it does not say which position is "better"
-- **Look for catalysts**: every pivot must have an explanation (reading, event, decision)
+### Contenu
+- **Signaler les gaps explicitement** : périodes vides, termes introuvables, fichiers manquants
+- **Pas de jugement** : le skill décrit une évolution, il ne dit pas quelle position est "meilleure"
+- **Chercher les catalyseurs** : chaque pivot doit avoir une explication (lecture, événement, décision)
 
-### Output
-- **Present the complete result** before asking questions
-- **Name exact sources**: not "Daily notes" but "00 - Daily notes/2026-03-15.md"
+### Sortie
+- **Présenter le résultat complet** avant de poser des questions
+- **Nommer les sources exactes** : pas "Daily notes" mais "00 - Daily notes/2026-03-15.md"

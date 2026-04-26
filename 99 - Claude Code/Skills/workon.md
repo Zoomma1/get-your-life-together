@@ -1,164 +1,164 @@
 ---
 name: workon
-description: Load the context of a Kanban feature, note, or ticket and start a work session on it. Use when Victor switches to a specific topic (dev, learning, hobby, organization) after clarifying *what* to do. Do not load skills from the start — detect needs based on context and let Victor decide. Examples: /workon Add tag management, /workon ML project VUT, /workon Luna setup. Non-contexts: recall (search notes), specs (generate specs), refine (challenge a ticket), my-world (load the day).
+description: Charge le contexte d'une feature Kanban, d'une note ou d'un ticket et démarre une session de travail dessus. Utiliser quand Victor bascule vers un sujet spécifique (dev, apprentissage, hobby, organisation) après avoir clarifié *quoi* faire. Ne pas charger de skills d'emblée — détecter les besoins à partir du contexte et laisser Victor décider. Exemples : /workon Add tag management, /workon ML projet VUT, /workon Luna setup. Non-contextes : recall (cherche des notes), specs (génère des specs), refine (challenger un ticket), my-world (charge le jour).
 ---
 
-Load the context of the subject passed as argument and prepare a work session on it.
+Charge le contexte du sujet passé en argument et prépare une session de travail dessus.
 
-## Step 1 — Identify the subject
+## Étape 1 — Identifier le sujet
 
-The argument passed is: $ARGUMENTS
+L'argument passé est : $ARGUMENTS
 
-Search strictly in this order:
+Chercher strictement dans cet ordre :
 
-1. **Exact title**: a note/ticket/feature whose title matches literally `$ARGUMENTS` (case insensitive)
-   - Search in: personal vault notes, then **all columns** of Kanban `04 - Projects/*/Features/` (Ready, WIP, Specs, Done)
-   - If found → retain exact path and stop
-2. **Partial title**: partial matches — first mention of `$ARGUMENTS` in the title counts as match (ex: "Add tag management" matches "tag" in "Tag system", "management" in "Paint inventory management")
-   - Filter by relevance: active projects first (FSTG > others)
-   - If one result → continue, if multiple → display list (max 5) + ask for selection
-3. **Glob search** (fallback): if no result → Glob `**/*` on vault with pattern `$ARGUMENTS`
-   - Announce: "No exact/partial match — I searched more broadly and found..."
+1. **Titre exact** : une note/ticket/feature dont le titre correspond littéralement à `$ARGUMENTS` (insensible à la casse)
+   - Chercher dans : vault notes perso, puis **toutes les colonnes** des Kanban `04 - Projects/*/Features/` (Ready, WIP, Specs, Done)
+   - Si trouvée → retenir le chemin exact et s'arrêter
+2. **Titre partial** : correspondances partielles — première mention de `$ARGUMENTS` dans le titre compte comme match (ex: "Add tag management" match "tag" dans "Tag system", "management" dans "Paint inventory management")
+   - Filtrer par pertinence : projets actifs en priorité (FSTG > autres)
+   - Si un seul résultat → continuer, si plusieurs → afficher liste (max 5) + demander sélection
+3. **Recherche Glob** (fallback) : si aucun résultat → Glob `**/*` sur le vault avec le pattern `$ARGUMENTS`
+   - Annoncer : "Aucune correspondance exacte/partielle — j'ai cherché plus largement et trouvé..."
 
-**If zero result after fallback** :
-→ Display options: "No note found for `$ARGUMENTS`. Do you want to:"
-- **Create a new note** → ask type (Kanban feature, knowledge, hobby, organization?) and path → create empty file → **restart workon** on this new path
-- **Search differently** (clarify how)
-- **Continue without context** (start code exploration/conceptual directly, without source file)
+**Si zéro résultat après fallback** :
+→ Afficher les options : "Aucune note trouvée pour `$ARGUMENTS`. Tu veux :"
+- **Créer une nouvelle note** → demander le type (feature Kanban, knowledge, hobby, organisation ?) et le chemin → créer le fichier vide → **relancer workon** sur ce nouveau chemin
+- **Chercher différemment** (préciser comment)
+- **Continuer sans contexte** (on démarre les explorations code/conceptuelles directement, sans fichier source)
 
-**Wait for Victor's choice before continuing to Step 2.**
+**Attendre le choix de Victor avant de continuer vers Étape 2.**
 
-**Retain the source** (exact path, Kanban column, or note type) — used in Step 5 for closure.
+**Retenir la source** (chemin exact, colonne Kanban, ou type de note) — utilisé à l'Étape 5 pour la clôture.
 
-## Step 2 — Read and analyze the note
+## Étape 2 — Lire et analyser la note
 
-Read the full content of the identified note + all directly mentioned `[[]]` links.
+Lire le contenu complet de la note identifiée + tous les liens `[[]]` directement mentionnés.
 
-### Identify the type and project
+### Identifier le type et le projet
 
-- **Kanban Feature**: note in `04 - Projects/[X]/Features/` (Ready, WIP, Specs, Done) → identify project `[X]`
-- **Vault note**: note outside project structure → knowledge, hobby, organization (no associated project)
-- **Empty or broken note**: empty file, orphaned, or dead reference → signal immediately
+- **Feature Kanban** : note dans `04 - Projects/[X]/Features/` (Ready, WIP, Specs, Done) → repérer le projet `[X]`
+- **Note vault** : note en dehors du structure projet → knowledge, hobby, organisation (pas de projet associé)
+- **Note vide ou cassée** : fichier vide, orphelin, ou référence morte → signaler immédiatement
 
-**If note is empty** :
-→ Display: "The note exists but is empty. Do you want to develop it first, search differently, or continue without it?"
-→ **Wait for Victor's decision.**
+**Si note vide** :
+→ Afficher : "La note existe mais est vide. Tu veux la développer d'abord, chercher différemment, ou continuer sans elle ?"
+→ **Attendre la décision de Victor.**
 
-### Check for blockers
+### Vérifier les bloquants
 
-Identify explicit dependencies (Kanban features only):
-- Keywords: "blocked by", "prerequisite", "must do first", "depends on", "requires"
-- `[[]]` links in dependency context (ex: "See also [[X]]" ≠ "Blocked by [[X]]")
-- Sections "Blockers", "Dependencies", or "Prerequisites" if present
-- Project `Priority.md` file
+Identifier les dépendances explicites (uniquement pour features Kanban) :
+- Mots-clés : "bloqué par", "prérequis", "à faire avant", "dépend de", "nécessite"
+- Liens `[[]]` en contexte de dépendance (ex: "Voir aussi [[X]]" ≠ "Bloqué par [[X]]")
+- Sections "Bloquants", "Dependencies", ou "Prérequis" si présentes
+- Fichier `Priority.md` du projet
 
-**If blocker identified** :
-→ Display: "This ticket is blocked by [[X]] — do we work on the blocker first?"
-→ **Wait for Victor's confirmation before continuing to Step 3.**
+**Si bloquant identifié** :
+→ Afficher : "Ce ticket est bloqué par [[X]] — on travaille sur le bloquant d'abord ?"
+→ **Attendre la confirmation de Victor avant de continuer vers Étape 3.**
 
-**If no blocker or vault note** :
-→ Continue directly to Step 3.
+**Si aucun bloquant ou note vault** :
+→ Continuer directement vers Étape 3.
 
-## Step 3 — Load context
+## Étape 3 — Charger le contexte
 
-### Case A: Kanban Feature
+### Cas A : Feature Kanban
 
-1. **Read project README**: `04 - Projects/[Project]/claude-code/README.md`
-   - **If missing**: announce "Project README missing — fill it in or continue without it?"
-2. **Load graph-context.md** if present:
-   - Search for `.claude/graph-context.md` in local repo
-   - If found → read and include in context summary (god nodes + communities)
-   - If missing → continue without, offer `/graph` in Step 4 if first contact with this repo
-3. **Get local repo path**:
-   - Search in CLAUDE.md or MEMORY.md (ex: `project_fstg_local_path.md`)
-   - If found → retain for file searches this session
-   - **If not found** → ask: "What is the local repo path?" — **wait before continuing**
-4. **Summarize in 3-5 lines**:
-   - What it's about (business domain, context)
-   - Current state: specs generated? code started? tests ready?
-   - Next steps: clarifications needed, first actions
-5. **Invoke `recall` if relevant**: if summary reveals key domain concepts or necessary references, invoke `recall` with these terms (max 3 keywords)
-   - Invoke only if domain terms identified — don't do it routinely
-6. **Project memory** (optional): query on ticket title to find historical work:
+1. **Lire le README du projet** : `04 - Projects/[Projet]/claude-code/README.md`
+   - **Si absent** : annoncer "README du projet manquant — charge-toi de le remplir ou on continue sans ?"
+2. **Charger le graph-context.md** si présent — **toujours, quel que soit le ticket** :
+   - Chercher `.claude/graph-context.md` dans le repo local
+   - Si trouvé → le lire et inclure dans le résumé de contexte (god nodes + communautés). Pas de filtre de pertinence — chargement inconditionnel.
+   - Si absent → continuer sans, proposer `/graph` en Étape 4 si premier contact avec ce repo
+3. **Récupérer le chemin local du repo** :
+   - Chercher dans CLAUDE.md ou MEMORY.md (ex: `project_fstg_local_path.md`)
+   - Si trouvé → retenir pour les recherches de fichiers cette session
+   - **Si non trouvé** → demander : "Quel est le chemin local du repo ?" — **attendre avant de continuer**
+4. **Résumer en 3-5 lignes** :
+   - De quoi il s'agit (domaine métier, contexte)
+   - État actuel : specs générées ? code entamé ? tests prêts ?
+   - Prochaines étapes : clarifications attendues, premières actions
+5. **Invoquer `recall` si pertinent** : si le résumé révèle des concepts métier clés ou des références nécessaires, invoquer `recall` avec ces termes (max 3 mots-clés)
+   - Invoquer seulement si termes métier identifiés — ne pas le faire par routine
+6. **Mémoire du projet** (optionnel) : requête sur le titre du ticket pour retrouver le travail historique :
    ```bash
-   uv run ~/.claude/semantic_search.py "<ticket title>" --top-k 2
+   uv run ~/.claude/semantic_search.py "<titre du ticket>" --top-k 2
    ```
-   If results (similarity ≥ 0.45) → display at bottom of context summary:
+   Si résultats (similarity ≥ 0.45) → afficher en bas du résumé de contexte :
    ```
-   📎 Previous sessions on this topic:
+   📎 Sessions passées sur ce sujet :
    - [YYYY-MM-DD] — <session title> / <section_type>
    ```
-   If Postgres/Ollama unreachable → non-blocking, display: `⚠️ Project memory unavailable (Postgres/Ollama down).`
+   Si Postgres/Ollama inaccessible → non-bloquant, afficher : `⚠️ Mémoire projet indisponible (Postgres/Ollama down).`
 
-### Case B: Vault note (knowledge, hobby, organization)
+### Cas B : Note vault (knowledge, hobby, organisation)
 
-1. **Summarize in 2-3 lines**:
-   - Subject and context
-   - Current state (draft, structured, needs development)
-2. **Load related notes**: read `[[]]` if essential
-3. **Don't invoke `recall`** — not necessary for vault note
+1. **Résumer en 2-3 lignes** :
+   - Sujet et contexte
+   - État actuel (brouillon, structurée, à développer)
+2. **Charger les notes liées** : lire les `[[]]` si essentiels
+3. **Ne pas invoquer `recall`** — pas nécessaire pour une note vault
 
-## Step 4 — Propose an entry point
+## Étape 4 — Proposer une entrée en matière
 
-### Dev Branch (Kanban Feature)
+### Branche Dev (Feature Kanban)
 
-- Remind of TDD approach: "Start with tests?"
-- Propose: "Need help with architecture, quick question, or go straight?"
-- **Skills in reserve** — load only if Victor explicitly says:
-  - "Show me the architecture / structure" → no skill (direct pair programming)
-  - "What pattern to use?" → no skill (discussion + examples)
-  - "Need skill [name]" → load the skill
-  - "Go for it" → no skill, let Victor code
+- Rappeler l'approche TDD : "On démarre par les tests ?"
+- Proposer : "Besoin d'aide sur l'archi, une question rapide, ou tu y vas direct ?"
+- **Skills en réserve** — charger seulement si Victor dit explicitement :
+  - "Montre-moi l'archi / la structure" → pas de skill (pair programming direct)
+  - "Quel pattern utiliser ?" → pas de skill (discussion + exemples)
+  - "Besoin du skill [nom]" → charger le skill
+  - "Tu y vas" → pas de skill, laisser Victor coder
 
-### Dev-Free Branch (Vault note)
+### Branche Non-dev (Note vault)
 
-Propose concrete action based on type:
-- **Knowledge/concept**: "Want to deepen, link to other notes, or move to practice?"
-- **Hobby**: "Start with [logical step] or [alternative]?"
-- **Organization**: "Develop it, organize it, or discuss first?"
+Proposer une action concrète selon le type :
+- **Knowledge/concept** : "Tu veux approfondir, relier à d'autres notes, ou passer à la pratique ?"
+- **Hobby** : "Tu commences par [étape logique] ou [alternative] ?"
+- **Organisation** : "On la développe, on la range, ou on en discute d'abord ?"
 
-**Wait for Victor's response before loading skills or exploring other contexts.**
+**Attendre la réponse de Victor avant de charger des skills ou d'explorer d'autres contextes.**
 
-## Step 5 — Closure (when Victor announces "done" or "finished")
+## Étape 5 — Clôture (quand Victor annonce "c'est fait" ou "terminé")
 
-### Verifications adapted to type (Step 2)
+### Vérifications adaptées au type (Étape 2)
 
-**Kanban Feature**:
-- Do tests pass without modification? (no post-dev adjustment)
-- Does observable behavior match validated specs?
-- Code pushed and ready for Kanban Done?
+**Feature Kanban** :
+- Les tests passent sans modification ? (pas d'ajustement post-dev)
+- Le comportement observable correspond aux specs validées ?
+- Code pushé et prêt pour le Kanban Done ?
 
-**Vault note (knowledge, hobby, organization)**:
-- Is the note in the right hierarchical location?
-- Links `[[]]` to existing notes created if relevant?
-- Index in INDEX.md or MEMORY.md?
+**Note vault (knowledge, hobby, organisation)** :
+- La note est au bon endroit hiérarchiquement ?
+- Liens `[[]]` vers notes existantes créés si pertinent ?
+- À indexer dans INDEX.md ou MEMORY.md ?
 
-Present as:
+Présenter sous forme :
 ```
-✅ Before closure:
-- [ ] [Verification 1]
-- [ ] [Verification 2]
+✅ Avant clôture :
+- [ ] [Vérif 1]
+- [ ] [Vérif 2]
 ```
 
-### Post-validation actions
+### Actions post-validation
 
-Once Victor confirms "All good":
+Une fois Victor confirme "Tout bon" :
 
-**Kanban Feature**:
-→ "You can move the ticket to Done in the Kanban. ADR to create?" (if structuring decision)
+**Feature Kanban** :
+→ "Tu peux déplacer le ticket en Done dans le Kanban. ADR à créer ?" (si décision structurante)
 
-**Vault note**:
-→ "Index somewhere?" (INDEX.md, MEMORY.md, Skills/INDEX.md)
+**Note vault** :
+→ "À indexer quelque part ?" (INDEX.md, MEMORY.md, Skills/INDEX.md)
 
-Confirm: "Closure validated ✓"
+Confirmer : "Clôture validée ✓"
 
-## Absolute rules
+## Règles absolues
 
-- **Skills in reserve**: load only if Victor explicitly asks ("show me", "what pattern", "need skill X"). Never by anticipation, never by inference of need.
-- **Never modify vault, Kanban, or sources** without Victor's validation. Workon suggests actions, Victor executes.
-- **Search Step 1: strict order** (exact → partial → glob fallback). No multi-source intelligence.
-- **`recall` (Step 3)**: invoke only if summary identifies key domain terms — never systematically.
-- **Edge case: missing README** (Case A, Step 3) — ask before continuing.
-- **Edge case: broken/orphaned note** (Step 2) — signal and ask if we resume or search differently.
-- **Explicit validations**: Step 1→2 (selection if multiple), Step 2→3 (if blocker), Step 3→4 (if note empty), Step 4→work (Victor's response).
-- **No inference**: if "Start with tests?" gets "yeah", start. If silence, ask "what do you start with?"
+- **Skills en réserve** : charger seulement si Victor les demande explicitement ("montre-moi", "quel pattern", "besoin du skill X"). Jamais par anticipation, jamais par inférence de besoin.
+- **Ne jamais modifier le vault, Kanban, ou sources** sans validation de Victor. Workon suggère des actions, Victor les exécute.
+- **Recherche Étape 1 : ordre strict** (exact → partial → glob fallback). Pas de multi-source intelligente.
+- **`recall` (Étape 3)** : invoquer seulement si le résumé identifie des termes métier clés pertinents — jamais systématiquement.
+- **Edge case : README absent** (Cas A, Étape 3) — demander avant de continuer.
+- **Edge case : note cassée/orpheline** (Étape 2) — signaler et demander si on reprend ou on cherche autrement.
+- **Validations explicites** : Étape 1→2 (sélection si multiples), Étape 2→3 (si bloquant), Étape 3→4 (si note vide), Étape 4→travail (réponse Victor).
+- **Pas d'inférence** : si "On démarre par les tests ?" reçoit "ouais", commencer. Si silence, demander "tu commences par quoi ?"

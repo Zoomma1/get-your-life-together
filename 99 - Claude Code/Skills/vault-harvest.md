@@ -1,130 +1,131 @@
 ---
 name: vault-harvest
-description: Scan daily notes to extract ideas to capitalize and links to process. Use when Victor says "harvest", "do the harvest", "scan my notes", or when /harvest is overdue in command-tracker, or at session end if daily notes were mentioned.
+description: Scanner les daily notes pour en extraire des idées à capitaliser et des liens à traiter. Utiliser quand Victor dit "harvest", "fais le harvest", "scanne mes notes", ou quand /harvest est en retard dans le command-tracker, ou en fin de session si des daily notes ont été mentionnées.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protected from aggressive optimization**
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
 >
-> This skill produces **narrative qualitative output**. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
 >
-> **For `/evaluateskills`** : in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (grouping, context, key moments, open questions, tone, narration). The preservation of qualitative content takes priority over line reduction.
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill : Vault Harvest
 
-This skill transforms daily notes into structured capital. After Victor's validation, Claude Code creates notes and tickets directly in the vault via MCP.
+Ce skill transforme les daily notes en capital structuré. Après validation de Victor, Claude Code crée les notes et tickets directement dans le vault via MCP.
 
-## Trigger
+## Déclenchement
 
-- Victor says "harvest", "do the harvest", "scan my notes"
-- Victor specifies a period : "harvest of the week" (last completed Monday-Sunday), "harvest since last Monday", "harvest of last 3 days"
-- Without specification → propose "last 7 days" and wait for validation (don't apply by default)
+- Victor dit "harvest", "fais le harvest", "scanne mes notes"
+- Victor précise une période : "harvest de la semaine" (lundi-dimanche dernier achevé), "harvest depuis lundi dernier", "harvest des 3 derniers jours"
+- Sans précision → proposer "7 derniers jours" et attendre validation (ne pas appliquer par défaut)
 
-## Vault structure — valid destinations
+## Structure du vault — destinations valides
 
-| Content type | Destination |
+| Type de contenu | Destination |
 |----------------|-------------|
-| Personal reflection, life idea | `01 - Me/` |
-| Warhammer, painting, technique | `02 - Hobbies/Warhammer/` |
-| Guitar, music | `02 - Hobbies/Guitar/` |
-| 3D printing | `02 - Hobbies/3D Printing/` |
-| Dev concept, pattern, tool | `03 - Knowledge/Dev/` |
-| Tool, plugin, Claude Code practice / IA ecosystem | `03 - Knowledge/Claude code/` |
-| Travel notes, places | `03 - Knowledge/Travel/` |
-| Other general knowledge | `03 - Knowledge/` |
-| Future project idea (tech to learn, personal need, SaaS idea) | `04 - Projects/Project ideas/` |
-| Unclassifiable idea, awaiting filing | `09 - Inbox/` |
-| Claude Code skill to create or update | `99 - Claude Code/Skills/` — **only for active skill files, not knowledge notes** |
-| Reflection on Claude/vault architecture | `99 - Claude Code/` or `09 - Inbox/` |
-| Completed note to archive (Done ticket, spec completed) | `Archive/` — see ADR-003 |
+| Réflexion personnelle, idée de vie | `01 - Me/` |
+| Warhammer, peinture, technique | `02 - Hobbies/Warhammer/` |
+| Guitare, musique | `02 - Hobbies/Guitare/` |
+| Impression 3D | `02 - Hobbies/3D Printing/` |
+| Concept dev, pattern, outil | `03 - Knowledge/Dev/` |
+| Outil, plugin, pratique Claude Code / écosystème IA | `03 - Knowledge/Claude code/` |
+| Notes de voyage, lieux | `03 - Knowledge/Travel/` |
+| Autre connaissance générale | `03 - Knowledge/` |
+| Idée de futur projet (tech à apprendre, besoin perso, idée SaaS) | `04 - Projects/Project ideas/` |
+| Idée inclassable, en attente de rangement | `09 - Inbox/` |
+| Skill Claude Code à créer ou mettre à jour | `99 - Claude Code/Skills/` — **uniquement pour les fichiers skill actifs, pas pour des notes de connaissance** |
+| Réflexion sur l'architecture Claude/vault | `99 - Claude Code/` ou `09 - Inbox/` |
+| Note terminée à archiver (ticket Done, spec réalisée) | `Archive/` — voir ADR-003 |
 
-**Never suggest a folder not in this list.**
+**Ne jamais suggérer un dossier qui n'existe pas dans cette liste.**
 
-## Active projects — source of truth
+## Projets actifs — source de vérité
 
-Read `04 - Projects/INDEX.md` at the start of each harvest to know active projects and their Kanbans. If an identified task concerns a listed project → create the ticket in the **Idea** column of the corresponding Kanban. If the project is not in the INDEX → flag unknown project for Step 4 (don't create ticket before Victor's validation).
+Lire `04 - Projects/INDEX.md` au début de chaque harvest pour connaître les projets actifs et leurs Kanbans. Si une tâche identifiée concerne un projet listé → créer le ticket dans la colonne **Idea** du Kanban correspondant. Si le projet n'est pas dans l'INDEX → flaguer le projet inconnu pour l'Étape 4 (ne pas créer le ticket avant validation Victor).
 
-Universal Kanban structure : `Idea → Ready → WIP → Done` (optional `Blocked` column for externally blocked tickets)
+Structure Kanban universelle : `Idea → Ready → WIP → Done` (colonne `Blocked` disponible pour les tickets bloqués par dépendance externe)
 
-**Special kanbans :**
-- `Claude Code Kanban` — unique kanban for all non-project tasks : daily life, vault/Claude Code, skills, ADR, workflows. Ticket notes go in `09 - Inbox/tickets/`, never in `09 - Inbox/` directly.
+**Kanbans spéciaux :**
+- `Claude Code Kanban` — Kanban unique pour toutes les tâches sans projet spécifique : vie quotidienne, vault/Claude Code, skills, ADR, workflows. Les notes tickets vont dans `09 - Inbox/tickets/`.
 
-**Hobby WIP limit** : In Step 1 Group A, count WIP tickets by type (`#warhammer`, `#guitar`, `#3d`, `#jdr`) in `02 - Hobbies/Hobby Kanban.md`. If a type reaches 2 WIP, signal to Victor in Step 4. Never create hobby ticket directly in WIP if limit is reached — create in Backlog or Ready instead.
+**Limite WIP Hobby** : À l'Étape 1 Groupe A, compter les tickets WIP par type (`#warhammer`, `#guitare`, `#3d`, `#jdr`) dans `02 - Hobbies/Hobby Kanban.md`. Si un type atteint 2 WIP, signaler à Victor à l'Étape 4. Ne jamais créer un ticket hobby directement en WIP si la limite est atteinte — créer en Backlog ou Ready à la place.
 
-## Links — permanent rule
+## Liens — règle permanente
 
-Read `99 - Claude Code/treated-links.md` at the start of each harvest. Never re-propose a URL listed in this file. Ignore only exact URLs listed — not entire domains.
+Lire `99 - Claude Code/treated-links.md` au début de chaque harvest. Ne jamais reproposer une URL listée dans ce fichier. Ignorer uniquement les URLs exactes listées — pas les domaines entiers.
 
-**If a URL is in treated-links but mentioned again in recent daily notes** : ignore it (don't refetch). If context suggests changed content (ex: updated version, link shared for different reason), ask Victor if it's intentional re-proposal before processing.
-
----
-
-## Step 1 — Read context
-
-**Group A — References (parallel reads, independent of period)**
-
-Launch these four reads in parallel — they don't depend on daily notes :
-1. Read `99 - Claude Code/treated-links.md` → get list of already-processed URLs
-2. List existing titles in `01 - Me/`, `09 - Inbox/`, `99 - Claude Code/Skills/` → to deduplicate future ideas
-3. Read `04 - Projects/INDEX.md` → identify active projects and their Kanbans
-4. Read `02 - Hobbies/Hobby Kanban.md` (if exists) → count WIP tickets by type : `#warhammer`, `#guitar`, `#3d`, `#jdr` → store counters (used in step 4)
-
-**Group A fallback** : If `Hobby Kanban.md` doesn't exist → store empty counters (omit WIP alert in step 4).
-
-**Group B — Period confirmation + daily note content (sequential after Group A)**
-
-1. **Confirm period with Victor** (unless already specified at trigger) :
-   - Propose : "week" (last completed Monday-Sunday) / "X last days" / "since date Y (exact)"
-   - If Victor accepts "last 7 days" by default → apply immediately
-   - If Victor specifies a period → apply it
-2. **Once period confirmed, read in parallel** :
-   - All daily notes from period in `00 - Daily notes/` → extract ideas, tasks, URLs, images, signals
-   - Corresponding sessions in `99 - Claude Code/Sessions/` → capture decisions and undocumented tasks
-   - `data/mood-tracker-data.json` (if exists) → filter entries whose `dateTime` falls in period → store in `MOOD_PERIOD`
-
-**Group B fallback** : If `mood-tracker-data.json` doesn't exist or is invalid JSON → `MOOD_PERIOD = []` (mood section omitted in step 4). If no daily notes found → signal and stop. If a daily note has no explicit date → treat it as being from the date in filename (ex: `2026-04-06.md` → date = 2026-04-06).
-
-**Deduplication rule** : Never propose an idea or note whose subject already exists in the vault (verify via Group A results).
+**Si une URL est dans treated-links mais mentionnée à nouveau dans les daily notes récentes** : l'ignorer (ne pas refetcher). Si le contexte suggère un contenu changé (ex: version mise à jour, lien partagé pour une raison différente), demander à Victor si c'est une reproposition volontaire avant de la traiter.
 
 ---
 
-## Step 2 — Detect ideas, tasks and signals
+## Étape 1 — Lire le contexte
 
-Scan content to identify :
-- A subject mentioned 2+ distinct times over the period **that doesn't already exist in vault** (ex: same idea in 2 different daily notes)
-- A technique, tool, concept noted in passing
-- A personal reflection that recurs
-- An intention expressed but not followed by action
-- A task related to an active project (whose name appears in `04 - Projects/INDEX.md`)
-- **Unknown project identified** : If a task targets a project NOT listed in INDEX.md, flag it for Step 4 (don't create ticket before Victor's validation)
-- **True negative signals only** : explicit stress, exhaustion, rough patch, isolation, shortened nights, general loss of interest — never signal positive or ambiguous mentions (ex: "I sleep less but feel good" is NOT an alert)
-- **Work patterns** : if a trend emerges over the period (systematically low energy certain days, more productive sessions at certain times, recurring blockers, new ritual) → propose an enrichment of "Work mode and energy" section in `{PERSONAL_FOLDER}/{USER_NAME}.md` — never write directly, always propose to Victor
+**Groupe A — Références (lectures parallèles, indépendantes de la période)**
 
-Categorize each signal :
-- **Ideas to capitalize** → create a note in the vault
-- **Project tasks** → create a ticket in the concerned project's Kanban (Idea column)
-- **Vault/Claude Code tasks** → ticket in `Claude Code Kanban` (Idea column)
-- **Negative alert signals** → propose update to `01 - Me/Alert signals.md` — never write directly
-- **Unknown projects** → list in Step 4 presentation (don't create ticket before Victor's validation)
+Lancer ces quatre lectures en parallèle — elles ne dépendent pas des daily notes :
+1. Lire `99 - Claude Code/treated-links.md` → récupérer la liste des URLs déjà traitées
+2. Lister les titres existants dans `01 - Me/`, `09 - Inbox/`, `99 - Claude Code/Skills/` → pour dédupliquer les idées futures
+3. Lire `04 - Projects/INDEX.md` → identifier les projets actifs et leurs Kanbans
+4. Lire `02 - Hobbies/Hobby Kanban.md` (si existe) → compter les tickets WIP par type : `#warhammer`, `#guitare`, `#3d`, `#jdr` → stocker compteurs (utilisés à l'étape 4)
 
-## Step 3 — Process links and images
+**Fallback Groupe A** : Si `Hobby Kanban.md` n'existe pas → stocker compteurs vides (ignorer l'alerte WIP à l'étape 4).
 
-### Embedded images
+**Groupe B — Confirmation de période + contenu des daily notes (séquentiel après Groupe A)**
 
-Detect all `![[filename.ext]]` in daily notes from the period (extensions : png, jpg, jpeg, gif, webp).
+1. **Confirmer la période avec Victor** (sauf si déjà précisée au déclenchement) :
+   - Proposer : "semaine" (lundi-dimanche du calendrier dernier achevé) / "X derniers jours" / "depuis date Y (exacte)"
+   - Si Victor accepte "7 derniers jours" par défaut → appliquer sans délai
+   - Si Victor précise une période → l'appliquer
+2. **Une fois la période confirmée, lire en parallèle** :
+   - Toutes les daily notes de la période dans `00 - Daily notes/` → extraire idées, tâches, URLs, images, signaux
+   - Sessions correspondantes dans `99 - Claude Code/Sessions/` → capturer décisions et tâches non documentées
+   - `data/mood-tracker-data.json` (si existe) → filtrer entrées dont `dateTime` tombe dans la période → stocker dans `MOOD_PERIOD`
 
-For each detected image :
-1. Find file in vault — search `Ressources/Attachements/` first, then recursive glob if not found
-2. Check if n8n container is running :
+**Fallback Groupe B** : Si `mood-tracker-data.json` n'existe pas ou est invalide JSON → `MOOD_PERIOD = []` (section mood omise à l'étape 4). Si aucune daily note trouvée → signaler et arrêter. Si une daily note n'a pas de date explicitée → la traiter comme étant du jour du nom du fichier (ex: `2026-04-06.md` → date = 2026-04-06).
+
+**Règle de déduplication** : Ne jamais proposer une idée ou note dont le sujet existe déjà dans le vault (vérifier via les résultats du Groupe A).
+
+
+---
+
+## Étape 2 — Détecter les idées, tâches et signaux
+
+Scanner le contenu pour identifier :
+- Un sujet mentionné 2+ fois distinctes sur la période **qui n'existe pas encore dans le vault** (ex: même idée dans 2 daily notes différentes)
+- Une technique, outil, concept noté en passant
+- Une réflexion personnelle qui revient
+- Une intention formulée mais pas suivie d'action
+- Une tâche liée à un projet actif (dont le nom figure dans `04 - Projects/INDEX.md`)
+- **Projet inconnu identifié** : Si une tâche vise un projet NON listé dans INDEX.md, le flaguer pour l'Étape 4 (ne pas créer le ticket avant validation Victor)
+- **Vrais signaux négatifs uniquement** : stress explicite, épuisement, mauvaise passe, isolement, nuits écourtées, perte d'envie générale — jamais signaler les mentions positives ou ambiguës (ex: "je dors moins mais je me sens bien" n'est PAS un signal d'alerte)
+- **Patterns de travail** : si une tendance émerge sur la période (énergie systématiquement basse certains jours, sessions plus productives à certains moments, perturbateurs récurrents, nouveau rituel) → proposer un enrichissement de la section "Mode de travail et énergie" dans `01 - Me/{USER_NAME}.md` — jamais écrire dedans directement, toujours proposer à Victor
+
+Catégoriser chaque signal :
+- **Idées à capitaliser** → créer une note dans le vault
+- **Tâches projet** → créer un ticket dans le Kanban du projet concerné (colonne Idea)
+- **Tâches vault/Claude Code** → ticket dans `Claude Code Kanban` (colonne Idea)
+- **Signaux d'alerte négatifs** → proposer une mise à jour de `01 - Me/Signaux d'alerte.md` — jamais écrire dedans directement
+- **Projets inconnus** → lister dans la présentation Étape 4 (ne pas créer sans validation Victor)
+
+## Étape 3 — Traiter les liens et images
+
+### Images embarquées
+
+Détecter tous les `![[filename.ext]]` dans les daily notes de la période (extensions : png, jpg, jpeg, gif, webp).
+
+Pour chaque image détectée :
+1. Trouver le fichier dans le vault — chercher dans `Ressources/Attachements/` en premier, puis glob récursif si non trouvé
+2. Vérifier si le container n8n est running :
    ```bash
    docker ps --filter name=n8n --filter status=running --format "{{.Names}}"
    ```
-3. If empty → start :
+3. Si vide → démarrer :
    ```bash
    docker start n8n
    ```
-   Wait 3-5 seconds.
-4. Read image as base64 and call webhook :
+   Attendre 3-5 secondes.
+4. Lire l'image en base64 et appeler le webhook :
    - **Windows (PowerShell)** :
      ```powershell
      $bytes = [System.IO.File]::ReadAllBytes("{VAULT_PATH}\Ressources\Attachements\[filename]")
@@ -140,214 +141,214 @@ For each detected image :
        -d "{\"type\": \"image\", \"filename\": \"[filename]\", \"mediaType\": \"image/[ext]\", \"data\": \"$B64\"}"
      ```
 
-5. n8n returns `{ title, content }` → create note in appropriate destination based on daily note context
-6. Stop container after processing all images :
+5. n8n retourne `{ title, content }` → créer une note dans la destination appropriée selon le contexte de la daily note
+6. Arrêter le container après traitement de toutes les images :
    ```bash
    docker stop n8n
    ```
 
-**mediaType** : `image/png` for `.png`, `image/jpeg` for `.jpg`/`.jpeg`, `image/gif` for `.gif`, `image/webp` for `.webp`
+**mediaType** : `image/png` pour `.png`, `image/jpeg` pour `.jpg`/`.jpeg`, `image/gif` pour `.gif`, `image/webp` pour `.webp`
 
-If file not found in vault → signal to Victor, don't block rest of harvest.
+Si le fichier est introuvable dans le vault → signaler à Victor, ne pas bloquer le reste du harvest.
 
 ### URLs
 
-Detect all URLs in daily notes from the period, except exact URLs already processed in memory.
+Détecter tous les URLs dans les daily notes de la période, sauf les URLs exactes déjà traitées en mémoire.
 
-**Delegate each URL fetch to a dedicated agent** — 1 agent per URL, all launched in parallel. Always include fallback n8n instructions in each agent prompt :
-- On WebFetch failure : call `{N8N_WEBHOOK_URL}/webhook/fallback-link` with `{ url, type: "youtube" | "article" }`
-- Check n8n running first (`docker ps --filter name=n8n`), start if needed (`docker start n8n`)
-- Return `{ title, content }` received from n8n rather than inferring via WebSearch
-- One agent failure doesn't block others — signal failed URL in final summary
+**Déléguer le fetch de chaque URL à un agent dédié** — 1 agent par URL, tous lancés en parallèle. Inclure systématiquement les instructions suivantes dans chaque prompt d'agent :
+1. **defuddle d'abord** : fetcher `https://defuddle.md/<url>` via WebFetch → si réponse valide (markdown propre, > 100 chars) → utiliser ce contenu et le frontmatter defuddle (`title`, `author`, `site`) pour les métadonnées
+2. **Fallback WebFetch** : si defuddle échoue (erreur, page auth, SPA, < 100 chars) → fetcher l'URL originale via WebFetch
+3. **Fallback n8n** : si WebFetch échoue → vérifier si n8n tourne (`docker ps --filter name=n8n`), le démarrer si besoin (`docker start n8n`), puis appeler `{N8N_WEBHOOK_URL}/webhook/fallback-link` avec `{ url, type: "youtube" | "article" }` → retourner le `{ title, content }` reçu
+4. Un agent en échec ne bloque pas les autres — signaler l'URL en erreur dans le résumé final
 
-### Nominal case — fetch succeeded
+### Cas nominal — fetch réussi
 ```
 🔗 [url]
-→ Content retrieved ✓
-→ Suggested destination : [path]
-→ Summary generated (see below)
+→ Contenu récupéré ✓
+→ Destination suggérée : [chemin]
+→ Résumé généré (voir ci-dessous)
 ```
 
-### Fallback case — fetch failed
-For short YouTube URLs (`youtu.be/ID`) : automatically retry with `https://www.youtube.com/watch?v=ID` before declaring fallback.
+### Cas fallback — fetch échoué
+Pour les URLs YouTube au format court (`youtu.be/ID`) : retry automatiquement avec `https://www.youtube.com/watch?v=ID` avant de déclarer fallback.
 
-If still inaccessible, attempt automatic fallback via n8n :
+Si toujours inaccessible, tenter le fallback automatique via n8n :
 
-1. Check if n8n container is running :
+1. Vérifier si le container n8n est running :
    ```bash
    docker ps --filter name=n8n --filter status=running --format "{{.Names}}"
    ```
-2. If empty (not running) → start container :
+2. Si vide (non running) → démarrer le container :
    ```bash
    docker start n8n
    ```
-   Wait 3-5 seconds for webhook to be ready.
-3. Determine type : `youtube` if URL contains `youtube.com` or `youtu.be`, else `article`
-4. Call webhook :
+   Attendre 3-5 secondes que le webhook soit prêt.
+3. Déterminer le type : `youtube` si l'URL contient `youtube.com` ou `youtu.be`, sinon `article`
+4. Appeler le webhook :
    ```bash
    curl -s -X POST {N8N_WEBHOOK_URL}/webhook/fallback-link \
      -H "Content-Type: application/json" \
      -d "{\"url\": \"[URL]\", \"type\": \"[type]\"}"
    ```
-5. If n8n returns `{ title, content }` → create note directly, no need for NotebookLM prompt
-6. Always stop container after use (even on error) :
+5. Si n8n retourne `{ title, content }` → créer la note directement, pas besoin de prompt NotebookLM
+6. Toujours arrêter le container après usage (même en cas d'erreur) :
    ```bash
    docker stop n8n
    ```
-7. If n8n fails or timeout (connection refused, 500, etc.) → propose NotebookLM fallback below
+7. Si n8n échoue ou timeout (connexion refusée, 500, etc.) → proposer fallback NotebookLM ci-dessous
 
-If n8n fails or timeout, propose NotebookLM fallback :
+Si n8n échoue ou timeout, proposer un fallback NotebookLM :
 
-**Fallback NotebookLM — Warhammer / painting video :**
+**Fallback NotebookLM — Vidéo Warhammer / peinture :**
 ```
-Summarize this video by listing : painting techniques mentioned, 
-paints and colors used with their role (base, wash, layer, etc.), 
-steps in order, and practical tips. Be factual and concise.
-```
-
-**Fallback NotebookLM — Tech / dev / tool video :**
-```
-Summarize this video by listing : the problem solved, tools or 
-concepts presented, key steps, and important points to remember 
-for a developer. Be factual and concise.
+Résume cette vidéo en listant : les techniques de peinture mentionnées, 
+les peintures et couleurs utilisées avec leur rôle (base, wash, layer, etc.), 
+les étapes dans l'ordre, et les conseils pratiques. Sois factuel et concis.
 ```
 
-**Fallback NotebookLM — General / podcast video :**
+**Fallback NotebookLM — Vidéo tech / dev / outil :**
 ```
-Summarize this video/podcast covering : main topic, key ideas 
-in order, notable examples or demonstrations, and conclusions 
-or recommendations. Be factual and concise.
+Résume cette vidéo en listant : le problème résolu, les outils ou concepts 
+présentés, les étapes clés, et les points importants à retenir pour 
+un développeur. Sois factuel et concis.
 ```
 
-Present link awaiting fallback :
+**Fallback NotebookLM — Vidéo générale / podcast :**
+```
+Résume cette vidéo/podcast en couvrant : le sujet principal, les idées clés 
+dans l'ordre, les exemples ou démonstrations notables, et les conclusions 
+ou recommandations. Sois factuel et concis.
+```
+
+Présenter le lien en attente de fallback :
 ```
 🔗 [url]
-→ Access blocked / no transcript available / n8n error
-→ Fallback proposed : [NotebookLM prompt adapted]
-→ Victor can : provide HTML export, paste content, or skip link
-→ Awaiting validation to create note
+→ Accès bloqué / pas de transcript disponible / n8n en erreur
+→ Fallback proposé : [prompt NotebookLM adapté]
+→ Victor peut : fournir un export HTML, un copier-coller, ou ignorer le lien
+→ En attente de validation pour créer la note
 ```
 
-If Victor doesn't provide content, skip link and list it as unprocessed in final summary.
+Si Victor ne fournit pas de contenu, ignorer le lien et le lister comme non traité dans le récapitulatif final.
 
-## Step 4 — Grouped validation
+## Étape 4 — Validation groupée
 
-Present complete summary :
+Présenter un récapitulatif complet. **Ordre de présentation prioritaire : tickets et pistes d'évolution d'abord, notes Knowledge ensuite.** Le but premier du harvest est de détecter les opportunités d'action, pas de produire des notes encyclopédiques.
 
 ```
-## Harvest [period]
+## Harvest [période]
 
-### Ideas to capitalize
-- [ ] [Idea 1] → [destination]
-- [ ] [Idea 2] → [destination]
+### Tickets à créer
+- [ ] [Tâche 1] → Kanban [Projet] — colonne Idea
+- [ ] [Tâche 2] → Claude Code Kanban — colonne Idea
 
-### Tickets to create
-- [ ] [Task 1] → Kanban [Project] — Idea column
-- [ ] [Task 2] → Claude Code Kanban — Idea column
+### Idées à capitaliser
+- [ ] [Idée 1] → [destination]
+- [ ] [Idée 2] → [destination]
 
-### ⚠️ Unknown projects identified
-> Omit if no unknown projects found.
-- [Task X] mentions "[Project name]" — absent from INDEX.md. Confirm you want me to add this ticket or create the project first?
+### ⚠️ Projets inconnus identifiés
+> Omettre si aucun projet inconnu trouvé.
+- [Tâche X] mentionne "[Nom du projet]" — absent d'INDEX.md. Validez que tu veux que j'ajoute ce ticket ou créez le projet d'abord ?
 
-### 🌤️ Mood for the week
-> Omit if `MOOD_PERIOD` has fewer than 3 entries.
-- Average rating : [X.X/5] ([icon : 😀 ≥4, 🙂 3-3.9, 😐 2-2.9, 😔 <2])
-- Dominant emotions : [top 3-5 most frequent with counts]
+### 🌤️ Mood de la semaine
+> Omettre si `MOOD_PERIOD` contient moins de 3 entrées.
+- Rating moyen : [X.X/5] ([icône : 😀 ≥4, 🙂 3-3.9, 😐 2-2.9, 😔 <2])
+- Émotions dominantes : [top 3-5 émotions les plus fréquentes avec décompte]
 
-### Alert signals detected
-- [ ] "[exact excerpt from daily note]" → propose addition to [[Alert signals]]
+### Signaux d'alerte détectés
+- [ ] "[extrait exact de la daily note]" → proposer ajout dans [[Signaux d'alerte]]
 
-### ⚠️ Hobby WIP limits
-> Omit this section if no type reaches 2 WIP.
-- ⚠️ You already have 2 [#type] in WIP — consider prioritizing or moving a project to Backlog before starting a new one.
+### ⚠️ Limites WIP Hobby
+> Omettre cette section si aucun type n'atteint 2 WIP.
+- ⚠️ Tu as déjà 2 [#type] en WIP — pense à prioriser ou passer un projet en Backlog avant d'en démarrer un nouveau.
 
-### Images to process
+### Images à traiter
 - [ ] ![[image1.png]] → vision OK → [destination]
-- [ ] ![[image2.jpg]] → file not found
+- [ ] ![[image2.jpg]] → fichier introuvable
 
-### Links to process
+### Liens à traiter
 - [ ] [url 1] → fetch OK → [destination]
 - [ ] [url 2] → fallback needed
-- [ ] [url 3] → unprocessed (ignored)
+- [ ] [url 3] → non traité (ignoré)
 
-Validate all / indicate what you want to skip / provide missing fallbacks.
+Valide tout / indique ce que tu veux ignorer / fournis les fallbacks manquants.
 ```
 
-**Wait for Victor's validation on Step 4 (summary) before creating anything.**
+**Attendre la validation de Victor sur l'Étape 4 (récapitulatif) avant de créer quoi que ce soit.**
 
-## Step 5 — Creation via MCP and linking
+## Étape 5 — Création via MCP et linking
 
-Only for elements validated by Victor.
+Uniquement pour les éléments validés par Victor.
 
-**Prerequisite** : Verify vault access before creating — attempt test read on `04 - Projects/INDEX.md` (already read in Step 1). If read fails, signal to Victor that MCP is unavailable and list exact content to create manually.
+**Prérequis** : Vérifier l'accès au vault avant de créer — tenter une lecture de test sur `04 - Projects/INDEX.md` (déjà lu en Étape 1). Si la lecture échoue, signaler à Victor que MCP est indisponible et lister le contenu exact à créer manuellement.
 
-**Create validated files and tickets directly** — launch creations without new confirmation request. MCP calls are atomic per file. Explicitly signal creation errors.
+**Créer directement les fichiers et tickets validés par Victor** — lancer les créations sans nouvelle demande de confirmation. Les appels MCP sont atomiques par fichier. Signaler les erreurs de création explicitement.
 
-For each ticket to create, apply the `create-ticket` skill — it handles both note file AND kanban insertion. For each Knowledge note, create file via Write or MCP depending on context (no intermediate request to Victor).
+Pour chaque ticket à créer, appliquer le skill `create-ticket` — il gère le fichier note ET l'insertion dans le kanban. Pour chaque note Knowledge, créer le fichier via Write ou MCP selon le contexte (pas de demande intermédiaire à Victor).
 
-**After creation**, update linked existing notes via parallel agents :
+**Après création**, mettre à jour les notes existantes liées via des agents parallèles :
 
-For each newly created note (Knowledge notes only, not tickets), launch 1 background agent in parallel :
-- Input : new note slug + tags + title keywords (2-4 terms)
-- Agent applies recall logic : scan `03 - Knowledge/` recursively — scoring title=3, content=2, backlink=2, threshold ≥ 2, max 3 candidate notes
-- For each candidate note, agent prepares :
-  - **A)** `[[new-note-slug]] — [reason]` to add in `## See also`
-  - **B)** 1 bullet to add in most pertinent section of body
-- Agent returns proposals (or nothing if score < 2)
+Pour chaque note nouvellement créée (notes Knowledge uniquement, pas les tickets), lancer 1 agent background en parallèle :
+- Input : slug de la nouvelle note + tags + mots-clés du titre (2-4 termes)
+- L'agent applique la logique recall : scanner `03 - Knowledge/` récursif — scoring titre=3, contenu=2, backlink=2, seuil ≥ 2, max 3 notes candidates
+- Pour chaque note candidate, l'agent prépare :
+  - **A)** `[[slug-nouvelle-note]] — [raison]` à ajouter dans `## Voir aussi`
+  - **B)** 1 bullet à ajouter dans la section la plus pertinente du corps
+- L'agent retourne ses proposals (ou rien si score < 2)
 
-Wait for all agents to complete. Aggregate and deduplicate (one existing note may be candidate of several new notes). Present to Victor for validation :
+Attendre que tous les agents aient terminé. Agréger et dédupliquer (une note existante peut être candidate de plusieurs nouvelles notes). Présenter à Victor pour validation :
 ```
-📎 Proposed updates to existing notes :
-- [[existing-note-1]] ← [[new-note-A]] :
-  → See also : [[new-note-A]] — [reason]
-  → Body (section "## Key points") : "- [bullet]"
+📎 Mises à jour proposées pour les notes existantes :
+- [[note-existante-1]] ← [[nouvelle-note-A]] :
+  → Voir aussi : [[nouvelle-note-A]] — [raison]
+  → Corps (section "## Points clés") : "- [bullet]"
 ```
 
-**These proposals are suggestions only** — apply only after Victor's validation. If no candidate found for a note → pass silently.
+**Ces propositions ne sont que des suggestions** — appliquer uniquement après validation Victor. Si aucune candidate trouvée pour une note → passer silencieusement.
 
-Also propose links between new notes themselves if related — after Victor's validation.
+Proposer aussi les liens entre les nouvelles notes elles-mêmes si elles sont liées — après validation de Victor.
 
-### Structure of a technique note (Warhammer)
+### Structure d'une note de technique (Warhammer)
 ```markdown
 ---
 date: YYYY-MM-DD
-source: [url or "daily note YYYY-MM-DD"]
-tags: [warhammer, painting, technique]
+source: [url ou "daily note YYYY-MM-DD"]
+tags: [warhammer, peinture, technique]
 ---
 
-# [Technique name]
+# [Nom de la technique]
 
-## Key points
+## Points clés
 - ...
 
-## Paints mentioned
+## Peintures mentionnées
 - ...
 
-## Personal notes
-> [what Victor added in daily note]
+## Notes personnelles
+> [ce que Victor a ajouté dans sa daily note]
 ```
 
-### Structure of a concept note (Knowledge)
+### Structure d'une note de concept (Knowledge)
 ```markdown
 ---
 date: YYYY-MM-DD
-source: [url or "daily note YYYY-MM-DD"]
+source: [url ou "daily note YYYY-MM-DD"]
 tags: [dev, concept]
 ---
 
-# [Concept name]
+# [Nom du concept]
 
-## In one sentence
+## En une phrase
 ...
 
-## Key points
+## Points clés
 - ...
 
-## Link with my projects
+## Lien avec mes projets
 - ...
 ```
 
-### Structure of an Inbox note (unclassifiable idea)
+### Structure d'une note Inbox (idée inclassable)
 ```markdown
 ---
 date: YYYY-MM-DD
@@ -355,57 +356,57 @@ source: daily note YYYY-MM-DD
 tags: [inbox]
 ---
 
-# [Idea title]
+# [Titre de l'idée]
 
-## Context
-> [exact excerpt from daily note]
+## Contexte
+> [extrait exact de la daily note]
 
-## To explore
+## À explorer
 ...
 ```
 
-### Structure of a Kanban ticket
+### Structure d'un ticket Kanban
 ```markdown
 ---
-title: [Ticket title]
+title: [Titre du ticket]
 date: YYYY-MM-DD
 type: 💡
 status: Idea
-project: [Project name]
+project: [Nom du projet]
 source: harvest YYYY-MM-DD
 ---
 
 ## Description
-[What was identified in daily note]
+[Ce qui a été identifié dans la daily note]
 ```
 
-## Step 6 — Finalization and tracker
+## Étape 6 — Finalisation et tracker
 
-After creation of all files and tickets (Victor's validation included) :
+Après création de tous les fichiers et tickets (validation de Victor incluse) :
 
-1. **Update `treated-links.md`** : Add processed or ignored URLs to existing list :
+1. **Mettre à jour `treated-links.md`** : Ajouter les URLs traitées ou ignorées à la liste existante :
    ```markdown
-   - [url] — source: daily YYYY-MM-DD, status: created / ignored / fallback-needed
+   - [url] — source: daily YYYY-MM-DD, statut: créé / ignoré / fallback-needed
    ```
    
-2. **Update command-tracker** : 
-   - Open `99 - Claude Code/command-tracker.md`
-   - Line `/harvest` → replace date with today's date in format `YYYY-MM-DD`
+2. **Mettre à jour le command-tracker** : 
+   - Ouvrir `99 - Claude Code/command-tracker.md`
+   - Ligne `/harvest` → remplacer la date par la date du jour au format `YYYY-MM-DD`
 
-3. **Final summary** : Display count of notes created, tickets created, links processed, and signal pending items (NotebookLM fallbacks, missing images, etc.)
+3. **Résumé final** : Afficher le nombre de notes créées, tickets créés, liens traités, et signaler les éléments en attente (fallbacks NotebookLM, images manquantes, etc.)
 
-## Absolute rules
+## Règles absolues
 
-- **Never create without validation** — wait for Victor's response on Step 4 (summary)
-- **Never modify daily notes** — they stay as-is
-- **Never write to `Alert signals.md` directly** — always propose to Victor
-- **Create via MCP without additional request** — creations follow Step 4 validation
-- **Valid destinations only** — use vault structure table above
-- **Explicit fallback** — if link inaccessible, say so clearly and wait
-- **One note = one idea** — don't merge two subjects in same note
-- **treated-links.md** — updated in Step 6 with processed or ignored links
-- **Never re-propose existing** — verify CLAUDE.md and vault before proposing
-- **Claude Code Kanban** — create ticket here for all personal/vault tasks without associated project. Notes in `09 - Inbox/tickets/`, never in `09 - Inbox/` directly
-- **Hobby Kanban WIP** — never create in WIP if limit reached. Create in Backlog or Ready instead and signal to Victor
-- **Unknown projects** — flag in Step 4 (don't create ticket before Victor's validation)
-- **Graceful fallback** — if `mood-tracker-data.json` or `Hobby Kanban.md` don't exist, continue without these data (section omitted)
+- **Jamais créer sans validation** — attendre la réponse de Victor sur l'Étape 4 (récapitulatif)
+- **Jamais modifier les daily notes** — elles restent telles quelles
+- **Jamais écrire dans `Signaux d'alerte.md` directement** — toujours proposer à Victor
+- **Créer via MCP sans demande supplémentaire** — les créations suivent la validation de l'Étape 4
+- **Destinations valides uniquement** — utiliser le tableau de structure vault ci-dessus
+- **Fallback explicite** — si un lien est inaccessible, le dire clairement et attendre
+- **Une note = une idée** — ne pas fusionner deux sujets dans la même note
+- **treated-links.md** — mis à jour en Étape 6 avec les liens traités ou ignorés
+- **Jamais reproposer l'existant** — vérifier le CLAUDE.md et le vault avant de proposer
+- **Claude Code Kanban** — créer un ticket ici pour toutes les tâches perso/vault sans projet associé. Notes dans `09 - Inbox/tickets/`, jamais dans `09 - Inbox/` directement
+- **Hobby Kanban WIP** — ne jamais créer en WIP si la limite est atteinte. Créer en Backlog ou Ready à la place et signaler à Victor
+- **Projets inconnus** — flaguer à l'Étape 4 (ne pas créer le ticket avant validation Victor)
+- **Fallback gracieux** — si `mood-tracker-data.json` ou `Hobby Kanban.md` n'existent pas, continuer sans ces données (section omise)

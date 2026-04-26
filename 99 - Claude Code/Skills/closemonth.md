@@ -1,150 +1,151 @@
 ---
 name: closemonth
-description: Monthly summary — project progress, energy/score trends, stabilized behavioral patterns (≥ 3 occurrences, ex : "decision paralysis on architecture"), next month's objectives and proposed update to {USER_NAME}.md if patterns confirm. Use when Victor says "closemonth", "month summary", "wrap up the month" or via /closemonth.
+description: Bilan mensuel — progression des projets, tendances énergie/score, patterns comportementaux stabilisés (≥ 3 occurrences, ex : "procrastination sur décisions d'architecture"), objectifs du mois suivant et mise à jour proposée de {USER_NAME}.md si des patterns se confirment. Utiliser quand Victor dit "closemonth", "bilan du mois", "on boucle le mois" ou via /closemonth.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protected from aggressive optimization**
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
 >
-> This skill produces **narrative qualitative output**. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
 >
-> **For `/evaluateskills`** : in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (grouping, context, key moments, open questions, tone, narration). The preservation of qualitative content takes priority over line reduction.
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill : Close Month
 
-## Trigger
+## Déclenchement
 
-- Victor says "closemonth", "month summary", "wrap up the month"
-- Command `/closemonth [YYYY-MM]` (argument optional)
-- Reminder from `/today` : if it's 1st of month and `/closemonth` in `command-tracker.md` is dated 30+ days ago
+- Victor dit "closemonth", "bilan du mois", "on boucle le mois"
+- Commande `/closemonth [YYYY-MM]` (argument optionnel)
+- Rappel depuis `/today` : si on est le 1er du mois et que `/closemonth` dans `command-tracker.md` date de plus de 30 jours
 
-## Step 1 — Determine target month and check for missed months
+## Étape 1 — Déterminer le mois cible et vérifier les retards
 
-**Selection algorithm (priority order) :**
-1. If `YYYY-MM` passed as argument → use that argument (case : manual catch-up or retroactive closure)
-2. Otherwise, if it's the **1st of month** → close the **previous month** (case : automatic closure on 1st)
-3. Otherwise → close the **current month** (case : voluntary closure mid-month)
+**Algorithme de sélection (ordre de priorité) :**
+1. Si `YYYY-MM` passé en argument → utiliser cet argument (cas : rattrapage manuel ou clôture rétroactive)
+2. Sinon, si on est le **1er du mois** → boucler le **mois précédent** (cas : clôture automatique le 1er)
+3. Sinon → boucler le **mois courant** (cas : clôture volontaire en cours de mois)
 
-Example : If today = 2026-04-01 and no argument → close March (2026-03). If `/closemonth 2026-02` as argument → close February even if current is April.
+Exemple : Si aujourd'hui = 2026-04-01 et pas d'argument → boucler mars (2026-03). Si `/closemonth 2026-02` en argument → boucler février même si on est en avril.
 
-**Detect missed months :**
-1. Read `command-tracker.md` and find latest `/closemonth` occurrence
-2. If absent or date > 30 days before today → months are missing
-3. Enumerate all uncovered months between last `/closemonth` and target month (inclusive) in chronological order
-4. **Ask Victor** : "Missed months detected : [list]. Process in chronological order (Y/N)?" — don't continue without explicit agreement
-5. If agreement : process oldest first. After current month ends, re-launch Step 1 for next month (unless Victor says no)
+**Détecter les mois manquants :**
+1. Lire `command-tracker.md` et chercher la dernière occurrence de `/closemonth`
+2. Si absent ou date > 30 jours avant aujourd'hui → des mois manquent
+3. Énumérer tous les mois non couverts entre le dernier `/closemonth` et le mois cible (inclus) dans l'ordre chronologique
+4. **Demander à Victor** : "Mois manquants détectés : [liste]. Procéder par ordre chronologique (Y/N) ?" — ne pas continuer sans accord explicite
+5. Si accord : traiter le plus ancien d'abord. Après fin du mois courant, relancer Étape 1 pour le mois suivant (sauf si Victor dit non)
 
-**If `command-tracker.md` absent :** assume first run, determine target month and continue normally.
+**Si `command-tracker.md` absent :** assumer premier run, déterminer mois cible et continuer normalement.
 
-## Step 2 — Collect material
+## Étape 2 — Collecter le matériau
 
-**Search order (cascade) :**
+**Ordre de recherche (cascade) :**
 
-1. **Search target month's weeklies** (primary source) :
-   - Read `00 - Daily notes/Weekly/YYYY-W{nn}.md`
-   - Identify which weeks W{nn} span target month
-   - **If ≥ 1 weekly found and non-empty** → use THESE (stop search)
+1. **Chercher les weeklies du mois cible** (source prioritaire) :
+   - Lire `00 - Daily notes/Weekly/YYYY-W{nn}.md`
+   - Identifier quelles semaines W{nn} chevauchent le mois cible
+   - **Si ≥ 1 weekly trouvée et non vide** → utiliser CELLES-CI (arrêter la recherche)
 
-2. **Fallback : search target month's dailies** (secondary source) :
-   - Read `00 - Daily notes/YYYY-MM-*.md` (all days of month)
-   - **If ≥ 1 daily found and non-empty** → use THESE (stop search)
+2. **Fallback : chercher les dailies du mois cible** (source secondaire) :
+   - Lire `00 - Daily notes/YYYY-MM-*.md` (tous les jours du mois)
+   - **Si ≥ 1 daily trouvée et non vide** → utiliser CELLES-CI (arrêter la recherche)
 
-3. **No source found** :
-   - Signal to Victor : "No weekly or daily for [YYYY-MM]. Options : (1) write from memory (disclaimer: undocumented), (2) cancel and re-launch end of month, (3) search alternate directory."
-   - **Wait for explicit Victor decision** — never hallucinate summary without source
-   - **Edge case : if Victor chooses (1)**, add block "⚠️ Undocumented" at start of summary indicating content comes from memory, not weeklies/dailies
+3. **Aucune source trouvée** :
+   - Signaler à Victor : "Aucune weekly ni daily pour [YYYY-MM]. Options : (1) rédiger depuis souvenirs (disclaimer: non documenté), (2) annuler et relancer en fin de mois, (3) chercher dans répertoire alternatif."
+   - **Attendre la décision explicite de Victor** — ne jamais halluciner de bilan sans source
+   - **Edge case : si Victor choisit (1)**, ajouter un bloc "⚠️ Non documenté" en début du bilan indiquant que le contenu vient de la mémoire, pas des weeklies/dailies
 
-## Step 3 — Build summary
+## Étape 3 — Construire le bilan
 
-Extract from sources (Step 2) and fill this template :
+Extraire des sources (Étape 2) et remplir ce template :
 
 ```markdown
-# Summary — [Month YYYY]
+# Bilan — [Mois YYYY]
 
-## 📊 Projects
-### [Project name]
-- Progress : [end-of-month state]
-- Notable points : [decisions, milestones, blockers, key commits if applicable]
+## 📊 Projets
+### [Nom du projet]
+- Avancement : [état en fin de mois]
+- Points notables : [décisions, jalons, blocages, commits clés si applicables]
 
-### [Project name] (repeat for each project)
+### [Nom du projet] (répéter pour chaque projet)
 - ...
 
-### (If 0 projects this month)
-- Note : No active projects this month
+### (Si 0 projets ce mois)
+- Note : Aucun projet actif ce mois
 
-## 🔋 Energy & score
-- Average energy : [X]/5 | Min : [X] | Max : [X]
-- Average score : [X]/5
-- Observation : [if notable trend — ex: "Stable energy weeks 1-2, dip weeks 3-4 (ISEP overload). Score recovering end of month."]
+## 🔋 Énergie & score
+- Moyenne énergie : [X]/5 | Min : [X] | Max : [X]
+- Moyenne score : [X]/5
+- Ressentis représentatifs : [2-3 exemples tirés des daily notes — ex: *"difficile le matin, bien le soir (J-12)"*, *"fluide mais court (J-24)"*, *"épuisant mais satisfait (J-28)"*]
+- Observation : [si tendance notable — ex: "Énergie stable semaines 1-2, baisse semaines 3-4 (surcharge ISEP). Score en remontée fin mois."]
 
-## 🔁 Behavioral patterns
-- Patterns detected (≥ 3 occurrences) :
-  - [Pattern 1 : brief description + count]
+## 🔁 Patterns comportementaux
+- Patterns détectés (≥ 3 occurrences) :
+  - [Pattern 1 : description courte + count]
   - [Pattern 2 : ...]
-- (If 0 pattern ≥ 3 : "No behavioral pattern repeated ≥ 3 times this month.")
+- (Si 0 pattern ≥ 3 : "Aucun pattern comportemental répété ≥ 3 fois ce mois.")
 
-## 🎯 Next month's objectives
-- [Intention 1 : concrete action from summary]
+## 🎯 Objectifs du mois suivant
+- [Intention 1 : action concrète issue du bilan]
 - [Intention 2 : ...]
 - [1-3 intentions minimum]
 ```
 
-**Extraction rule :** A pattern appears in this section only if mentioned **≥ 3 times distinctly** in sources. Otherwise → note it but omit from synthesis.
+**Règle d'extraction :** Un pattern ne figure dans cette section que s'il est mentionné **≥ 3 fois distinctes** dans les sources. Sinon → le noter mais l'omettre de la synthèse.
 
-## Step 4 — Post-mortem & Proposals
+## Étape 4 — Post-mortem & Propositions
 
-### A. Behavioral patterns → {USER_NAME}.md update
+### A. Patterns comportementaux → mise à jour {USER_NAME}.md
 
-If patterns detected ≥ 3 times :
-1. Present exact pattern to Victor (count + source citations)
-2. Propose **targeted, minimal** modification of `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\{USER_NAME}.md`, section "Observed patterns"
-3. **Wait for explicit Victor validation** before modifying
-4. Valid examples :
-   - "Decision paralysis on architecture without pair review (detected 4x) → add : 'Request review before dev on structuring decisions' ?"
-   - "End-of-week procrastination pattern (5x) → add : 'Limit empty tasks after 5pm ?' "
+Si patterns détectés ≥ 3 fois :
+1. Présenter à Victor le pattern exact (count + citations sources)
+2. Proposer une modification **ciblée et minimale** de `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\{USER_NAME}.md`, section "Patterns observés"
+3. **Attendre la validation explicite de Victor** avant modification
+4. Exemples valides :
+   - "Blocage paralysie sur décisions d'architecture sans pair review (détecté 4x) → ajouter : 'Demander review avant dev sur décisions structurantes' ?"
+   - "Pattern de procrastination fin de semaine (5x) → ajouter : 'Limiter les tâches creuses après 17h ?' "
 
-If 0 pattern ≥ 3 : don't touch {USER_NAME}.md, note "No modifications proposed."
+Si 0 pattern ≥ 3 : ne pas toucher {USER_NAME}.md, noter "Aucune modification proposée."
 
-### B. Suggested analytical skills
+### B. Skills analytiques suggérés
 
-Based on month's highlights, propose relevant skills as optional suggestions (Victor decides) :
+Basé sur ce qui ressort du bilan du mois, proposer les skills pertinents comme suggestions optionnelles (Victor décide) :
 
-- **Always propose** : `/trace [key month idea]` — to retrace evolution of important concept or decision that marked month
-- **If recurring unconsidered ideas identified** : `/ideas` — to turn month's patterns into concrete action list
-- **If connections between two domains emerged** : `/connect [domain A] [domain B]`
-- **If significant life, career or project shift this month** : `/compound [strategic question]` — to measure how vault changed the answer
-- **If `/stranger` is 30+ days old** (check `command-tracker.md`) : `/stranger` — outside portrait for end-of-month recalibration
+- **Toujours proposer** : `/trace [idée clé du mois]` — pour retracer l'évolution d'un concept ou d'une décision importante qui a marqué le mois
+- **Si des idées récurrentes non actionnées ont été identifiées** : `/ideas` — pour transformer les patterns du mois en liste d'actions concrètes
+- **Si des connexions entre deux domaines ont émergé** : `/connect [domaine A] [domaine B]`
+- **Si un changement significatif de vie, carrière ou projet sur le mois** : `/compound [question stratégique]` — pour mesurer comment le vault a changé la réponse
+- **Si `/stranger` date de plus de 30 jours** (vérifier `command-tracker.md`) : `/stranger` — portrait extérieur pour recalibrer en fin de mois
 
-Present as :
+Présenter sous cette forme :
 ```
-💡 Skills to consider this month :
-- /trace [subject] — [1-sentence reason]
-- /ideas — [what justifies launch]
-[...based on context]
+💡 Skills à envisager ce mois :
+- /trace [sujet] — [raison en 1 phrase]
+- /ideas — [ce qui justifie le lancement]
+[...selon contexte]
 ```
 
-## Step 5 — Write and finalize
+## Étape 5 — Écrire et finaliser
 
-1. **Create** monthly summary :
-   - Folder `00 - Daily notes/Monthly/` (create if absent)
-   - File : `YYYY-MM.md` with content from Step 3
-2. **Update** `{VAULT_PATH}\command-tracker.md` :
-   - New line : `/closemonth` today's date (format : YYYY-MM-DD HH:MM)
-3. **If remaining missed months** (Step 1) :
-   - Ask Victor : "Next month (YYYY-MM) to close too? (Y/N)"
-   - If yes → re-launch Step 1 on next month
-   - If no → stop
+1. **Créer** le bilan mensuel :
+   - Dossier `00 - Daily notes/Monthly/` (créer s'il n'existe pas)
+   - Fichier : `YYYY-MM.md` avec contenu de Étape 3
+2. **Mettre à jour** `{VAULT_PATH}\command-tracker.md` :
+   - Nouvelle ligne : `/closemonth` date du jour (format : YYYY-MM-DD HH:MM)
+3. **Si mois en retard restants** (Étape 1) :
+   - Demander à Victor : "Mois suivant (YYYY-MM) à boucler aussi ? (Y/N)"
+   - Si oui → relancer Étape 1 sur le mois suivant
+   - Si non → arrêter
 
-## Rules
+## Règles
 
-- **One month at a time** — never close 2 months in parallel
-- **No source** = explicit Victor request before fallback (no hallucination)
-- **Patterns < 3 times** = ignore, note "no stabilized patterns"
-- **0 projects this month** = acceptable, note in Projects
-- **Double closure** : if month already closed, ask Victor "Month already closed. Rewrite? (Y/N)"
-- **Project stopped mid-month** : include in Projects as "Status : stopped at [week N]"
-- **Victor validation required for** :
-  - Missed months (Step 1, point 4)
-  - {USER_NAME}.md modification (Step 4A)
-  - Refusing pattern validation → omit from {USER_NAME}.md, note "Not validated, no modifications"
-  - Re-launch on next month (Step 5, point 3)
+- **Un seul mois à la fois** — jamais boucler 2 mois en parallèle
+- **Aucune source** = demande explicite Victor avant fallback (pas de hallucination)
+- **Patterns < 3 fois** = les ignorer, noter "aucun pattern stabilisé"
+- **0 projets ce mois** = acceptable, noter dans Projets
+- **Double clôture** : si mois déjà clôturé, demander à Victor "Ce mois est déjà clôturé. Réécrire ? (Y/N)"
+- **Projet arrêté en cours de mois** : inclure dans Projets comme "Statut : arrêté à [semaine N]"
+- **Validation Victor obligatoire pour** :
+  - Mois en retard (Étape 1, point 4)
+  - Modification {USER_NAME}.md (Étape 4A)
+  - Refus de valider patterns → omettre de {USER_NAME}.md, noter "Non validés, aucune modification"
+  - Relance sur mois suivant (Étape 5, point 3)

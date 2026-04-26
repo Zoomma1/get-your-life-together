@@ -1,320 +1,320 @@
 ---
 name: map
-description: Topological vault mapping — clusters, dead zones (under-represented CLAUDE.md priorities), fragile critical bridges. Run before /emerge or /harvestdeep, or monthly from 200 notes. Analysis only, creates/modifies nothing. Actions via /link (orphans), /emerge (emergence), /harvestdeep (temporal patterns).
+description: Cartographie topologique du vault — clusters, dead zones (priorités CLAUDE.md sous-représentées), ponts critiques fragiles. Lance avant /emerge ou /harvestdeep, ou mensuel à partir de 200 notes. Analyse uniquement, ne crée/modifie rien. Actions via /link (orphans), /emerge (émergence), /harvestdeep (patterns temporels).
 ---
 
-# Skill: /map
+# Skill : /map
 
-Analyses the topological structure of the vault: where ideas concentrate, where dead zones form, which clusters depend on a single bridge note. The main insight is the **dead zone** — a subject that is a priority in CLAUDE.md but under-documented in the vault, revealing uncrystallised thinking.
+Analyse la structure topologique du vault : où les idées se concentrent, où les zones mortes se forment, quels clusters dépendent d'une seule note-pont. L'insight principal est la **dead zone** — sujet prioritaire dans CLAUDE.md mais sous-documenté dans le vault, révélant la pensée non cristallisée.
 
-**Recommended order in a vault analysis session:**
-1. `/map` → current structural state (clusters, gaps, orphans)
-2. `/emerge` → detects idea clusters that form something new
-3. `/harvestdeep` → patterns over 30 days of daily notes (temporal view)
+**Ordre recommandé dans une session d'analyse vault :**
+1. `/map` → état structurel present (clusters, gaps, orphans)
+2. `/emerge` → détecte les clusters d'idées qui forment quelque chose de nouveau
+3. `/harvestdeep` → patterns sur 30 jours de daily notes (temporal view)
 
-**Key difference from other skills:**
-- `/vault-link` → operational: creates links between existing notes
-- `/emerge` → semantic: detects idea clusters that form something new
-- `/harvestdeep` → temporal: patterns over 30 days of daily notes
-- `/map` → **topological**: current state of structure, cluster health, structural gaps
+**Différence clé avec les autres skills :**
+- `/vault-link` → opérationnel : crée des liens entre les notes existantes
+- `/emerge` → sémantique : détecte les clusters d'idées qui forment quelque chose de nouveau
+- `/harvestdeep` → temporel : patterns sur 30 jours de daily notes
+- `/map` → **topologique** : état actuel de la structure, santé des clusters, gaps structurels
 
-**Recommended frequency:** monthly, or when the vault exceeds ~200 notes.
+**Fréquence recommandée :** mensuel, ou quand le vault dépasse ~200 notes.
 
 ---
 
-## Step 1 — Structural scan
+## Étape 1 — Scan structurel
 
-Use Glob and Grep to collect structure data without reading everything. Delegating the scan to parallel agents preserves the main context for the subsequent transverse analysis and avoids timeouts.
+Utiliser Glob et Grep pour collecter les données de structure sans tout lire. Déléguer le scan à des agents parallèles préserve le contexte principal pour l'analyse transverse qui suit et évite les timeouts.
 
-**Note:** Steps 1a-1d are parallelisable. The final aggregation (before Step 2) brings all results together.
+**Note :** Les étapes 1a-1d sont parallélisables. L'agrégation finale (avant étape 2) réunit tous les résultats.
 
-### 1a. Distribution by folder — parallel agents per folder
+### 1a. Distribution par dossier — agents parallèles par dossier
 
-Launch one agent per root folder. Each agent runs `Glob("**/*.md")` on its path.
+Lancer un agent par dossier racine. Chaque agent exécute `Glob("**/*.md")` sur son chemin.
 
-**Folders to scan:** `00 - Daily notes/`, `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`, `04 - Projects/`, `05 - ISEP/`, `06 - Work/`, `09 - Inbox/`, `99 - Claude Code/`
+**Dossiers à scanner :** `00 - Daily notes/`, `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`, `04 - Projects/`, `05 - ISEP/`, `06 - Work/`, `09 - Inbox/`, `99 - Claude Code/`
 
-**Return contract (per agent):**
+**Contrat de retour (par agent) :**
 ```json
 {
-  "folder": "absolute/path/",
+  "dossier": "chemin/absolu/",
   "count": N,
-  "notes": ["path1.md", "path2.md"],
+  "notes": ["chemin1.md", "chemin2.md"],
   "status": "success|empty|error",
-  "error_msg": "optional (if error)"
+  "error_msg": "optional (si error)"
 }
 ```
 
-**Edge case handling:**
-- **Agent timeout (>30s)**: relaunch that specific folder alone (without parallel). If it fails again: return `status: "error"` and continue (partial aggregation).
-- **Empty folder**: return `status: "empty"`, count: 0.
-- **Vault total <20 notes**: merge batches 1b-1c into a single agent pass (parallel overhead useless).
+**Gestion des cas limites :**
+- **Timeout agent (>30s)** : relancer le dossier spécifique seul (sans parallèle). Si échec à nouveau : retourner `status: "error"` et continuer (agrégation partielle).
+- **Dossier vide** : retourner `status: "empty"`, count: 0.
+- **Vault total <20 notes** : fusionner batches 1b-1c en une seule passée agents (overhead parallélisme inutile).
 
-### 1b. Orphans — 1 agent per batch of 15-20 notes
+### 1b. Orphans — 1 agent par batch de 15-20 notes
 
-From the 1a lists, form batches of notes in `02 - Hobbies/`, `03 - Knowledge/`, `04 - Projects/`, `05 - ISEP/`, `06 - Work/`. **Exclude `00 - Daily notes/`** (ephemeral links by nature) and `09 - Inbox/` (temporary capture zone).
+Depuis les listes 1a, constituer des batches de notes dans `02 - Hobbies/`, `03 - Knowledge/`, `04 - Projects/`, `05 - ISEP/`, `06 - Work/`. **Exclure `00 - Daily notes/`** (liens éphémères par nature) et `09 - Inbox/` (zone de capture temporaire).
 
-For each batch, launch an agent with this prompt:
-
-```
-For each note in the list (full path):
-- Grep(filename_without_extension, path="C:\\Me\\Tha vault") 
-  → 0 results = orphan (no note references this file)
-Return: { "orphans": ["path/to/note.md"], "batch_size": N, "status": "success|error" }
-```
-
-### 1c. Deadends and hubs — 1 agent per batch of 15-20 notes (same batches as 1b)
-
-For each batch of notes (same selection as 1b):
+Pour chaque batch, lancer un agent avec ce prompt :
 
 ```
-For each note in the list (full path):
-- Grep("\\[\\[", path="path/to/note.md") 
-  → 0 results = deadend (no [[...]] in the note)
-- Also count incoming references: how many files contain [[note_name]]?
-Return: { 
-  "deadends": ["path1.md"], 
-  "hubs": [{"note": "path.md", "inbound_count": 5}],
+Pour chaque note de la liste (chemin complet) :
+- Grep(nom_fichier_sans_extension, path="C:\\Me\\Tha vault") 
+  → 0 résultat = orphan (aucune note ne référence ce fichier)
+Retourne : { "orphans": ["chemin/vers/note.md"], "batch_size": N, "status": "success|error" }
+```
+
+### 1c. Deadends et hubs — 1 agent par batch de 15-20 notes (mêmes batches que 1b)
+
+Pour chaque batch de notes (sélection identique à 1b) :
+
+```
+Pour chaque note de la liste (chemin complet) :
+- Grep("\\[\\[", path="chemin/vers/note.md") 
+  → 0 résultat = deadend (pas de [[...]] dans la note)
+- Compter aussi les références entrantes : combien de fichiers contiennent [[nom_note]] ?
+Retourne : { 
+  "deadends": ["chemin1.md"], 
+  "hubs": [{"note": "chemin.md", "inbound_count": 5}],
   "batch_size": N, 
   "status": "success|error" 
 }
 ```
 
-### 1d. Unresolved links — 1 dedicated agent
+### 1d. Liens non résolus — 1 agent dédié
 
-Launch an agent that greps all [[...]] in the vault, then validates each target:
+Lancer un agent qui grep tous les [[...]] du vault, puis valide chaque cible :
 
 ```
-Grep("\\[\\[[^\\]]+\\]\\]", path="C:\\Me\\Tha vault") → all [[...]] links
-Extract unique references, then for each link:
-- Check via Glob if the target file exists
-- If NOT_FOUND: record as unresolved link, count references
-Prioritise links modified <1 month (recency)
-Return: { 
-  "unresolved_links": [
-    {"link": "[[NoteName]]", "referenced_by_count": 2, "references": ["file1.md", "file2.md"]}
+Grep("\\[\\[[^\\]]+\\]\\]", path="C:\\Me\\Tha vault") → tous les liens [[...]]
+Extraire les références uniques, puis pour chaque lien :
+- Vérifier via Glob si le fichier cible existe
+- Si NOT_FOUND : enregistrer comme lien non résolu, compter references
+Prioriser liens modifiés <1 mois (récence)
+Retourne : { 
+  "liens_non_resolus": [
+    {"lien": "[[NomNote]]", "referenced_by_count": 2, "references": ["fichier1.md", "fichier2.md"]}
   ],
   "total_unresolved": N,
   "status": "success|error" 
 }
 ```
 
-### 1f. INDEX.md health — 1 dedicated agent
+### 1f. Santé des INDEX.md — 1 agent dédié
 
-Launch an agent that checks the state of each `INDEX.md` in the vault:
+Lancer un agent qui vérifie l'état de chaque `INDEX.md` du vault :
 
 ```
-Glob("**/INDEX.md", path="C:\\Me\\Tha vault") → list all INDEX.md files (exclude Archives/)
+Glob("**/INDEX.md", path="C:\\Me\\Tha vault") → liste de tous les INDEX.md (exclure Archives/)
 
-For each INDEX.md found:
-1. Read the file, extract listed slugs (pattern [[slug]] or [[slug|alias]])
-2. Glob(`parent_folder/*.md`) → list real files in the same folder (exclude INDEX.md itself)
-3. Compare:
-   - Slugs in INDEX with no corresponding .md file → "dead entry"
-   - .md files in folder absent from INDEX → "missing entry"
+Pour chaque INDEX.md trouvé :
+1. Lire le fichier, extraire les slugs listés (pattern [[slug]] ou [[slug|alias]])
+2. Glob(`dossier_parent/*.md`) → lister les fichiers réels dans le même dossier (exclure INDEX.md lui-même)
+3. Comparer :
+   - Slugs dans l'INDEX sans fichier .md correspondant → "entrée morte"
+   - Fichiers .md dans le dossier absents de l'INDEX → "entrée manquante"
 
-Return: {
-  "index_file": "path/INDEX.md",
-  "dead_entries": ["[[non-existent-slug]]"],
-  "missing_entries": ["new-file.md"],
+Retourne : {
+  "index_file": "chemin/INDEX.md",
+  "dead_entries": ["[[slug-inexistant]]"],
+  "missing_entries": ["nouveau-fichier.md"],
   "status": "ok|stale|broken"
 }
 ```
 
-- **`ok`**: no delta
-- **`stale`**: missing entries only (new unindexed notes)
-- **`broken`**: dead entries (referenced notes that no longer exist)
+- **`ok`** : aucun delta
+- **`stale`** : entrées manquantes uniquement (nouvelles notes non indexées)
+- **`broken`** : entrées mortes (notes référencées qui n'existent plus)
 
-### 1e. Orphan tickets — sequential bash script
+### 1e. Tickets orphelins — bash script séquentiel
 
-Run alone (not in parallel):
+Exécuter seul (pas en parallèle) :
 ```bash
 bash "/mnt/c/Me/Tha vault/99 - Claude Code/scripts/check-orphan-tickets.sh"
 ```
 
-Store result in `ORPHAN_TICKETS` (list of slugs, may be empty).
+Stocker résultat dans `ORPHAN_TICKETS` (liste de slugs, peut être vide).
 
-**Error handling:** If bash fails → mark `ORPHAN_CHECK_FAILED = true`, continue (not blocking).
+**Gestion erreur :** Si bash échoue → marquer `ORPHAN_CHECK_FAILED = true`, continuer (pas bloquant).
 
-### Aggregation (main orchestrator)
+### Agrégation (orchestrateur principal)
 
-Wait for all agent returns (with fallback on timeouts). Consolidate before Step 2:
-- **Total notes:** sum of counts (1a), minus `00 - Daily notes/`
-- **Orphans:** unique list of notes with no incoming reference
-- **Deadends:** unique list of notes with no outgoing reference
-- **Hubs:** TOP 10 by inbound_count
-- **Unresolved links:** list sorted by referenced_by_count descending
-- **INDEX.md health:** list of INDEX files with status `stale` or `broken` (`ok` ones ignored)
+Attendre les retours de tous les agents (avec fallback sur timeouts). Consolider avant étape 2 :
+- **Total notes :** somme des counts (1a), moins `00 - Daily notes/`
+- **Orphans :** liste unique des notes sans référence entrante
+- **Deadends :** liste unique des notes sans référence sortante
+- **Hubs :** TOP 10 par inbound_count
+- **Liens non résolus :** liste triée par referenced_by_count décroissant
+- **Santé INDEX.md :** liste des INDEX avec status `stale` ou `broken` (les `ok` sont ignorés)
 
-Steps 2, 3, 4 remain in the main context — they require a transverse view that only the orchestrator has.
-
----
-
-## Step 2 — Identify clusters
-
-From the hubs identified in 1c, trace link chains via BFS to form thematic clusters.
-
-**BFS clustering algorithm:**
-1. **Hub selection**: Use TOP 10 hubs by inbound_count. If <10 hubs identified: include all (no filtering).
-2. **BFS depth**:
-   - Vault ≥50 notes: max 3 hops from the hub
-   - Vault <50 notes: max 2 hops (avoids artificial super-clusters)
-3. **Expansion**: For each hub, collect notes that reference it (inbound) + notes it references (outbound), up to depth limit.
-4. **Merging**: Two hubs whose clusters overlap >30% of notes → merge into a single cluster.
-
-**Edge cases:**
-- If 0 major hubs (no note has inbound_count ≥2): treat each isolated deadend as a "micro-cluster", signal general vault fragility.
-- If a hub has abnormally high inbound_count (>50% of notes): it is a "super-hub", signal excessive concentration.
-
-**For each identified cluster, calculate:**
-- **Central node**: main hub (max inbound_count of cluster)
-- **Size**: number of notes in cluster
-- **Density**: ratio (internal links / theoretically possible links). High = notes link a lot; low = gravitation around hub alone.
-- **Health**: Active (notes modified <1 month) / Stable (1-3 months) / Stagnant (3+ months) / Neglected (never modified).
-- **Intercluster connections**: which other clusters does this cluster point to? List links that cross cluster boundaries.
-
-### Structural fragilities — Critical bridge notes
-
-Identify notes that create isolated bridges between clusters:
-- **Definition**: a note X is the **only link** between Cluster A and Cluster B.
-- **Risk**: if X is deleted, A and B disconnect completely.
-- **Action**: these notes are critical for navigability — flag them as "single point of failure" in the synthesis.
+Les étapes 2, 3, 4 restent dans le contexte principal — elles nécessitent une vue transverse que seul l'orchestrateur possède.
 
 ---
 
-## Step 3 — Identify gaps
+## Étape 2 — Identifier les clusters
 
-Three distinct types of gaps: **dead zones**, **isolated orphans**, **unresolved links**.
+Depuis les hubs identifiés en 1c, retracer les chaînes de liens via BFS pour former les clusters thématiques.
 
-### 3a. Dead zones (main insight)
+**Algorithme — BFS clustering :**
+1. **Sélection hubs** : Utiliser TOP 10 hubs par inbound_count. Si <10 hubs identifiés : tous les inclure (pas de filtering).
+2. **Profondeur BFS** : 
+   - Vault ≥50 notes : max 3 sauts depuis le hub (hub → direct refs ↔ 3e niveau)
+   - Vault <50 notes : max 2 sauts (évite les super-clusters artificiels)
+3. **Expansion** : Pour chaque hub, collecter notes qui le référencent (inbound) + notes qu'il référence (outbound), jusqu'à limite de profondeur.
+4. **Fusion** : Deux hubs dont clusters chevauchent >30% des notes → fusionner en un seul cluster.
 
-Compare priority subjects declared in CLAUDE.md (active projects, interests, tech stack) with the actual density of notes in the vault.
+**Cas limites :**
+- Si 0 hubs majeurs (aucune note n'a inbound_count ≥2) : traiter chaque deadend isolé comme "micro-cluster", signaler fragilité générale du vault.
+- Si un hub a inbound_count anormalement élevé (>50% des notes) : c'est un "super-hub", signaler concentration excessive.
 
-| Subject | CLAUDE.md priority | Notes detected | Clusters | Status |
-|---------|-------------------|-----------------|----------|--------|
-| [subject] | High / Medium / Low | [N] | [hub1, hub2] | Dead zone / OK / Over-represented |
+**Pour chaque cluster identifié, calculer :**
+- **Nœud central** : hub principal (inbound_count max du cluster)
+- **Taille** : nombre de notes dans le cluster
+- **Densité** : ratio (liens internes / liens théoriquement possibles). Forte = notes se lient beaucoup ; faible = gravitation autour du hub seul.
+- **Santé** : Actif (notes modifiées <1 mois) / Stable (1-3 mois) / Stagnant (3+ mois) / Négligé (jamais modifié).
+- **Connexions intercluster** : vers quels autres clusters ce cluster pointe-t-il ? Lister les liens qui franchissent les frontières de cluster.
 
-**Criteria:**
-- **High priority + 0-2 notes** → Critical dead zone (e.g. "HomeLabServer" is a priority but no design note)
-- **High priority + 3-5 notes, poorly connected** → Moderate dead zone (thought about but underdeveloped)
-- **High priority + active clusters** → OK
-- **Low priority + 10+ notes** → Attention sink (absorbs energy without being strategic) — candidate for archiving/sorting
+### Fragilités structurelles — Notes-ponts critiques
 
-### 3b. Potentially valuable orphans
-
-For each orphan note (1b), automatically qualify:
-- **(a) Genuinely isolated?** → Ignore (e.g. temporary draft, test) → filename pattern = "tmp", "test", "draft", "wip"
-- **(b) Not connected but worth connecting?** → High-value candidate for `/vault-link` → rich title or mtime <30d
-- **(c) Forgotten insight?** → Flag to {USER_NAME} → relevant business content but mtime >3 months
-- **(d) Accidentally abandoned?** → Check modification date (mtime) → long content but unmodified
-
-**Automated heuristic:**
-- If filename contains "tmp", "test", "draft", "wip", "archive" → class (a)
-- If mtime <30d → class (b) (work in progress, not orphan)
-- If mtime >90d + size >500 chars → class (c) (forgotten but valuable)
-- Otherwise → class (d) (long, old, rarely consulted)
-
-### 3c. Unresolved links to prioritise
-
-Among the unresolved `[[...]]` links (1d), sort by referenced_by_count descending:
-- **Multiple references (>2)** → Important thought that deserves its own note (create via `/process` or manually)
-- **Single references (1)** → Possibly a typo or minor note — check context
-- **Link direction** → Read context in the referencing note → determines whether it is a real gap or a false alarm
+Identifier les notes qui créent des ponts isolés entre clusters :
+- **Définition** : une note X est le **seul lien** entre Cluster A et Cluster B.
+- **Risque** : si X est supprimée, A et B se déconnectent complètement.
+- **Action** : ces notes sont critiques pour la navigabilité — les signaler en tant que "single point of failure" dans la synthèse.
 
 ---
 
-## Step 4 — Synthesis and presentation to {USER_NAME}
+## Étape 3 — Identifier les gaps
 
-Present the complete map. **Create nothing, modify nothing — everything is a recommendation.** {USER_NAME} decides which actions to take.
+Trois types de gaps distincts : **dead zones**, **orphans isolés**, **liens non résolus**.
 
-**Output format:**
+### 3a. Dead zones (insight principal)
+
+Comparer les sujets prioritaires déclarés dans CLAUDE.md (projets actifs, centres d'intérêt, stack technique) avec la densité réelle de notes dans le vault.
+
+| Sujet | Priorité CLAUDE.md | Notes détectées | Clusters | Statut |
+|-------|-------------------|-----------------|----------|--------|
+| [sujet] | Haute / Moyenne / Faible | [N] | [hub1, hub2] | Dead zone / OK / Sur-représenté |
+
+**Critères :**
+- **Priorité haute + 0-2 notes** → Dead zone critique (ex : "HomeLabServeur" est priorité mais aucune note de design)
+- **Priorité haute + 3-5 notes, peu connectées** → Dead zone modérée (sujet pensé mais peu développé)
+- **Priorité haute + clusters actifs** → OK
+- **Priorité faible + 10+ notes** → Attention sink (absorbe de l'énergie sans être stratégique) — candidat pour archive/tri
+
+### 3b. Orphans à valeur potentielle
+
+Pour chaque note orpheline (1b), qualifier automatiquement :
+- **(a) Genuinement isolée ?** → Ignorer (ex : brouillon temporaire, test) → pattern filename = "tmp", "test", "draft", "wip"
+- **(b) Pas connectée mais mérite de l'être ?** → Candidat haute valeur pour `/vault-link` → titre riche ou mtime <30j
+- **(c) Insight oublié ?** → Signaler à Victor → contenu métier pertinent mais mtime >3 mois
+- **(d) Abandonnée accidentellement ?** → Vérifier la date de modification (mtime) → contenu long mais non modifié
+
+**Heuristique automatisée :**
+- Si filename contient "tmp", "test", "draft", "wip", "archive" → classe (a)
+- Si mtime <30j → classe (b) (travail en cours, pas orphelin)
+- Si mtime >90j + taille >500 caractères → classe (c) (oublié mais précieux)
+- Sinon → classe (d) (long, vieux, rarement consulté)
+
+### 3c. Liens non résolus à prioriser
+
+Parmi les liens `[[...]]` non résolus (1d), trier par referenced_by_count décroissant :
+- **Références multiples (>2)** → Pensée importante qui mérite sa propre note (créer via `/process` ou manuelle)
+- **Références simples (1)** → Possiblement typo ou note mineure — vérifier le contexte
+- **Sens du lien** → Lire le contexte dans la note qui référence → détermine si c'est vrai gap ou fausse alerte
+
+---
+
+## Étape 4 — Synthèse et présentation à Victor
+
+Présenter la map complète. **Ne rien créer, ne rien modifier — tout est recommandation.** Victor décide quelles actions engager.
+
+**Format de sortie :**
 
 ```
 VAULT MAP — [Date]
 
-## Overview
-- Total notes (excluding daily notes): ~[N]
-- Daily notes: [N]
-- Orphans: [N] (of which [X] potentially valuable)
-- Deadends: [N]
-- Unresolved links: [N] (of which [X] with multiple references)
-- Orphan tickets: [N] (or "check failed")
+## Vue d'ensemble
+- Total notes (hors daily notes) : ~[N]
+- Daily notes : [N]
+- Orphans : [N] (dont [X] à valeur potentielle)
+- Deadends : [N]
+- Liens non résolus : [N] (dont [X] références multiples)
+- Tickets orphelins : [N] (ou "check failed")
 
 ## Clusters Map
 
-| Cluster | Central hub | Size | Density | Health | Intercluster connections |
-|---------|------------|------|---------|--------|------------------------|
-| [name] | [[hub-note]] | ~N | High/Medium/Low | Active/Stable/Stagnant/Neglected | → [ClusterX] via [[NoteY]], [ClusterZ] via [[NoteA]] |
+| Cluster | Hub central | Taille | Densité | Santé | Connexions intercluster |
+|---------|------------|--------|---------|-------|------------------------|
+| [nom] | [[note-hub]] | ~N | Forte/Moyenne/Faible | Actif/Stable/Stagnant/Négligé | → [ClusterX] via [[NoteY]], [ClusterZ] via [[NoteA]] |
 
-## Topological narrative
-[3-5 sentences describing the overall shape: attention distribution, isolated clusters, super-hubs, concentration]
+## Narrative topologique
+[3-5 phrases décrivant la forme globale : distribution d'attention, clusters isolés, super-hubs, concentration]
 
-## Single points of failure detected
-- [[Note X]] is the only bridge between [Cluster A] and [Cluster B] — critical
-- [[Note Y]] links [Cluster C] to [Cluster D] — check its health
+## Single points of failure détectés
+- [[Note X]] est l'unique pont entre [Cluster A] et [Cluster B] — critique
+- [[Note Y]] relie [Cluster C] à [Cluster D] — vérifier sa santé
 
-## Dead zones — Under-represented CLAUDE.md priorities
+## Dead zones — Priorités CLAUDE.md sous-représentées
 
-| Subject (CLAUDE.md) | Priority | Vault notes | Cluster(s) | Diagnosis |
+| Sujet (CLAUDE.md) | Priorité | Notes vault | Cluster(s) | Diagnostic |
 |---|---|---|---|---|
-| [HomeLabServer] | High | 0-2 | — | ⚠️ Critical: thought about but undocumented |
-| [subject] | Medium | 3-5 | [hub1] | ⚠️ Moderate: underdeveloped |
-| [subject] | High | 8+ | [hub1, hub2] | ✓ OK: active clusters |
+| [HomeLabServeur] | Haute | 0-2 | — | ⚠️ Critique : pensé mais non documenté |
+| [sujet] | Moyenne | 3-5 | [hub1] | ⚠️ Modérée : peu développé |
+| [sujet] | Haute | 8+ | [hub1, hub2] | ✓ OK : clusters actifs |
 
-## Orphans recommended for `/vault-link`
-- [[note]] — relevant content, mtime < 30d (work in progress)
-- [[note]] — mtime > 90d + long content (forgotten but valuable)
+## Orphans recommandés pour `/vault-link`
+- [[note]] — contenu pertinent, mtime < 30j (travail en cours)
+- [[note]] — mtime > 90j + long contenu (oublié mais précieux)
 
-## Orphan tickets
-> [Omit if empty or check failed]
-- `[slug]` — not in any kanban → link or archive
+## Tickets orphelins
+> [Omettre si vide ou check failed]
+- `[slug]` — non dans aucun kanban → lier ou archiver
 
-## High-impact unresolved links
-- [[Concept X]] — 4 references, important missing thought
-- [[Concept Y]] — 2 references, clarify or typo?
+## Liens non résolus de haut impact
+- [[Concept X]] — 4 références, pensée importante manquante
+- [[Concept Y]] — 2 références, clarifier ou typo ?
 
-## INDEX.md health
-> Omit if all INDEX.md are `ok`
+## Santé des INDEX.md
+> Omettre si tous les INDEX.md sont `ok`
 
-| INDEX.md | Dead entries | Missing entries | Status |
-|----------|-------------|-----------------|--------|
-| `03 - Knowledge/INDEX.md` | — | `new-note.md` | ⚠️ Stale |
-| `01 - Me/INDEX.md` | `[[deleted-note]]` | — | ❌ Broken |
+| INDEX.md | Entrées mortes | Entrées manquantes | Statut |
+|----------|---------------|--------------------|--------|
+| `03 - Knowledge/INDEX.md` | — | `nouvelle-note.md` | ⚠️ Stale |
+| `01 - Me/INDEX.md` | `[[note-supprimée]]` | — | ❌ Broken |
 
-Remediation: run `/vault-link` — Step 6 updates INDEX.md files automatically.
+Remédiation : lancer `/vault-link` — l'Étape 6 met à jour les INDEX.md automatiquement.
 
-## Recommended actions — by impact
+## Actions recommandées — par ordre d'impact
 
-### 1. Secure critical bridges
-Check health (recent mtime) of: [[NoteX]], [[NoteY]]
+### 1. Sécuriser les ponts critiques
+Vérifier la santé (mtime récente) de : [[NoteX]], [[NoteY]]
 
-### 2. Connect active orphans
-Run `/vault-link` on the [X] identified orphans
+### 2. Relier les orphans actifs
+Lancer `/vault-link` sur les [X] orphans identifiés
 
-### 3. Fill dead zones
-- [HomeLabServer] → create spec/design in `03 - Knowledge/`
-- [CryptoBot] → link to current tech stack
+### 3. Combler les dead zones
+- [HomeLabServeur] → créer spec/design dans `03 - Knowledge/`
+- [CryptoBot] → relier à stack technique actuelle
 
-### 4. Resolve important unresolved links
-These concepts appear 3+ times, create the notes: [[...]]
+### 4. Résoudre les liens importants non résolus
+Ces concepts apparaissent 3+ fois, créer les notes : [[...]]
 
-### 5. Analyse emergence and patterns
-- Run `/emerge` for semantic clustering
-- Run `/harvestdeep` for 30-day temporal patterns (complements /map)
+### 5. Analyser l'émergence et les patterns
+- Lancer `/emerge` pour clustering sémantique
+- Lancer `/harvestdeep` pour patterns temporels 30j (complète /map)
 ```
 
-**Pair-programming compliance:** no autonomous modification, everything is recommended and subject to {USER_NAME} validation.
+**Conformité pair-programming :** aucune modification autonome, tout est recommandé et soumis à validation Victor.
 
-## Absolute rules
+## Règles absolues
 
-- **Never create or modify without explicit validation** — /map is an analysis, not an action. Everything is recommended.
-- **Do not use Obsidian plugins** — use Glob and Grep only
-- **Exclude `00 - Daily notes/` from orphan/deadend analyses** — ephemeral links by nature. Include in total count.
-- **Dead zones = main insight** — must be clearly distinguished from orphans and deadends
-- **Refer to the right skills**: orphans → `/vault-link`, fragile clusters → `/emerge`, patterns → `/harvestdeep`, stale/broken INDEX → `/vault-link` (Step 6)
-- **Compatible with pair-programming**: present the map and actions, {USER_NAME} decides what to process
-- **Fallbacks required**: If a parallel agent times out → relaunch alone. If empty → continue. If error → signal in status.
-- **Clustering depth:** max 3 levels (50+ notes) or max 2 (< 50 notes) — avoids artificial super-clusters
-- **Orphan heuristics**: Automate classification (a/b/c/d) by filename pattern + mtime + size
-- **Minimal vault**: Works on vault >10 notes. <10 notes: merge all agents into one (parallel overhead useless)
-- **Save the graph**: If the map is large (>10 clusters), export the result or offer an interactive exploration link (optional)
+- **Jamais créer ni modifier sans validation explicite** — /map est une analyse, pas une action. Tout est recommandé.
+- **Ne pas utiliser de plugins Obsidian** — utiliser Glob et Grep uniquement
+- **Exclure `00 - Daily notes/` des analyses orphan/deadend** — liens éphémères par nature. Inclure dans count total.
+- **Dead zones = insight principal** — doivent être clairement distinguées des orphans et deadends
+- **Renvoyer vers les bons skills** : orphans → `/vault-link`, clusters fragiles → `/emerge`, patterns → `/harvestdeep`, INDEX stale/broken → `/vault-link` (Étape 6)
+- **Compatible pair-programming** : présenter la map et les actions, Victor décide ce qu'il veut traiter
+- **Fallbacks requis** : Si un agent parallèle timeout → relancer seul. Si vide → continuer. Si erreur → signaler dans status.
+- **Profondeur de clustering :** max 3 niveaux (50+ notes) ou max 2 (< 50 notes) — évite les super-clusters artificiels
+- **Heuristiques orphan** : Automatiser la classification (a/b/c/d) par pattern filename + mtime + taille
+- **Vault minimal** : Fonctionne sur vault >10 notes. <10 notes : fusionner tous les agents en un seul (overhead parallélisme inutile)
+- **Sauvegarder le graph** : Si la map est grande (>10 clusters), exporter le résultat ou offrir un lien pour exploration interactive (optional)

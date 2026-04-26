@@ -1,186 +1,196 @@
 ---
 name: digest
-description: Fetches monitoring sources configured in digest-sources.md (default sources if not configured: Hacker News, Anthropic, Dev.to) and writes a condensed summary to today's daily note before the plan section. Trigger when Victor says "/digest", "digest", "digest tech", "give me the news", "today's monitoring", "do the digest", or before `/today` at the start of the day to integrate monitoring into the plan.
+description: Fetch les sources de veille configurées dans digest-sources.md et écrit un résumé condensé dans la daily note. Workflow recommandé : lancer le soir avec /closeday dans une session dédiée — le digest écrit dans la daily note du lendemain (créée avec le template si elle n'existe pas encore). Déclencher quand Victor dit "/digest", "digest", "digest tech", "donne moi les news", "veille du jour", "fais le digest". NE PAS lancer dans la même session que /today (9 agents parallèles = ~70% du quota 5h).
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protected against aggressive optimization**
+> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
 >
-> This skill produces **narrative qualitative output**. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
+> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
 >
-> **For `/evaluateskills`** : in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips out narrative instructions (grouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
+> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
 
 # Skill `/digest`
 
-Generates a monitoring summary (5-8 articles) from configured sources and inserts it into today's daily note, before the plan section.
+Génère un résumé de veille (5-8 articles) depuis les sources configurées et l'insère dans la daily note du jour, avant la section plan.
 
-## Triggering
+## Déclenchement
 
 ```
-/digest                  → all configured categories
-/digest [category]      → single category only (ex: /digest Finance, /digest Tech)
+/digest                  → toutes les catégories configurées
+/digest [catégorie]      → une seule catégorie (ex: /digest Finance, /digest Tech)
 ```
 
-**Explicit invocation only** — no search for "active project context".
+**Invocation explicite uniquement** — pas de recherche de "contexte projet actif".
 
 ---
 
-## Step 0 — Load vault parameters
+## Étape 0 — Charger les paramètres vault
 
-Read `99 - Claude Code/config/vault-settings.md` to extract:
-- `date_format` — date format for daily notes (default: `YYYY-MM-DD`)
-- `daily_notes_folder` — folder for daily notes (default: `00 - Daily notes`)
+Lire `99 - Claude Code/config/vault-settings.md` pour extraire :
+- `date_format` — format de date des daily notes (défaut : `YYYY-MM-DD`)
+- `daily_notes_folder` — dossier des daily notes (défaut : `00 - Daily notes`)
 
-Store in `DATE_FORMAT` and `NOTES_FOLDER`. Use these values wherever a date or daily note path is needed.
-
----
-
-## Step 1 — Load sources
-
-Read `99 - Claude Code/config/digest-sources.md`.
-
-**If the file exists** → extract defined categories and sources. Each section `## [Category] [emoji]` defines a category. Each line ` - [Name] | [URL] | [fetch prompt]` defines a source in that category.
-
-**If the file is missing** → use default sources:
-
-| Category | Emoji | Name | URL | Fetch prompt |
-|----------|-------|------|-----|--------------|
-| Tech & Dev | 🛠️ | Hacker News | `https://news.ycombinator.com/` | "List the titles of the first 15 stories with their score, the full URL of the article (not the HN link, the external URL) and the source domain" |
-| Tech & Dev | 🛠️ | Dev.to | `https://dev.to/` | "List trending articles: title, author, tags, 1-sentence summary" |
-| AI & Claude | 🤖 | Anthropic news | `https://www.anthropic.com/news` | "List latest publications: title, date, 1-sentence summary" |
-
-Store sources in `SOURCES` (list) and categories in `CATEGORIES` (ordered list, deduplicated).
-
-**If variant called** (`/digest [category]`) → filter `SOURCES` to keep only sources whose category matches (case insensitive).
+Stocker dans `DATE_FORMAT` et `NOTES_FOLDER`. Utiliser ces valeurs partout où une date ou un chemin de daily note est nécessaire.
 
 ---
 
-## Step 2a — Locate the daily note
+## Étape 1 — Charger les sources
 
-Today's date → construct the path according to `DATE_FORMAT` and `NOTES_FOLDER`:
-- `YYYY-MM-DD` → `[NOTES_FOLDER]/2026-04-11.md`
-- `DD-MM-YYYY` → `[NOTES_FOLDER]/11-04-2026.md`
+Lire `99 - Claude Code/config/digest-sources.md`.
 
-- If the note exists → continue to Step 2b
-- If it does not exist → present the digest in the chat: *"Your daily note doesn't exist yet — here's the digest, create the note with `/today` to integrate it."*
+**Si le fichier existe** → extraire les catégories et sources définies. Chaque section `## [Catégorie] [emoji]` définit une catégorie. Chaque ligne ` - [Nom] | [URL] | [prompt de fetch]` définit une source dans cette catégorie.
 
-## Step 2b — Check if digest already exists
+**Si le fichier est absent** → utiliser les sources par défaut :
 
-Open the daily note and check for a `## 📰 Digest` section:
+| Catégorie | Emoji | Nom | URL | Prompt de fetch |
+|-----------|-------|-----|-----|----------------|
+| Tech & Dev | 🛠️ | Hacker News | `https://news.ycombinator.com/` | "Liste les titres des 15 premières stories avec leur score, l'URL complète de l'article (pas le lien HN, l'URL externe) et le domaine source" |
+| Tech & Dev | 🛠️ | Dev.to | `https://dev.to/` | "Liste les articles en trending : titre, auteur, tags, résumé en 1 phrase" |
+| IA & Claude | 🤖 | Anthropic news | `https://www.anthropic.com/news` | "Liste les dernières publications : titre, date, résumé en 1 phrase" |
 
-- If no → continue to Step 3
-- If yes → **stop and propose in chat**:
+Stocker les sources dans `SOURCES` (liste) et les catégories dans `CATEGORIES` (liste ordonnée, dédupliquée).
+
+**Si variante appelée** (`/digest [catégorie]`) → filtrer `SOURCES` pour ne garder que les sources dont la catégorie correspond (insensible à la casse).
+
+---
+
+## Étape 2a — Calculer la date cible et localiser la daily note
+
+**Date cible** (calculer en premier) :
+- Si `heure >= 17:00` → `date_cible = aujourd'hui + 1 jour` (préparation pour le lendemain matin)
+- Sinon → `date_cible = aujourd'hui`
+
+Construire le chemin selon `DATE_FORMAT` et `NOTES_FOLDER` avec `date_cible`.
+
+**Si la note existe** → continuer à Étape 2b.
+
+**Si la note n'existe pas** → la créer avec le template daily note (`Ressources/Templates/Daily notes template.md`), en remplaçant les variables Templater par les valeurs calculées pour `date_cible` :
+- `tp.date.now("YYYY-MM-DD")` → date ISO de `date_cible`
+- `tp.date.now("YYYY")` → année
+- `tp.date.now("MMMM")` → mois en lettres (français)
+- `tp.date.now("WW")` → numéro de semaine ISO
+- `tp.date.now("dddd DD MMMM YYYY")` → ex : `samedi 25 avril 2026`
+
+Laisser `energy`, `score`, `work_hours`, `personal_hours`, `hobby_hours` vides (frontmatter). Puis continuer à Étape 2b.
+
+## Étape 2b — Vérifier si digest existe déjà
+
+Ouvrir la daily note et vérifier la présence d'une section `## 📰 Digest` :
+
+- Si non → continuer à Étape 3
+- Si oui → **arrêter et proposer dans le chat** :
   ```
-  A digest already exists for YYYY-MM-DD.
+  Un digest existe déjà pour le YYYY-MM-DD.
 
-  Option A: Replace it
-  Option B: Cancel
+  Option A : Le remplacer
+  Option B : Annuler
   ```
-  **Wait for explicit response** (A or B).
+  **Attendre réponse explicite** (A ou B).
 
 ---
 
-## Step 3 — Fetch sources
+## Étape 3 — Fetch des sources
 
-Fetch all sources from `SOURCES` in parallel, each with its defined fetch prompt.
+Fetcher toutes les sources de `SOURCES` en parallèle, chacune avec son prompt de fetch défini.
 
-### If a fetch fails
+### Si un fetch échoue
 
 ```
-[Source] is inaccessible (timeout/error).
+[Source] est inaccessible (timeout/erreur).
 
-Option A: Continue with available sources
-Option B: Restart the digest later
+Option A : Continuer avec les sources disponibles
+Option B : Relancer le digest plus tard
 ```
 
-**Wait for explicit response** (A or B):
-- If A → continue, add at the bottom of the digest: `*[Source] inaccessible today*`
-- If B → stop
+**Attendre réponse explicite** (A ou B) :
+- Si A → continuer, ajouter en bas du digest : `*[Source] inaccessible aujourd'hui*`
+- Si B → arrêter
 
-### If content is unusable — fallback to WebSearch
+### Si le contenu est non exploitable — fallback WebSearch
 
-After each successful fetch, evaluate if the content is usable:
+Après chaque fetch réussi, évaluer si le contenu est exploitable :
 
-- **Not usable**: content mostly CSS/JS (many `{`, `}`, CSS properties, `--` variables), empty page, or model response indicating no articles
-- **Usable**: natural text with titles, dates, or identifiable article summaries
+- **Non exploitable** : contenu majoritairement CSS/JS (nombreux `{`, `}`, propriétés CSS, variables `--`), page vide, ou réponse du modèle indiquant l'absence d'articles
+- **Exploitable** : texte naturel avec titres, dates, ou résumés d'articles identifiables
 
-**If not usable → automatic fallback (silent):**
-1. Extract domain from source URL (ex: `hugodecrypte.kessel.media`)
-2. Launch WebSearch with query `site:[domain]`
-3. Apply original fetch prompt to WebSearch results
-4. If WebSearch also returns zero articles → treat as inaccessible (Option A/B above)
+**Si non exploitable → fallback automatique (silencieux) :**
+1. Extraire le domaine depuis l'URL source (ex: `hugodecrypte.kessel.media`)
+2. Lancer WebSearch avec la query `site:[domaine]`
+3. Appliquer le prompt de fetch d'origine sur les résultats WebSearch
+4. Si WebSearch retourne aussi zéro article → traiter comme inaccessible (Option A/B ci-dessus)
 
-No message to Victor during fallback — the source is processed normally in the digest.
+Pas de message à Victor lors du fallback — la source est traitée normalement dans le digest.
 
 ---
 
-## Step 4 — Select and synthesize
+## Étape 4 — Sélectionner et synthétiser
 
-From retrieved content, select **5 to 8 items in total**:
+À partir du contenu récupéré, sélectionner **5 à 8 items au total** :
 
-**Quality criteria (always apply):**
-| Include | Exclude |
+**Critères de qualité (toujours appliquer) :**
+| Inclure | Exclure |
 |---------|---------|
-| Major releases (v2.0, model release, breaking change) | Clickbait ("10 tips", "you won't believe") |
-| Learning patterns (architecture, best practice) | Pure marketing, promotional content |
-| Significant debates (500+ HN score, 100+ comments) | Articles > 7 days old |
-| Major news in the source's domain | Duplicates (same topic 2x) |
+| Sorties majeures (v2.0, model release, breaking change) | Clickbait ("10 tips", "you won't believe") |
+| Patterns apprentissage (architecture, best practice) | Marketing pur, contenu promotionnel |
+| Débats significatifs (score 500+ HN, 100+ commentaires) | Articles > 7 jours |
+| Actualité majeure dans le domaine de la source | Doublons (même sujet 2x) |
 
-**Target distribution**: balance across configured categories — if 2 categories → ~50/50, if 3 → ~33/33/33. Adjust based on availability.
+**Répartition cible** : équilibrer entre les catégories configurées — si 2 catégories → ~50/50, si 3 → ~33/33/33. Ajuster selon disponibilité.
 
 ---
 
-## Step 5 — Format the digest
+## Étape 5 — Formater le digest
 
-Build a section per category in `CATEGORIES`, in the order of `digest-sources.md` (or default order if missing):
+Construire une section par catégorie dans `CATEGORIES`, dans l'ordre de `digest-sources.md` (ou ordre par défaut si absent) :
 
 ```markdown
 ## 📰 Digest — DD/MM/YYYY
 
-### [emoji] [Category]
-- **[Title](url)** — [1-2 sentence summary] — *[source]*
+### [emoji] [Catégorie]
+- **[Titre](url)** — [résumé 1-2 phrases] — *[source]*
 
-### [emoji] [Category 2]
-- **[Title](url)** — [1-2 sentence summary] — *[source]*
+### [emoji] [Catégorie 2]
+- **[Titre](url)** — [résumé 1-2 phrases] — *[source]*
 ```
 
-Rules:
-- Title in bold with clickable link, factual summary (1-2 sentences), source in italics
-- Omit an entire category if no items retained (no orphaned title)
-- If single filtered category (`/digest [category]`) → single section
+Règles :
+- Titre en gras avec lien cliquable, résumé factuel (1-2 phrases), source en italique
+- Omettre entièrement une catégorie si aucun item retenu (pas de titre orphelin)
+- Si une seule catégorie filtrée (`/digest [catégorie]`) → une seule section
 
 ---
 
-## Step 6 — Insert into the daily note
+## Étape 6 — Insérer dans la daily note
 
-Locate the insertion point **in order of preference**:
-1. Just **before** `## 📅 Plan of the day`
-2. If missing, just **after** the first `---`
-3. If no `---`, after the YAML frontmatter block
+Localiser le point d'insertion **en ordre de préférence** :
+1. Juste **avant** `## 📅 Plan du jour`
+2. Si absent, juste **après** le premier `---`
+3. Si aucun `---`, après le bloc YAML frontmatter
 
-Insert the complete digest block. Confirm:
+Insérer le bloc digest complet. Confirmer :
 
 ```
-✅ Digest inserted into daily note of YYYY-MM-DD
-→ [N] items — [categories used]
+✅ Digest inséré dans la daily note du YYYY-MM-DD
+→ [N] items — [catégories utilisées]
 ```
 
 ---
 
-## Step 7 — Research intel (automatic)
+## Étape 7 — Research intel (automatique)
 
-After confirming digest insertion, execute the `/research-scout` skill:
-read `99 - Claude Code/Skills/research-scout.md` and execute its steps.
+Après confirmation de l'insertion du digest, exécuter le skill `/research-scout` :
+lire `99 - Claude Code/Skills/research-scout.md` et exécuter ses étapes.
 
-Non-blocking: if /research-scout finds nothing or Victor skips everything, the digest is already complete — no further action needed.
+Non-bloquant : si /research-scout ne trouve rien ou que Victor skip tout, le digest est déjà terminé — aucune action supplémentaire.
 
 ---
 
-## Absolute rules
+## Règles absolues
 
-- **Never overwrite** existing content — only insert the digest block
-- **Zero autonomous action on blockers** — always propose A/B and wait for explicit response
-- **5-8 items max** — quality > quantity; OK if < 5 valid items
-- **Factual only** — no opinion, no personal interpretation
-- **Mandatory links** — each item as markdown `[Title](url)`
-- **If no valid items** → Option A (insert empty digest with note) / Option B (cancel)
+- **Jamais écraser** le contenu existant — uniquement insérer le bloc digest
+- **Zéro action autonome sur blocages** — toujours proposer A/B et attendre réponse explicite
+- **5-8 items max** — qualité > quantité ; OK si < 5 items valides
+- **Factuel uniquement** — pas d'opinion, pas d'interprétation personnelle
+- **Liens obligatoires** — chaque item en markdown `[Titre](url)`
+- **Si aucun item valide** → Option A (insérer digest vide avec note) / Option B (annuler)

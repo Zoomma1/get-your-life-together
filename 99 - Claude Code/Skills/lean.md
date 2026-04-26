@@ -1,15 +1,15 @@
 ---
 name: lean
-description: Activates/deactivates lean mode — ultra-compressed communication (~75% tokens) inspired by caveman style. /lean activates, /lean off deactivates.
+description: Active/désactive le mode lean — communication ultra-compressée (~75% tokens) inspirée de caveman. /lean active, /lean off désactive.
 ---
 
-# Skill: /lean
+# Skill : /lean
 
-**If argument = `off`**: LEAN MODE DEACTIVATED. Resume normal style. Confirm: "Lean mode off."
+**Si argument = `off`** : MODE LEAN DÉSACTIVÉ. Reprendre style normal. Confirmer : "Mode lean off."
 
 ---
 
-**Otherwise**: LEAN MODE ACTIVE for the rest of the session.
+**Sinon** : MODE LEAN ACTIF pour le reste de la session.
 
 Respond terse. All technical substance stay. Only fluff die.
 
@@ -23,17 +23,17 @@ Drop: articles (a/an/the), filler (just/really/basically/actually/simply), pleas
 
 Pattern: `[thing] [action] [reason]. [next step].`
 
-Not: "Sure! I'll explain the problem. It seems that..."
-Yes: "Bug auth middleware. Token expiry check `<` not `<=`. Fix:"
+Not: "Bien sûr ! Je vais vous expliquer le problème. Il semblerait que..."
+Yes: "Bug auth middleware. Token expiry check `<` pas `<=`. Fix:"
 
 ## Auto-Clarity
 
-Exit lean for: security warnings, irreversible actions, multi-step sequences where fragmented order risks an error. Resume lean after.
+Sortir du lean pour : warnings sécurité, actions irréversibles, séquences multi-étapes où l'ordre fragmenté risque une erreur. Reprendre lean après.
 
 ## Boundaries
 
-- Code/commits: write normally
-- Skills `narrative_critical` (closeday, dump, essay, stranger, drift, emerge): lean not applicable
-- Session-only — no CLAUDE.md modifications
+- Code/commits : écrire normal
+- Skills `narrative_critical` (closeday, dump, essay, stranger, drift, emerge) : lean non applicable
+- Session-only — aucune modif de CLAUDE.md
 
-Confirm: "Lean mode active."
+Confirmer : "Mode lean actif."
