@@ -14,6 +14,25 @@ narrative_critical: true
 
 L'objectif de ce bilan n'est pas de raconter la semaine mais de détecter les patterns avant qu'ils deviennent des drifts — prioriser ce qui est actionnable ou révélateur.
 
+## ⚠️ Feedback verbose obligatoire pendant l'exécution
+
+Annoncer **chaque étape exécutée** au fil du run — Victor doit voir ce qui se passe en direct, pas attendre une boîte noire :
+
+```
+→ Étape 1/6 : déterminer mode d'exécution (final / draft)
+→ Étape 2/6 : collecter le matériau (daily notes, sessions, orthographe)
+   ✓ 6 daily notes lues
+   ✓ 4 sessions trouvées
+   ⚠ Étape 2.4 orthographe : skip — Postgres injoignable
+→ Étape 3/6 : rédiger la note
+   ⚠ Section "Bloquages & Patterns" omise — aucun pattern détecté
+→ Étape 4/6 : mettre à jour command-tracker.md
+→ Étape 5/6 : créer la note dans Weekly/
+→ Étape 6/6 : recap chat
+```
+
+**Règle** : chaque sous-étape skippée silencieusement (collecte ortho vide, sections optionnelles omises, edge cases) doit avoir une **ligne explicite** indiquant pourquoi. Une étape qui ne pop pas → on doit voir pourquoi, pas la deviner.
+
 ## Déclenchement & Rappel
 
 **Invocation directe (vocalisée)** :
@@ -76,7 +95,22 @@ Les **threads non clos** et apprentissages **récurrents** remontent en tête de
 - Rédiger court bilan minimaliste (3-4 items). Inclure ligne : "Semaine stable — peu d'événements ou routines consolidées."
 
 **Check santé mentale au travail** (actif si `work_hours > 5` au moins 3 jours dans la semaine) :
-Évaluer les 10 signaux de `06 - Work/Theodo Extend/signaux-anti-kshuttle.md` sur la semaine écoulée. Marquer chaque signal atteint. Si ≥ 1 flag → inclure section dédiée dans la note (Étape 3). Si aucun flag → omettre silencieusement.
+
+Lire `06 - Work/Theodo Extend/signaux-anti-kshuttle.md` (10 signaux : D1.1-1.4 visibilité, D2.1-2.3 idées, D3.1-3.3 dette tech).
+
+**Pour chaque signal** :
+1. Évaluer si le seuil v1 est atteint sur la semaine écoulée
+2. **Appliquer le filtre "contexte de mission"** (principe général de la note) — un signal atteint *avec une raison structurelle nommée par Theodo* (mission maintenance annoncée, inter-mission planifiée, rotation client explicite) ne compte pas. Le test mental : *"si je raconte ça à Jay, est-ce que la raison tient debout ou c'est de la com ?"*
+3. Si seuil atteint ET pas de raison légitime → marquer flagged
+
+**Charger l'historique** : lire les 2 dernières closeweek (W-1, W-2) dans `Weekly/` pour détecter les signaux **récurrents** (même signal flaggé 2 closeweek consécutifs OU 3 consécutifs — déclencheurs niveau 2 et 3).
+
+**Calculer le niveau d'escalade** selon la note v1 :
+- **Niveau 1 (Conversationnel)** : ≥ 1 signal flagged sur cette closeweek
+- **Niveau 2 (Médical)** : ≥ 2 signaux flagged sur cette closeweek **OU** 1 signal flagged sur 2 closeweek consécutifs
+- **Niveau 3 (Hiérarchique)** : signal **D1.1, D1.4, D3.1 ou D3.3** flagged sur 3 closeweek consécutifs **OU** 3+ signaux flagged en parallèle sur 1 closeweek
+
+Si niveau ≥ 1 → inclure section dédiée dans la note (Étape 3). Si niveau 0 → omettre silencieusement.
 
 **Si sessions nombreuses (3+ par jour)** : synthétiser par jour ou par projet (ex: "Lundi : FSTG setup + tests", "Mercredi : Ludisep + réunion"). Ne pas énumérer chaque session.
 
@@ -92,7 +126,7 @@ psql postgresql://claude:claude@localhost:5433/claude_sessions \
 ```
 Si 0 résultats → ignorer, continuer.
 
-**2. Réflexions daily notes** — extraire les sections `## 📝 Réflexions` des daily notes déjà lues cette semaine. Concaténer en un seul bloc texte.
+**2. Réflexions daily notes** — extraire les sections `## 💡 Idées & Réflexions` des daily notes déjà lues cette semaine (le titre exact dans le template Victor). Concaténer en un seul bloc texte.
 
 **3. Agents Haiku en parallèle** — lancer 1 agent par `raw_md` de session + 1 agent pour le bloc Réflexions agrégé. Prompt exact :
 > "Identifie les fautes d'orthographe, accords incorrects ou tournures fautives en français dans ce texte. Retourne uniquement une liste JSON : [{\"erreur\": \"...\", \"correction\": \"...\", \"regle\": \"...\"}]. Maximum 5 items. Si aucune faute détectée → retourne []."
@@ -164,15 +198,22 @@ Si Postgres/Ollama inaccessible → `pattern_recurrents = []`, non-bloquant, aff
 - ...
 ← Omettre si vide
 
-## 🚨 Work mental health check
-← Inclure uniquement si ≥ 1 signal flaggé ET `work_hours > 5` au moins 3 jours cette semaine
+## 🚨 Work mental health check — Niveau [1/2/3]
+← Inclure uniquement si niveau ≥ 1 ET `work_hours > 5` au moins 3 jours cette semaine
 
-| Signal | Niveau | Statut |
-|--------|--------|--------|
-| ... | 🟡/🔴 | Flaggé |
+| Code | Signal | Seuil | Récurrence | Statut |
+|------|--------|-------|-----------|--------|
+| D1.1 | Sans mission nommée | > 2 sem | Cette closeweek / 2 closeweek consécutifs | 🟡 Flagged |
+| ... | ... | ... | ... | ... |
 
-→ Action : [Dump Telegram] ou [Check-in Jay si 🔴 ou 2+ flags sur 2+ semaines consécutives]
-← Omettre entièrement si aucun signal flaggé
+**Niveau atteint** : [1 Conversationnel / 2 Médical / 3 Hiérarchique]
+
+**Action requise** :
+- Niveau 1 → **Dump Telegram** (`/dump`) + check-in Jay le soir même
+- Niveau 2 → **Contact psychiatre** (RDV ou message) + mention "pattern KShuttle suspecté"
+- Niveau 3 → **Mail RH / manager / CEO Theodo** (template prêt) — nommer ce qui se passe (promesse posée dans `burnout-kshuttle`)
+
+← Omettre entièrement si niveau 0
 ```
 
 **Règles d'écriture** :
@@ -223,7 +264,11 @@ Après création de la note, afficher directement dans le chat (pas dans la note
 
 Sourcer les priorités depuis la section `➡️ Semaine suivante` de la note + threads non clos détectés en Étape 2.
 
-**3. Work mental health check** (si `work_hours > 5` au moins 3 jours cette semaine) — afficher uniquement si ≥ 1 signal flaggé : liste des flags + action recommandée (dump Telegram / check-in Jay).
+**3. Work mental health check** (si `work_hours > 5` au moins 3 jours cette semaine) — afficher uniquement si niveau ≥ 1 :
+- Lister les signaux flaggés avec leur code (D1.1, D2.3, etc.) et leur récurrence
+- Indiquer le **niveau d'escalade atteint** (1 / 2 / 3)
+- Préciser l'**action requise** correspondante (dump Telegram / contact psychiatre / mail RH-manager-CEO)
+- Si niveau 3 : mentionner explicitement *"Promesse `burnout-kshuttle` activable : si ça ressemble à KShuttle, cette fois je parle"*
 
 **4. Orthographe** (si `ortho_items` non vide) :
 

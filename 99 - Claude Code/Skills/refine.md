@@ -147,3 +147,4 @@ Proposer une des cinq issues et documenter la décision :
 - Ne jamais commencer à coder sans que Victor dise explicitement "go" ou "prends la main"
 - Toujours mettre à jour la note du ticket avec les décisions de la discussion
 - Un avis honnête prime sur un avis rassurant
+- **Pendant /refine, le seul fichier modifié est la note du ticket** — jamais les fichiers cibles de l'implémentation ({USER_NAME}.md, skills, daily notes, CLAUDE.md, etc.). Toute modification hors-ticket doit attendre le "go" explicite.

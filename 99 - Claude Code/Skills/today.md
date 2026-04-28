@@ -244,6 +244,12 @@ La section Raffinement est hors quota et s'ajoute toujours.
 - Si patterns "trop", "épuisé" → demander en Étape 5 : *"Je détecte une surcharge. Ça te dit de réduire le plan de 20-30% ?"*
 - Sinon continuer normalement
 
+**Règle batterie sociale — PC = recharge, pas décharge** :
+- Si l'agenda du jour contient une sortie / activité sociale dans l'après-midi (cours présentiel non-routine, sortie avec Jay, événement Ludisep, déjeuner amis, RDV médical…) → **ne pas réduire automatiquement** `personal_hours` du budget soirée sur cette base
+- Le pattern *PC = recharge* tient pour Victor — voir [[01 - Me/hypothese-batterie-sociale]] et `{USER_NAME}.md`
+- Continuer à respecter le frontmatter (Victor déclare la charge réelle), mais ne jamais auto-couper le soir sous prétexte que la journée a été socialement chargée
+- Exception : si Victor a **explicitement** signalé une fatigue sociale durable dans une daily note récente (ex: dump "je peux plus voir personne") → traiter comme une surcharge et appliquer la règle ci-dessus
+
   
 
 ## Étape 4 — Générer les suggestions

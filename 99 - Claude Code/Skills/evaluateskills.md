@@ -15,6 +15,8 @@ Chaque skill est évalué, muté si nécessaire, et la boucle tourne jusqu'à co
 - Fréquence recommandée : une fois par mois
 - Optionnel : cibler un sous-ensemble ("évalue les dev skills", "évalue uniquement workon")
 
+**Mode périmètre réduit (1 seul skill)** : si Victor demande d'évaluer un seul skill (ex: "passe evaluateskills sur today"), **zapper l'Étape 0.5** (sync skill-creator global) et aller directement à l'Étape 1 (backup) puis l'agent Haiku sur le fichier ciblé. Ne pas déclencher l'auto-évaluation de masse sur tous les skills.
+
 ---
 
 ## Étape 0 — Backup

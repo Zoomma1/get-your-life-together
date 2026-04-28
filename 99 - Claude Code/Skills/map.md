@@ -58,7 +58,7 @@ Pour chaque batch, lancer un agent avec ce prompt :
 
 ```
 Pour chaque note de la liste (chemin complet) :
-- Grep(nom_fichier_sans_extension, path="C:\\Me\\Tha vault") 
+- Grep(nom_fichier_sans_extension, path="{VAULT_PATH}") 
   → 0 résultat = orphan (aucune note ne référence ce fichier)
 Retourne : { "orphans": ["chemin/vers/note.md"], "batch_size": N, "status": "success|error" }
 ```
@@ -85,7 +85,7 @@ Retourne : {
 Lancer un agent qui grep tous les [[...]] du vault, puis valide chaque cible :
 
 ```
-Grep("\\[\\[[^\\]]+\\]\\]", path="C:\\Me\\Tha vault") → tous les liens [[...]]
+Grep("\\[\\[[^\\]]+\\]\\]", path="{VAULT_PATH}") → tous les liens [[...]]
 Extraire les références uniques, puis pour chaque lien :
 - Vérifier via Glob si le fichier cible existe
 - Si NOT_FOUND : enregistrer comme lien non résolu, compter references
@@ -104,7 +104,7 @@ Retourne : {
 Lancer un agent qui vérifie l'état de chaque `INDEX.md` du vault :
 
 ```
-Glob("**/INDEX.md", path="C:\\Me\\Tha vault") → liste de tous les INDEX.md (exclure Archives/)
+Glob("**/INDEX.md", path="{VAULT_PATH}") → liste de tous les INDEX.md (exclure Archives/)
 
 Pour chaque INDEX.md trouvé :
 1. Lire le fichier, extraire les slugs listés (pattern [[slug]] ou [[slug|alias]])
@@ -129,7 +129,7 @@ Retourne : {
 
 Exécuter seul (pas en parallèle) :
 ```bash
-bash "/mnt/c/Me/Tha vault/99 - Claude Code/scripts/check-orphan-tickets.sh"
+bash "{WSL_VAULT_PATH}/99 - Claude Code/scripts/check-orphan-tickets.sh"
 ```
 
 Stocker résultat dans `ORPHAN_TICKETS` (liste de slugs, peut être vide).
@@ -195,7 +195,7 @@ Comparer les sujets prioritaires déclarés dans CLAUDE.md (projets actifs, cent
 | [sujet] | Haute / Moyenne / Faible | [N] | [hub1, hub2] | Dead zone / OK / Sur-représenté |
 
 **Critères :**
-- **Priorité haute + 0-2 notes** → Dead zone critique (ex : "HomeLabServeur" est priorité mais aucune note de design)
+- **Priorité haute + 0-2 notes** → Dead zone critique (ex : un projet prioritaire sans aucune note de design)
 - **Priorité haute + 3-5 notes, peu connectées** → Dead zone modérée (sujet pensé mais peu développé)
 - **Priorité haute + clusters actifs** → OK
 - **Priorité faible + 10+ notes** → Attention sink (absorbe de l'énergie sans être stratégique) — candidat pour archive/tri
@@ -257,9 +257,9 @@ VAULT MAP — [Date]
 
 | Sujet (CLAUDE.md) | Priorité | Notes vault | Cluster(s) | Diagnostic |
 |---|---|---|---|---|
-| [HomeLabServeur] | Haute | 0-2 | — | ⚠️ Critique : pensé mais non documenté |
-| [sujet] | Moyenne | 3-5 | [hub1] | ⚠️ Modérée : peu développé |
-| [sujet] | Haute | 8+ | [hub1, hub2] | ✓ OK : clusters actifs |
+| [Projet A] | Haute | 0-2 | — | ⚠️ Critique : pensé mais non documenté |
+| [Projet B] | Moyenne | 3-5 | [hub1] | ⚠️ Modérée : peu développé |
+| [Projet C] | Haute | 8+ | [hub1, hub2] | ✓ OK : clusters actifs |
 
 ## Orphans recommandés pour `/vault-link`
 - [[note]] — contenu pertinent, mtime < 30j (travail en cours)
@@ -292,8 +292,8 @@ Vérifier la santé (mtime récente) de : [[NoteX]], [[NoteY]]
 Lancer `/vault-link` sur les [X] orphans identifiés
 
 ### 3. Combler les dead zones
-- [HomeLabServeur] → créer spec/design dans `03 - Knowledge/`
-- [CryptoBot] → relier à stack technique actuelle
+- [Projet A] → créer spec/design dans `03 - Knowledge/`
+- [Projet B] → relier à stack technique actuelle
 
 ### 4. Résoudre les liens importants non résolus
 Ces concepts apparaissent 3+ fois, créer les notes : [[...]]
