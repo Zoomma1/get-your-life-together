@@ -18,6 +18,16 @@ Update your vault from the official GitHub repo — transparently and at your pa
 
 ---
 
+## Step 0 — Read LANGUE
+
+Read `99 - Claude Code/config/vault-settings.md` and extract the `langue:` field value. Store as `LANGUE`.
+
+- If field is missing or empty → `LANGUE = EN`
+- If `LANGUE = EN` → all steps proceed as before (no translation)
+- If `LANGUE ≠ EN` → translation will be applied in Step 5
+
+---
+
 ## Step 1 — Check for available updates
 
 ```bash
@@ -120,9 +130,22 @@ Which elements do you want to apply? (all / selection / none)
 
 For each selected file (excluding hooks):
 
+**If `LANGUE = EN`** → apply directly:
 ```bash
 git checkout origin/master -- "[file/path]"
 ```
+
+**If `LANGUE ≠ EN`** → translate then write:
+
+1. Read EN content from GitHub:
+```bash
+git show origin/master:"[file/path]"
+```
+
+2. Translate EN→LANGUE using Claude with this prompt:
+> *"Translate the following file from English to [LANGUE]. Rules: (1) preserve all code blocks (bash, python, yaml, js…) exactly as-is, (2) preserve all `{VARIABLE}` patterns unchanged, (3) in YAML frontmatter, translate the `description:` value but never the `name:` value, (4) preserve all markdown structure and Obsidian links `[[…]]`, (5) do not add explanations — return only the translated file."*
+
+3. Write the translated content directly to disk (do not use `git checkout`).
 
 For **selected hooks**: don't apply automatically. Display instead:
 ```
