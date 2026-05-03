@@ -166,3 +166,14 @@ Ajouter la proposition dans le fichier `proposals-YYYY-MM-DD.md` (même mécaniq
 - **Jamais de création autonome d'ADR ou modification d'INDEX sans validation Victor**
 - Si une note session existe déjà et qu'on crée une nouvelle section, laisser les sections précédentes intactes
 - Si MCP échoue → fallback sur Read + Write manuels sans bloquer le processus
+
+---
+
+## Note technique — hook SessionEnd (ADR-055)
+
+Le hook `recap-session.js` qui déclenche ce skill en fin de session est protégé par deux guards :
+
+1. **Guard `entrypoint`** : `entrypoint: sdk-cli` → skip (subagents + `claude --print`). Seul `entrypoint: cli` = session interactive.
+2. **Déduplication par `transcript_path`** : marker fichier dans `~/.claude/cache/recap-done/` (mode `wx`, race-condition-safe). Empêche le double-fire sur compaction + exit.
+
+Ne **pas** utiliser `last-prompt` comme discriminateur — il apparaît aussi dans les sessions reprises après compaction (faux positifs).

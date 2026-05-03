@@ -27,7 +27,7 @@ Extraire le numéro de version (ex: `2.1.119`).
 
 ## Étape 2 — Deny rules dans settings.json
 
-Lire `~/.claude\settings.json` → section `permissions.deny`.
+Lire `~/.claude/settings.json` → section `permissions.deny`.
 
 **Liste de référence** (deny rules attendues) :
 ```
@@ -52,7 +52,7 @@ Si des règles manquent → proposer le bloc JSON à ajouter dans `settings.json
 
 ## Étape 3 — Patterns secret-guard.js
 
-Lire `~/.claude\hooks\secret-guard.js` → array `DANGER_PATTERNS`.
+Lire `~/.claude/hooks/secret-guard.js` → array `DANGER_PATTERNS`.
 
 **Patterns de référence attendus** (au minimum) :
 - `.env` files (cat/less/more/head/tail)

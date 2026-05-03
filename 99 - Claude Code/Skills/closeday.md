@@ -238,18 +238,6 @@ Déclencher `/essay-check` et attendre retour. (Toute la synthèse, check-in, et
 
 **Après essay-check** : Mettre à jour command-tracker : `/essay-check → YYYY-MM-DD` (date du jour).
 
-## Étape 7 — Digest du lendemain
-
-En toute fin de session (après essay-check), suggérer :
-
-> "Lance `/digest` dans une session dédiée pour avoir tes news demain matin — le digest écrira directement dans la daily note de demain."
-
-**Attendre confirmation** que Victor l'a lancé :
-- Victor confirme ("c'est parti", "lancé", "ok") → confirmer : "✅ Digest en route — à demain !"
-- Victor refuse ou silence (30s) → continuer sans bloquer, noter silencieusement
-
-> **Rappel** : `/digest` doit tourner dans une autre session (pas celle du closeday) pour éviter de cumuler les agents.
-
 ## Règles
 
 1. **Priorité absolue au bilan narratif** — la sortie principale du skill est un bilan riche, narratif, regroupé par chantier, avec recul hebdo et questions ouvertes sourcées. Les étapes 4-5-6 (filing, capitalisation, essay-check) sont **secondaires** et ne doivent jamais dégrader la qualité du bilan. Si le modèle doit arbitrer entre richesse narrative et anticipation des étapes latérales, choisir la richesse narrative.

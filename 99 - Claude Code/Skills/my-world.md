@@ -33,7 +33,12 @@ Prendre le fichier à la **date la plus haute**.
 
 ## Étape 2bis — Mémoire longue (optionnel)
 
-**Condition** : lancer seulement si Postgres et Ollama sont accessibles. Si la commande échoue → non-bloquant, continuer vers Étape 3, afficher : `⚠️ Mémoire longue indisponible (Postgres/Ollama down) — synthèse sur daily notes uniquement.`
+**Condition** : lancer seulement si Postgres et Ollama sont accessibles. Tester avec :
+```bash
+python3 -c "import socket; s=socket.create_connection(('localhost',5433),timeout=2); s.close()"
+curl -s http://localhost:11434/api/tags > /dev/null
+```
+Postgres écoute sur le port **5433** (pas 5432). Si l'un des deux échoue → non-bloquant, continuer vers Étape 3, afficher : `⚠️ Mémoire longue indisponible (Postgres/Ollama down) — synthèse sur daily notes uniquement.`
 
 Inférer 2 thèmes majeurs des daily notes lues (projets actifs, sujets récurrents). Pour chacun :
 ```bash

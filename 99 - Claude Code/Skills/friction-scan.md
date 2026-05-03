@@ -27,6 +27,8 @@ uv run ~/.claude/parse_jsonl_friction.py 2>/dev/null
 - Retourne JSON : `[{session_id, project, exchanges: [{user, assistant, has_correction, has_ack}]}]`
 - Si 0 sessions → afficher "Aucune friction détectée depuis le dernier scan." et stop
 
+**Filtre upstream obligatoire** : `parse_jsonl_friction.py` doit exclure dès le parsing (pas en aval) les sessions qui sont des recap-hooks automatiques ou des sessions `/clear`. Critères d'exclusion : sessions mono-exchange depuis le dossier `C--Users-victo` (ou `home-vico` sur Linux) = quasi-exclusivement des hooks automatiques. Seuil session réelle : **minimum 2 messages** — en dessous, ignorer. Sans ce filtre, 98% du dataset est du bruit à trier manuellement.
+
 ---
 
 ## Étape 2 — Analyse par agents Haiku (parallèles, batches de 5)

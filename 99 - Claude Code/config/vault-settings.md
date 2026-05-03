@@ -12,5 +12,5 @@ knowledge_folder: 03 - Knowledge
 projects_folder: 04 - Projects
 inbox_folder: 09 - Inbox
 claude_code_folder: 99 - Claude Code
-n8n_webhook_url:    (optionnel — laisser vide si pas de n8n)
+n8n_webhook_url: {N8N_WEBHOOK_URL}
 langue: EN          (code langue ISO 639-1 : EN, FR, ES, DE, HI… — skills traduits à l'install si ≠ EN)

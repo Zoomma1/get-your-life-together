@@ -23,8 +23,23 @@ Refine = challenger les specs, identifier ce qui est implicite, évaluer la fais
 
 - Commande `/refine [nom du ticket]`
 - Victor dit "on discute de cette feature", "challenge ce ticket", "est-ce que c'est faisable", "prends la main sur le refine du ticket X"
+- **Tout ticket passant en Ready** — `/refine` est obligatoire avant de confirmer le passage en Ready, que ce soit pendant `/today`, une session de raffinement standalone, ou toute autre session. Ne pas attendre la demande explicite de Victor.
 
 **Structure du skill** : 6 étapes — charger contexte → extraction assumptions → analyse+risques → discussion → question sous-jacente → conclusion
+
+## Détection précoce — Ticket exploratoire (ADR-046)
+
+**Avant l'Étape 1**, vérifier si le ticket est de type exploratoire :
+- Titre contient "Explorer", "Exploration", "Investigate", ou
+- Description indique clairement une activité de découverte ("lire", "regarder", "comprendre", "évaluer si X vaut le coup")
+
+**Si exploratoire → format allégé** :
+- Sauter les Étapes 1-5 (assumptions, severity matrix, discussion, question sous-jacente)
+- Passe directe : **explorer / backlog V2 / jeter** + raisonnement 2-3 lignes
+- La seule question : "vaut-il la peine d'explorer ça, et si oui, sous quelle forme ?"
+- **Règle absolue** : ne jamais conclure "Jeter" sans avoir lu la source. Flow correct : lire → extraire apprentissages (note Knowledge si pertinent) → tickets d'implem dans la foulée si ça mérite.
+
+**Si non exploratoire → flow standard Étapes 1-6.**
 
 ## Étape 1 — Charger le contexte
 

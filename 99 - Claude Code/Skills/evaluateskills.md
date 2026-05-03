@@ -282,8 +282,12 @@ Le postmortem est silencieux si aucune régression n'est détectée. S'il alerte
 
 Exécuter le script de sync pour créer les stubs manquants :
 
-```powershell
-& "$env:USERPROFILE\.claude\sync-skills.ps1"
+```bash
+if [[ "$OS" == "Windows_NT" ]]; then
+  powershell -File "$env:USERPROFILE\.claude\sync-skills.ps1"
+else
+  bash ~/.claude/sync-skills.sh
+fi
 ```
 
 - Si des stubs ont été créés : les mentionner dans le résumé final

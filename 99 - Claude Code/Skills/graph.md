@@ -15,7 +15,10 @@ Demander le chemin du repo. Output → `.claude/graph-context.md`
 
 Vérifier si `graph-context.md` existe à l'emplacement cible.
 
-**Si oui** → demander : "Un graph-context.md existe. **Update** (--update, fichiers modifiés seulement) ou **repartir de zéro** ?"
+**Si oui** → vérifier si `graphify-out/GRAPH_REPORT.md` existe également :
+- **GRAPH_REPORT.md présent** → proposer trois options : "Un graph-context.md et un GRAPH_REPORT.md existent. **Recurer** (synthèse depuis le rapport existant, pas de re-run graphify) / **Update** (--update, fichiers modifiés seulement) / **repartir de zéro** ?"
+  - Si "Recurer" → passer directement à l'**Étape 4** (synthèse manuelle depuis GRAPH_REPORT.md existant)
+- **GRAPH_REPORT.md absent** → demander : "Un graph-context.md existe. **Update** (--update, fichiers modifiés seulement) ou **repartir de zéro** ?"
 
 **Attendre la réponse.**
 

@@ -424,7 +424,9 @@ Afficher dans cet ordre. Omettre les sections avec indication entre parenthèses
 
 - Pour les suggestions hobby : s'appuyer sur les mentions dans les daily notes récentes (activités hobby mentionnées : peinture, guitare, 3D, JDR, etc.)
 
-Une fois validé par Victor, écrire le plan dans la section `## 📅 Plan du jour` de la daily note du jour sous forme de checkboxes avec liens Obsidian vers la note source :
+Une fois validé par Victor, écrire le plan dans la section `## 📅 Plan du jour` de la daily note du jour sous forme de checkboxes avec liens Obsidian vers la note source.
+
+**⚠️ Règle critique : écrire TOUTES les sections non-vides** — Agenda, Mails, Perso, Hobby, Travail, Maintenance vault, Raffinement. Ne jamais écrire seulement un sous-ensemble des sections sous prétexte qu'elles sont les "principales". Si une section est vide (ex : aucun mail, pas d'agenda) → l'omettre ; si elle a du contenu → toujours l'écrire, même si Victor n'en a pas parlé pendant la discussion de validation.
 
   
 

@@ -39,6 +39,26 @@ Et arrêter.
 
 ---
 
+## Étape 1.5 — Copie temp si chemin avec accents (Windows)
+
+Si le chemin source contient des caractères accentués (`é`, `à`, `ê`, `è`, etc.) :
+
+```python
+import shutil, pathlib
+src = pathlib.Path(r"<chemin_original>")
+dst_name = src.name.encode('ascii', 'ignore').decode() or "doc_temp" + src.suffix
+tmp = pathlib.Path(r"C:\Temp") / dst_name
+tmp.parent.mkdir(exist_ok=True)
+shutil.copy2(src, tmp)
+print(tmp)
+```
+
+Utiliser le chemin `tmp` retourné à la place du chemin original pour l'Étape 2. Nettoyer `C:\Temp\` en fin de skill.
+
+**Pourquoi** : markitdown sur Windows plante silencieusement sur les chemins avec accents — contenu retourné vide ou cassé. Workaround validé 2026-04-30.
+
+---
+
 ## Étape 2 — Convertir le fichier
 
 ```bash

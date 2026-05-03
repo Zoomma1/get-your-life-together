@@ -48,7 +48,7 @@ WebSearch : "site:reddit.com/r/ClaudeCode trending [mois année courante]"
 Lire en parallèle :
 
 1. `99 - Claude Code/Skills/INDEX.md` — liste des skills actifs
-2. `~/.claude/settings.json` (chemin : `~/.claude/settings.json`) — plugins activés, hooks
+2. `~/.claude/settings.json` — plugins activés, hooks
 3. Kanban Claude Code colonnes **Idea** et **Spec** — ce qui est déjà en backlog
 
 **Extraction** : construire deux listes :
@@ -144,3 +144,4 @@ Afficher :
 - Ne jamais dépasser 5 tickets par run — filtrer rigoureusement
 - Toujours présenter les candidats avant de créer (Étape 4) — pas de création silencieuse
 - Si WebFetch échoue sur une source → noter "source indisponible" et continuer avec les autres
+- **Tickets pulse = exploration uniquement** — jamais d'implémentation directe ; le ticket résulte en une note Knowledge OU un ticket d'implémentation, seulement si Victor demande explicitement

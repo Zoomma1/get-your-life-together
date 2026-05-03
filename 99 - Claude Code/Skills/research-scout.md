@@ -35,26 +35,21 @@ WebSearch : "Anthropic Claude new product tool release [mois courant] [année co
 WebSearch : "AI developer tools release agents [mois courant] [année courante] new"
 ```
 
-**E — YouTube trending 24h** (via webhook n8n `youtube-search`)
+**E — YouTube trending 72h** (sidecar direct)
 ```bash
-curl -s -m 30 "{N8N_WEBHOOK_URL}/webhook/youtube-search"
+curl -s -m 60 "http://localhost:3001/youtube?hours_old=72"
 ```
 
-Le webhook (workflow n8n à créer — voir ticket [[amelioration-research-scout-integration-youtube-extraction-transcript]]) doit :
-- Lancer une YouTube search trending 24h sur les mots-clés `claude code`, `obsidian claude code`, `agentic coding`, `claude agents`
-- Récupérer les 10 premiers résultats
-- Fetch le transcript pour chaque vidéo
-- Retourner JSON `{ videos: [{ title, url, channel, published_at, insights: string }] }`
+Retourne JSON `{ videos: [{ title, url, channel, published_at, transcript, has_transcript, matched_keyword }], total, errors }`.
 
-**Gestion erreur webhook** :
-- Container n8n down → `docker start n8n` puis retry une fois
-- Webhook 404 / timeout / JSON malformé → marquer `YOUTUBE_FAILED = true`, continuer sans bloquer
-- En Étape 4 : signaler à Victor `⚠️ YouTube source skip — workflow n8n down ou pas encore créé`
+**Gestion erreur sidecar** :
+- Container down / timeout / JSON malformé → marquer `YOUTUBE_FAILED = true`, continuer sans bloquer
+- En Étape 4 : signaler à Victor `⚠️ YouTube source skip — sidecar n8n-sidecar down`
 
 **Extraction** : pour chaque résultat (toutes sources), noter :
 - Titre + URL
 - Source : `[GitHub]` `[HN]` `[Anthropic]` `[Outillage]` `[YouTube]` (préfixe explicite)
-- Date de publication — **ignorer si > 7 jours** pour A/B/C/D, **ignorer si > 24h** pour E (le workflow filtre déjà mais double-check)
+- Date de publication — **ignorer si > 7 jours** pour A/B/C/D, **ignorer si > 72h** pour E (le sidecar filtre déjà mais double-check)
 - Catégorie : [Claude Code] [Vault/PKM] [Agents IA] [Release Anthropic] [Outillage dev]
 - **Pour E uniquement** : `channel` + `insights` (résumé extrait du transcript par le workflow)
 

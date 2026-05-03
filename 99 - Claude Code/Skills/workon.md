@@ -30,6 +30,18 @@ Chercher strictement dans cet ordre :
 
 **Retenir la source** (chemin exact, colonne Kanban, ou type de note) — utilisé à l'Étape 5 pour la clôture.
 
+## Étape 1.5 — Marquer l'heure de début dans la daily note
+
+Une fois le sujet identifié, marquer l'heure de début sur la ligne de tâche correspondante dans la daily note du jour.
+
+1. Récupérer l'heure courante : `date +"%H:%M"`
+2. Chercher dans `{VAULT_PATH}/{DAILY_NOTES_FOLDER}/YYYY-MM-DD.md` une ligne `- [ ]` contenant le nom du ticket ou un fragment du titre (insensible à la casse)
+3. Si trouvée → ajouter `⏱ HH:mm` en fin de ligne (avant le saut de ligne)
+   - Exemple : `- [ ] [[ticket|Titre]] — description — (~45min) ⏱ 12:18`
+4. Si non trouvée → continuer sans signal (le ticket n'est pas dans le plan du jour, pas bloquant)
+
+Cette étape est silencieuse — pas d'annonce à Victor.
+
 ## Étape 2 — Lire et analyser la note
 
 Lire le contenu complet de la note identifiée + tous les liens `[[]]` directement mentionnés.
