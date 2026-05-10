@@ -39,6 +39,8 @@ Lire `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/telegram-session.tmp`.
 2. Chercher `### 📱 Telegram` dans cette section — créer si absente (avant la prochaine section `##` ou en fin de section)
 3. Appender : `HH:MM — [message brut]`
 
+**⚠️ Timezone** : les timestamps `ts` des messages Telegram sont en UTC. Victor est en UTC+2 (Europe/Paris, heure d'été). Toujours ajouter +2h avant de logger l'heure dans la daily note.
+
 Cette trace survit aux crashs et redémarrages. Elle doit être écrite même si la suite du traitement échoue.
 
 ---

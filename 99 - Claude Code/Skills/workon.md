@@ -56,6 +56,15 @@ Lire le contenu complet de la note identifiée + tous les liens `[[]]` directeme
 → Afficher : "La note existe mais est vide. Tu veux la développer d'abord, chercher différemment, ou continuer sans elle ?"
 → **Attendre la décision de Victor.**
 
+### Bug visuel — screenshot first
+
+**Si le ticket est de type bug visuel** (CSS, layout, rendu, affichage) :
+→ Demander immédiatement : "Tu peux m'envoyer un screenshot ?"
+→ **Attendre la réponse avant toute investigation code** — ne pas lancer de serveur, installer des dépendances, ou ouvrir des fichiers source.
+→ Si screenshot non disponible → marquer **Blocked** et attendre.
+
+Cette règle prime sur toute autre étape de l'Étape 2.
+
 ### Vérifier les bloquants
 
 Identifier les dépendances explicites (uniquement pour features Kanban) :
@@ -80,7 +89,8 @@ Identifier les dépendances explicites (uniquement pour features Kanban) :
 2. **Charger le graph-context.md** si présent — **toujours, quel que soit le ticket** :
    - Chercher `.claude/graph-context.md` dans le repo local
    - Si trouvé → le lire et inclure dans le résumé de contexte (god nodes + communautés). Pas de filtre de pertinence — chargement inconditionnel.
-   - Si absent → continuer sans, proposer `/graph` en Étape 4 si premier contact avec ce repo
+   - Si absent → chercher `.claude/graph-cache.json` comme fallback (graphify brut, moins curé). Si trouvé → le lire et en extraire les nœuds principaux.
+   - Si aucun des deux → continuer sans, proposer `/graph` en Étape 4 si premier contact avec ce repo
 3. **Récupérer le chemin local du repo** :
    - Chercher dans CLAUDE.md ou MEMORY.md (ex: `project_fstg_local_path.md`)
    - Si trouvé → retenir pour les recherches de fichiers cette session
@@ -155,6 +165,8 @@ Présenter sous forme :
 ### Actions post-validation
 
 Une fois Victor confirme "Tout bon" :
+
+**Avant tout** — récupérer l'heure courante (`date +"%H:%M"`) et compléter la ligne du ticket dans la daily note : `⏱ HH:mm→HH:mm ✅` (heure de début déjà présente depuis Étape 1, ajouter heure de fin + ✅). Pas seulement `✅` — toujours les deux. À faire avant d'annoncer la clôture à Victor.
 
 **Feature Kanban** :
 → "Tu peux déplacer le ticket en Done dans le Kanban. ADR à créer ?" (si décision structurante)

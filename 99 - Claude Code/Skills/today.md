@@ -70,7 +70,7 @@ Sinon (section absente ou contenant uniquement l'agenda), poser à Victor : *"Tu
 
 Les étapes 2.0 à 2.12 sont exécutées **en parallèle** (aucune dépendance inter-étapes). Lancer 2.0 (Calendrier) et 2.12 (Mails) en arrière-plan si leurs sources sont distantes/lentes. Les étapes 2.1–2.11 (lecture locale vault) n'attendent rien — lancer immédiatement. Terminer toutes les lectures avant Étape 2.13.
 
-**2.0 — Calendrier** — Vérifier que `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\config\calendar-url.md` existe. Si oui, fetch l'URL ICS via WebFetch, sinon noter "Calendrier non configuré" et continuer sans bloquer.
+**2.0 — Calendrier** — Vérifier que `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/config/calendar-url.md` existe. Si oui, fetch l'URL ICS via WebFetch, sinon noter "Calendrier non configuré" et continuer sans bloquer. **⚠️ Linux case-sensitive** : si le fichier semble absent, vérifier que `CLAUDE_CODE_FOLDER` résout bien en `99 - Claude code` (lowercase c) — la variable lue depuis vault-settings.md peut avoir la casse Windows (`99 - Claude Code`) qui ne matchera pas sur Linux.
    
    **Si fetch réussi** :
    - Parser le contenu ICS. Chaque event commence par `BEGIN:VEVENT` et se termine par `END:VEVENT`
@@ -165,11 +165,12 @@ Lire `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md` si existe. Pour chaq
 Vérifier n8n et webhook mail-analysis (bash/WSL2) — initialiser `MAIL_SECTION = ""` avant de commencer :
 - Vérifier container : exécuter `docker ps --filter "name=n8n" --filter "status=running" --format "{{.Names}}"`
 - Si vide → démarrer : exécuter `docker start n8n && sleep 5`
-- Appeler webhook avec timeout (10s pour récupération + rendu) : exécuter `curl -s -m 10 "{N8N_WEBHOOK_URL}/webhook/mail-analysis"` 
+- Appeler webhook avec timeout (30s pour récupération + rendu) : exécuter `curl -s -m 30 "{N8N_WEBHOOK_URL}/webhook/mail-analysis"` 
 - Parser la réponse :
   * Si réponse est JSON avec clé `.markdown` non-vide → stocker le contenu texte dans `MAIL_SECTION`
   * Si réponse JSON mais `.markdown` absent ou vide → `MAIL_SECTION = ""` (pas de mails à afficher, pas d'erreur)
-  * Si réponse invalide (JSON malformé ou curl échoue) → marquer `MAIL_FAILED = true`, `MAIL_SECTION = ""`. Signal à Victor en Étape 5 template.
+  * **Si curl réussit (exit code 0) mais retourne une réponse vide (chaîne vide)** → `MAIL_SECTION = ""` (boîte vide ou webhook sans mails à remonter — pas une erreur, ne pas mettre `MAIL_FAILED = true`)
+  * Si réponse invalide (JSON malformé ou curl échoue avec code non-zero) → marquer `MAIL_FAILED = true`, `MAIL_SECTION = ""`. Signal à Victor en Étape 5 template.
   * Si curl timeout (> 10s) ou container down → `MAIL_FAILED = true`, continuer sans mails
 
 ---
@@ -259,6 +260,8 @@ La section Raffinement est hors quota et s'ajoute toujours.
 Piocher dans ces sources par ordre de priorité :
 
 0. **Première session du jour** (si `FIRST_SESSION_TODAY = true`) → inclure en section `### 💡 Début de journée` **séparée**, avant toute autre suggestion : `lance \`/my-world\` pour charger ton contexte avant de commencer`. **Hors quota** — ne jamais compter dans le budget `personal_hours` ni dans le tableau de tâches perso. Cette section disparaît du plan dès que la 2e action non-/my-world est lancée ou cochée.
+
+0.5. **Reprise de session** (si `FIRST_SESSION_TODAY = false`) → une session existe déjà pour aujourd'hui (lue en Étape 2.4). Mentionner en tête du plan : `⚠️ Reprise de session — si tu reviens après une compaction, vérifie que les décisions importantes sont toujours dans le contexte.` Signal non-bloquant, une ligne, puis continuer.
 
 1. **Tickets WIP** — finir ce qui est en cours avant de commencer autre chose. Si WIP est vide mais Victor a exprimé un focus (Étape 1) → le focus devient la 1re suggestion (remplace WIP comme point de départ)
 

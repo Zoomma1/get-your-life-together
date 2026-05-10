@@ -32,6 +32,8 @@ const DANGER_PATTERNS = [
   { re: /--user\s+[^\s:]+:[^\s]+/, why: "literal user:password in command — transcript will store the credential" },
   { re: /\bgit\s+remote\s+(-v|--verbose|show)\b/, why: "git remote -v can leak token-embedded URLs if the remote contains credentials" },
   { re: /\becho\s+\$[A-Z_][A-Z_0-9]*(TOKEN|SECRET|KEY|PASSWORD|PASS|PWD|APIKEY)/i, why: "echoing a secret env var places its value in the transcript" },
+  { re: /\bhistory\b/, why: "bash history may contain previously typed secrets or passwords" },
+  { re: /\bcat\s+([^\s]*\/)?\.netrc\b/, why: "reading .netrc dumps git/ftp/http credentials into the transcript" },
 ];
 
 let input = '';
