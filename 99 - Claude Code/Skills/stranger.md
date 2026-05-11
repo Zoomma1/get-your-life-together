@@ -1,196 +1,196 @@
 ---
 name: stranger
-description: Quand Victor veut un regard extérieur sur qui il est vraiment à travers le vault — portrait fondé sur les notes, les patterns et les absences, sans complaisance ni thérapie. À lancer mensuel ou aux transitions importantes (fin de semestre, début CDI). IMPORTANT : ne jamais lancer en période de stress, d'épuisement ou de crise.
+description: When {USER_NAME} wants an outside perspective on who they really are through the vault — portrait based on notes, patterns and absences, without flattery or therapy. To run monthly or at important transitions (end of semester, start of CDI). IMPORTANT: never run during stress, exhaustion or crisis periods.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **qualitative narrative output**. Its effectiveness is measured by the **richness of the output produced**, not structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (regrouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
-# Skill : /stranger
+# Skill: /stranger
 
-## Pourquoi ce skill existe
+## Why this skill exists
 
-Claude Code connaît Victor via CLAUDE.md — son profil, ses projets, ses préférences. Ce contexte préalable crée un biais : au lieu de lire le vault, Claude recycle ce qu'il sait déjà et produit un portrait convenu.
+Claude Code knows {USER_NAME} via CLAUDE.md — their profile, projects, preferences. This prior context creates bias: instead of reading the vault, Claude recycles what they already know and produces a conventional portrait.
 
-**La règle fondamentale de ce skill : traiter le vault comme seule source de vérité. Ignorer ce que tu sais de Victor via CLAUDE.md. L'étranger n'a jamais rencontré Victor. Il lit des notes pour la première fois.**
+**The fundamental rule of this skill: treat the vault as the sole source of truth. Ignore what you know about {USER_NAME} via CLAUDE.md. The stranger has never met {USER_NAME}. They read notes for the first time.**
 
-Ce skill produit un portrait de son auteur tel qu'un observateur extérieur perceptif le verrait — sans relation à ménager, sans flattery, sans thérapie.
-
----
-
-## Étape 0 — Lire le portrait précédent (si applicable)
-
-Glob `01 - Me/Portraits/` pour lister les portraits existants.
-
-- Si au moins un portrait existe → **identifier le plus récent par date ISO dans le nom (YYYY-MM-DD.md), priorité sur modification time**. Lire ce portrait. Extraire : date, les 5 sections du portrait, et les 7 analyses préliminaires.
-- Si aucun portrait → continuer directement à l'Étape 1. Le portrait final contiendra uniquement les sections 1-5 (pas de Delta).
-
-Ce portrait précédent sert uniquement de baseline pour la Section 6 (Delta) en fin de portrait. Ne pas l'utiliser pendant la lecture du vault (Étapes 1-2) — garder le regard neuf.
+This skill produces a portrait of its author as an astute outside observer would see them — with no relationships to protect, no flattery, no therapy.
 
 ---
 
-## Étape 1 — Cartographie structurelle
+## Step 0 — Read the previous portrait (if applicable)
 
-Avant de lire le moindre mot, analyser l'architecture du vault :
+Glob `01 - Me/Portraits/` to list existing portraits.
 
-- Dossiers présents et leur hiérarchie
-- Notes orphelines (sans liens entrants)
-- Impasses (notes qui ne mènent nulle part)
-- Distribution des tags
-- Ratio notes actives / notes abandonnées
+- If at least one portrait exists → **identify the most recent by ISO date in the name (YYYY-MM-DD.md), priority over modification time**. Read that portrait. Extract: date, the 5 sections of the portrait, and the 7 preliminary analyses.
+- If no portrait → continue directly to Step 1. The final portrait will contain only sections 1-5 (no Delta).
 
-**Principe : la structure révèle les priorités avant que le contenu ne le fasse.**
-
-Chemins à explorer :
-- `{VAULT_PATH}\` (racine et dossiers de premier niveau)
+This previous portrait serves only as a baseline for Section 6 (Delta) at the end of the portrait. Do not use it while reading the vault (Steps 1-2) — keep a fresh perspective.
 
 ---
 
-## Étape 2 — Lecture systématique du contenu
+## Step 1 — Structural mapping
 
-Cet ordre est **intentionnel** — il crée une progression de contexte → comportement → pensée — pas une lecture neutre :
+Before reading a single word, analyze vault architecture:
 
-1. **Contexte personnel** (`01 - Me/`) — qui Victor dit être, ses valeurs déclarées, ses projets identifiés
-2. **Comportement récent** (`00 - Daily notes/` des 2-3 dernières semaines) — ce qu'il fait vraiment, là maintenant
-3. **Pensée systématisée** (`03 - Knowledge/` et essays) — ce qu'il a formalisé, approfondi, accepté
-4. **Réseaux de sens** (notes les plus liées et leurs backlinks) — les connexions qu'il fait, les patterns implicites
-5. **Matière brute** (`09 - Inbox/` et notes en cours) — les idées non filtrées, les tensions non résolues
+- Folders present and their hierarchy
+- Orphaned notes (with no incoming links)
+- Dead ends (notes that lead nowhere)
+- Tag distribution
+- Ratio of active / abandoned notes
 
-**Pendant la lecture : noter les patterns qui émergent. Pas de grille préconçue, mais garder l'ordre structurant.**
+**Principle: structure reveals priorities before content does.**
 
----
-
-## Étape 3 — Sept analyses forcées
-
-Ces sept analyses doivent être **complétées et rédigées explicitement** avant d'écrire le portrait. Pas de raccourci.
-
-1. **Fréquence des sujets** : quels thèmes apparaissent dans les daily notes vs les notes formelles ? La divergence est significative.
-
-2. **Priorités déclarées vs révélées** : ce que Victor dit faire vs ce qu'il fait vraiment d'après les notes. L'écart est le vrai sujet.
-
-3. **Patterns émotionnels** : dans les daily notes, quand l'énergie monte ? Quand elle chute ? Quels déclencheurs apparaissent ?
-
-4. **Monde social** : qui est mentionné, avec quelle fréquence, dans quel contexte ? Qui est absent des notes ?
-
-5. **Questions récurrentes** : pas les curiosités passagères — les obsessions. Ce qui revient sans être résolu.
-
-6. **Empreinte du style d'écriture** : ton, longueur, structure, vocabulaire récurrent. Ce que la façon d'écrire dit de la façon de penser.
-
-7. **Absences conspicues** : ce qui devrait être là *selon ce que Victor a lui-même déclaré faire* et ne l'est pas. Exemples : Victor dit mettre un accent sur la famille, mais elle n'apparaît pas dans les daily notes. Victor déclare TDD comme non-négociable, mais les tests ne sont jamais mentionnés dans les retours de session. Les angles morts révèlent autant que ce qui est présent.
+Paths to explore:
+- `{VAULT_PATH}\` (root and first-level folders)
 
 ---
 
-## Étape 4 — Le portrait (cinq sections)
+## Step 2 — Systematic content reading
 
-**Format : troisième personne tout au long, sauf la question finale.**
+This order is **intentional** — it creates a progression of context → behavior → thought — not neutral reading:
 
-**Contraintes non négociables :**
-- Minimum 2 observations inconfortables (avec evidence)
-- Minimum 2 observations admiratives (avec evidence)
-- Chaque claim citée avec une source concrète dans le vault
-- Zéro flattery
-- Zéro therapy-speak. Pas de "il a besoin de", "il devrait", "il faudrait qu'il". Les observations, pas les prescriptions.
-- Zéro hedging diplomatique ("peut-être", "on pourrait dire")
-- Zéro résumé générique de ce qui est déjà visible
+1. **Personal context** (`01 - Me/`) — what the user says they are, declared values, identified projects
+2. **Recent behavior** (`00 - Daily notes/` from the last 2-3 weeks) — what they actually do, here now
+3. **Systematized thought** (`03 - Knowledge/` and essays) — what they've formalized, deepened, accepted
+4. **Webs of meaning** (most-linked notes and their backlinks) — connections they make, implicit patterns
+5. **Raw material** (`09 - Inbox/` and notes in progress) — unfiltered ideas, unresolved tensions
+
+**While reading: note emerging patterns. No preconceived grid, but maintain the structuring order.**
 
 ---
 
-### Section 1 — Première impression
+## Step 3 — Seven forced analyses
 
-Ce que le vault communique en premier, avant toute analyse. L'impression globale d'un lecteur qui tombe dessus par hasard.
+These seven analyses must be **completed and written out explicitly** before writing the portrait. No shortcuts.
 
-### Section 2 — Priorités réelles
+1. **Frequency of topics**: which themes appear in daily notes vs formal notes? The divergence is significant.
 
-Ce que Victor fait vraiment de son attention et de son énergie — déduit des patterns, pas des déclarations. Inclure les écarts entre priorités déclarées et révélées.
+2. **Declared vs revealed priorities**: what the user says they do vs what they actually do according to notes. The gap is the real subject.
 
-### Section 3 — Trajectoire
+3. **Emotional patterns**: in daily notes, when does energy rise? When does it fall? What triggers appear?
 
-Où Victor va, d'après les notes. Pas ce qu'il dit vouloir faire — ce vers quoi il gravite réellement.
+4. **Social world**: who is mentioned, how often, in what context? Who is absent from notes?
 
-### Section 4 — Patterns invisibles
+5. **Recurring questions**: not passing curiosities — obsessions. What comes back unresolved.
 
-Les schémas que Victor ne voit probablement pas lui-même. Les récurrences, les structures, les contradictions qui ne sont visibles que de l'extérieur.
+6. **Footprint of writing style**: tone, length, structure, recurring vocabulary. What the way of writing says about the way of thinking.
 
-### Section 5 — La question non posée
+7. **Conspicuous absences**: what should be there *according to what {USER_NAME} himself declared doing* and isn't. Examples: the user says emphasis on family, but family doesn't appear in daily notes. {USER_NAME} declares TDD as non-negotiable, but tests are never mentioned in session feedback. Blind spots reveal as much as what's present.
 
-La question que le vault ne pose jamais mais que tout pointe vers elle. Identifier cette question par :
-- **Récurrence non résolvable** : un thème qui revient sans jamais être traité à la racine (pas juste "j'ai eu une mauvaise journée", mais un pattern structurel)
-- **Tension non nommée** : deux éléments du vault qui sont en conflit implicite (ex : valeur déclarée vs comportement révélé, but énoncé vs énergie réelle)
-- **Vide actif** : quelque chose que Victor se pose clairement (traces dans les notes) mais n'explore jamais publiquement
+---
 
-**Cette section se termine par une question directe à la deuxième personne, posée à Victor.**
+## Step 4 — The portrait (five sections)
 
-### Section 6 — Delta depuis le portrait précédent
+**Format: third person throughout, except the final question.**
 
-*Uniquement si un portrait précédent a été lu à l'Étape 0. Omettre entièrement sinon.*
+**Non-negotiable constraints:**
+- Minimum 2 uncomfortable observations (with evidence)
+- Minimum 2 admiring observations (with evidence)
+- Every claim cited with concrete source from the vault
+- Zero flattery
+- Zero therapy-speak. Not "he needs to", "he should", "he ought to". Observations, not prescriptions.
+- Zero diplomatic hedging ("maybe", "one could say")
+- Zero generic summary of what's already visible
+
+---
+
+### Section 1 — First impression
+
+What the vault communicates first, before any analysis. The overall impression of a reader who stumbles on it by chance.
+
+### Section 2 — Real priorities
+
+What {USER_NAME} actually does with their attention and energy — deduced from patterns, not statements. Include gaps between declared and revealed priorities.
+
+### Section 3 — Trajectory
+
+Where {USER_NAME} is headed, according to notes. Not what they say they want to do — what they're actually gravitating toward.
+
+### Section 4 — Invisible patterns
+
+Schemes that {USER_NAME} probably doesn't see themselves. Recurrences, structures, contradictions visible only from outside.
+
+### Section 5 — The unasked question
+
+The question the vault never asks but everything points toward. Identify this question by:
+- **Unresolvable recurrence**: a theme that returns unresolved (not just "I had a bad day", but a structural pattern)
+- **Unnamed tension**: two elements of the vault in implicit conflict (ex: declared value vs revealed behavior, stated goal vs real energy)
+- **Active void**: something {USER_NAME} clearly wonders about (traces in notes) but never explores publicly
+
+**This section ends with a direct question to the second person, posed to {USER_NAME}.**
+
+### Section 6 — Delta since previous portrait
+
+*Only if a previous portrait was read in Step 0. Omit entirely otherwise.*
 
 ```
-**Ce qui a disparu** : patterns, tensions, sujets présents dans le portrait précédent et absents de celui-ci.
+**What disappeared**: patterns, tensions, topics present in the previous portrait and absent now.
 
-**Ce qui s'est renforcé** : patterns confirmés sur les deux portraits — signaux structurels profonds.
+**What strengthened**: patterns confirmed across both portraits — deep structural signals.
 
-**Ce qui est apparu** : nouvelles dimensions absentes du portrait précédent.
+**What appeared**: new dimensions absent from the previous portrait.
 
-**Shifts dans le mode de travail** : changements dans les priorités déclarées, l'organisation, l'énergie observée, les projets actifs.
+**Shifts in work mode**: changes in declared priorities, organization, observed energy, active projects.
 
-**Score de drift** : Faible (continuité visible) / Notable (évolution claire) / Rupture (changement majeur entre les deux portraits)
+**Drift score**: Low (visible continuity) / Notable (clear evolution) / Rupture (major change between the two portraits)
 ```
 
 ---
 
-## Présentation du résultat
+## Presenting the result
 
-Présenter le portrait complet à Victor sans préambule, sans explication de la méthode, sans demander si c'est ok.
+Present the complete portrait to {USER_NAME} without preamble, without explaining the method, without asking if it's okay.
 
-Après le portrait, une seule ligne : "Tu veux qu'on creuse quelque chose ?"
+After the portrait, one single line: "Want to dig into something?"
 
-**C'est la seule action supplémentaire autorisée. Pas de :** suggestions de travail, synthèse méthodologique, confirmation du processus, interprétation des réactions.
+**That's the only additional action authorized. Not:** work suggestions, method summary, process confirmation, reaction interpretation.
 
-Puis créer `01 - Me/Portraits/YYYY-MM-DD.md` avec le portrait complet (les 5 ou 6 sections + les 7 analyses préliminaires). Créer le dossier `Portraits/` s'il n'existe pas. Confirmer à Victor : *"Portrait sauvegardé dans `01 - Me/Portraits/`."*
+Then create `01 - Me/Portraits/YYYY-MM-DD.md` with the complete portrait (the 5 or 6 sections + the 7 preliminary analyses). Create the `Portraits/` folder if it doesn't exist. Confirm to {USER_NAME}: *"Portrait saved in `01 - Me/Portraits/`."*
 
-Un portrait, c'est un portrait. Pas un plan.
-
----
-
-## Étape 5 — Mettre à jour le command-tracker
-
-- Ouvrir `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
-- Ligne `/stranger` → remplacer la date par la date du jour au format `YYYY-MM-DD`
+A portrait is a portrait. Not a plan.
 
 ---
 
-## Étape 6 — Capitalisation guidée (après que Victor ait creusé)
+## Step 5 — Update the command-tracker
 
-**Conditionnel** : ne déclencher cette étape que **si** Victor a engagé une discussion après le portrait (réponse à "Tu veux qu'on creuse quelque chose ?"). Si Victor laisse le portrait tel quel ou clôt la session, **skip** cette étape.
+- Open `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
+- Line `/stranger` → replace the date with today's date in `YYYY-MM-DD` format
 
-Le portrait peut faire émerger des éléments nouveaux : patterns à promouvoir en pattern confirmé, contradictions à nommer, signaux d'alerte à ajouter, tensions à formaliser, faits oraux à archiver. Ces éléments **disparaissent** s'ils ne sont pas capitalisés à chaud — la session `/stranger` du 2026-04-15 a montré que la phase post-portrait est aussi importante que le portrait lui-même (4 fichiers `01 - Me/` enrichis, 1 fichier créé, ADR-018 issu de la discussion).
+---
 
-Quand Victor a creusé un point, **proposer explicitement** une capitalisation cible :
+## Step 6 — Guided capitalization (after {USER_NAME} has dug in)
 
-> **Ce qu'on vient de creuser mériterait peut-être :**
-> - **Promotion en pattern confirmé** dans `01 - Me/{USER_NAME}.md` (section "Patterns observés") — si on a touché un comportement récurrent sourcé sur 3+ instances
-> - **Nouveau signal d'alerte** dans `01 - Me/Signaux d'alerte.md` — si on a nommé un mode d'échec ou une dérive structurelle
-> - **Tension active** dans `01 - Me/Aspiration.md` — si on a mis le doigt sur une contradiction entre deux choses que Victor veut
-> - **Note de contexte** créée dans `01 - Me/` — si Victor a livré du contexte oral riche qui n'existe nulle part dans le vault (historique, anecdote fondatrice, fait biographique)
-> - **ADR transverse** dans `99 - Claude Code/ADR/` — si la discussion a produit une décision réutilisable qui mérite d'être formalisée
+**Conditional**: trigger this step only **if** {USER_NAME} engaged in discussion after the portrait (response to "Want to dig into something?"). If {USER_NAME} leaves the portrait as-is or closes the session, **skip** this step.
+
+The portrait can bring out new elements: patterns to promote as confirmed patterns, contradictions to name, alert signals to add, tensions to formalize, spoken facts to archive. These elements **disappear** if not capitalized while hot — the 2026-04-15 `/stranger` session showed that the post-portrait phase is as important as the portrait itself (4 `01 - Me/` files enriched, 1 file created, ADR-018 from the discussion).
+
+When {USER_NAME} has dug into a point, **explicitly propose** a capitalization target:
+
+> **What we just explored might deserve:**
+> - **Promotion to confirmed pattern** in `01 - Me/{USER_NAME}.md` (section "Observed patterns") — if we touched a recurring behavior sourced across 3+ instances
+> - **New alert signal** in `01 - Me/Alert signals.md` — if we named a failure mode or structural drift
+> - **Active tension** in `01 - Me/Aspiration.md` — if we put a finger on a contradiction between two things {USER_NAME} wants
+> - **Context note** created in `01 - Me/` — if {USER_NAME} shared rich oral context that doesn't exist anywhere in the vault (history, founding anecdote, biographical fact)
+> - **Transverse ADR** in `99 - Claude Code/ADR/` — if the discussion produced a reusable decision worth formalizing
 >
-> Tu valides quoi ?
+> What do you validate?
 
-Pour chaque élément validé : appliquer l'édit / créer le fichier / enrichir la note cible. Présenter les fichiers touchés à la fin.
+For each validated element: apply the edit / create the file / enrich the target note. Present touched files at the end.
 
-**Règles importantes** :
-- Ne **jamais** écrire dans `01 - Me/` ou créer une ADR sans validation explicite — la phase introspective est sensible, pas de capitalisation silencieuse
-- **Ne pas surcharger** : si Victor n'a creusé qu'un seul point, ne pas inventer 5 capitalisations possibles. Le ratio capitalisation/discussion doit rester sobre
-- Si le portrait n'a déclenché aucune discussion → skip, le portrait suffit
+**Important rules**:
+- Never write in `01 - Me/` or create an ADR without explicit validation — the introspection phase is sensitive, no silent capitalization
+- **Don't overload**: if {USER_NAME} dug into only one point, don't invent 5 possible capitalizations. The capitalization/discussion ratio should stay lean
+- If the portrait triggered no discussion → skip, the portrait is enough
 
 ---
 
-## Fréquence recommandée
+## Recommended frequency
 
-- Mensuel comme exercice de recalibrage
-- Aux transitions importantes (nouveau projet, nouveau contexte, retour d'un long voyage)
-- Pas pendant les périodes de forte charge ou de stress
+- Monthly as a recalibration exercise
+- At major transitions (new project, new context, return from long trip)
+- Not during high-load or stress periods

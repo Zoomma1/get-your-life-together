@@ -1,54 +1,54 @@
 ---
 name: friction-scan
-description: Détecte les patterns de friction dans les sessions Claude Code — corrections répétées, rules CLAUDE.md non respectées, skills non invoqués. Lance agents Haiku parallèles sur les JSONL, consolide avec Sonnet. Intégré dans /closeweek.
+description: Detect friction patterns in Claude Code sessions — repeated corrections, CLAUDE.md rules violated, unused skills. Launch parallel Haiku agents on JSONL, consolidate with Sonnet. Integrated into /closeweek.
 ---
 
-# Skill : /friction-scan
+# Skill: /friction-scan
 
-Analyse les JSONL bruts de `~/.claude/projects/` pour détecter les frictions récurrentes. Produit un rapport priorisé + mise à jour de l'état dans Postgres.
+Analyze raw JSONL from `~/.claude/projects/` to detect recurring friction. Produce prioritized report + state update to Postgres.
 
-## Étape 0 — Vérifier Postgres
+## Step 0 — Verify Postgres
 
 ```powershell
 docker ps --filter name=claude-postgres --filter status=running --format "{{.Names}}"
 ```
 
-Si absent : `docker compose -f ~/.claude/docker-compose.yml up -d` et attendre 3s.
+If missing: `docker compose -f ~/.claude/docker-compose.yml up -d` and wait 3s.
 
 ---
 
-## Étape 1 — Parser les JSONL
+## Step 1 — Parse the JSONL
 
 ```bash
 uv run ~/.claude/parse_jsonl_friction.py 2>/dev/null
 ```
 
-- Sans argument : fenêtre depuis le dernier scan (état Postgres)
-- Retourne JSON : `[{session_id, project, exchanges: [{user, assistant, has_correction, has_ack}]}]`
-- Si 0 sessions → afficher "Aucune friction détectée depuis le dernier scan." et stop
+- No argument: window since last scan (Postgres state)
+- Returns JSON: `[{session_id, project, exchanges: [{user, assistant, has_correction, has_ack}]}]`
+- If 0 sessions → display "No friction detected since last scan." and stop
 
-**Filtre upstream obligatoire** : `parse_jsonl_friction.py` doit exclure dès le parsing (pas en aval) les sessions qui sont des recap-hooks automatiques ou des sessions `/clear`. Critères d'exclusion : sessions mono-exchange depuis le dossier `C--Users-victo` (ou `home-vico` sur Linux) = quasi-exclusivement des hooks automatiques. Seuil session réelle : **minimum 2 messages** — en dessous, ignorer. Sans ce filtre, 98% du dataset est du bruit à trier manuellement.
+**Mandatory upstream filter**: `parse_jsonl_friction.py` must exclude at parse time (not downstream) sessions that are automatic recap-hooks or `/clear` sessions. Exclusion criteria: sessions with single exchange from `C--Users-victo` folder (or `home-vico` on Linux) = almost exclusively auto-hooks. Real session threshold: **minimum 2 messages** — below that, ignore. Without this filter, 98% of dataset is noise to manually sort.
 
 ---
 
-## Étape 2 — Analyse par agents Haiku (parallèles, batches de 5)
+## Step 2 — Analysis by Haiku agents (parallel, batches of 5)
 
-Pour chaque session dans le JSON (batch de 5 simultanés) → lancer un Agent Haiku avec ce prompt :
+For each session in JSON (batch of 5 simultaneous) → launch a Haiku Agent with this prompt:
 
 ```
-Tu analyses une session Claude Code pour détecter des frictions.
+You analyze a Claude Code session to detect friction.
 
-Voici les échanges avec signaux de friction (user → assistant) :
-[échanges de la session]
+Here are the exchanges with friction signals (user → assistant):
+[session exchanges]
 
-Projet : [project]
+Project: [project]
 
-Identifie :
-1. Corrections répétées : même erreur commise plusieurs fois
-2. Règles CLAUDE.md violées : git touché, code sans demande, réponse trop verbose, etc.
-3. Skills non invoqués : situation qui aurait dû déclencher /create-ticket, /harvest, etc.
+Identify:
+1. Repeated corrections: same mistake made multiple times
+2. CLAUDE.md rule violations: git touched, code without asking, response too verbose, etc.
+3. Unused skills: situation that should have triggered /create-ticket, /harvest, etc.
 
-Retourne un JSON strict :
+Return strict JSON:
 {
   "session_id": "...",
   "project": "...",
@@ -56,89 +56,89 @@ Retourne un JSON strict :
     {"type": "correction|rule_violation|missed_skill", "description": "...", "evidence": "...", "severity": "low|medium|high"}
   ]
 }
-Retourne [] si aucune friction réelle détectée. Maximum 5 frictions par session.
+Return [] if no real friction detected. Maximum 5 frictions per session.
 ```
 
-Collecter tous les JSON retournés.
+Collect all returned JSON.
 
 ---
 
-## Étape 3 — Consolidation Sonnet
+## Step 3 — Consolidation Sonnet
 
-Passer tous les résultats Haiku à un Agent Sonnet :
+Pass all Haiku results to a Sonnet Agent:
 
 ```
-Tu consolides les frictions détectées par des agents Haiku sur [N] sessions Claude Code.
+You consolidate friction detected by Haiku agents across [N] Claude Code sessions.
 
-Voici tous les résultats bruts :
-[JSON consolidé]
+Here are all raw results:
+[consolidated JSON]
 
-Produis :
-1. Top 10 frictions globales (dédupliquées, priorisées par fréquence + sévérité) avec action corrective
-2. Détail par projet (max 5 frictions par projet)
+Produce:
+1. Top 10 global frictions (deduplicated, prioritized by frequency + severity) with corrective action
+2. Detail by project (max 5 frictions per project)
 
-Format de sortie : Markdown structuré, prêt à copier dans un fichier vault.
+Output format: Markdown structured, ready to copy into vault file.
 ```
 
 ---
 
-## Étape 4 — Écrire le rapport
+## Step 4 — Write the report
 
-Créer `99 - Claude Code/Friction scans/YYYY-MM-DD.md` :
+Create `99 - Claude Code/Friction scans/YYYY-MM-DD.md`:
 
 ```markdown
 # Friction scan — YYYY-MM-DD
-Période : YYYY-MM-DD → YYYY-MM-DD
-Sessions analysées : N (X projets)
+Period: YYYY-MM-DD → YYYY-MM-DD
+Sessions analyzed: N (X projects)
 
-## Top 10 frictions globales
-1. [friction] → [action corrective]
+## Top 10 global frictions
+1. [friction] → [corrective action]
 ...
 
-## Détail par projet
-### [Projet]
+## Detail by project
+### [Project]
 - [friction] → [action]
 ...
 ```
 
-Créer le dossier `Friction scans/` s'il n'existe pas.
+Create `Friction scans/` folder if it doesn't exist.
 
 ---
 
-## Étape 5 — Mettre à jour l'état Postgres
+## Step 5 — Update Postgres state
 
 ```sql
 UPDATE friction_scan_state SET last_scan = NOW(), updated_at = NOW() WHERE id = 1;
 
 INSERT INTO friction_scan_runs (period_start, period_end, sessions_count, output_file, summary_md)
-VALUES ('[début]', '[fin]', [N], '99 - Claude Code/Friction scans/YYYY-MM-DD.md', '[top 10 en markdown]');
+VALUES ('[start]', '[end]', [N], '99 - Claude Code/Friction scans/YYYY-MM-DD.md', '[top 10 in markdown]');
 ```
 
-Via : `docker exec claude-postgres psql -U claude -d claude_sessions -c "..."`
+Via: `docker exec claude-postgres psql -U claude -d claude_sessions -c "..."`
 
 ---
 
-## Étape 6 — Mettre à jour le command-tracker
+## Step 6 — Update command-tracker
 
-- Ouvrir `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
-- Ligne `/friction-scan` → remplacer la date par la date du jour au format `YYYY-MM-DD`
-
----
-
-## Résumé conversationnel
-
-Afficher après le rapport :
-
-```
-Friction scan terminé — [N] sessions analysées sur [X] jours.
-Rapport : 99 - Claude Code/Friction scans/YYYY-MM-DD.md
-Top friction : [#1 du top 10]
-```
+- Open `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
+- Line `/friction-scan` → replace date with today's date in `YYYY-MM-DD` format
 
 ---
 
-## Règles absolues
+## Conversational summary
 
-- Ne jamais modifier CLAUDE.md ou les skills directement — le scan détecte, Victor décide
-- Si Postgres indisponible : signaler et arrêter (pas de fallback fichier JSON — l'état doit être fiable)
-- Batches de 5 agents max en parallèle — ne pas surcharger le quota partagé Victor+Jay
+Display after report:
+
+```
+Friction scan complete — [N] sessions analyzed over [X] days.
+Report: 99 - Claude Code/Friction scans/YYYY-MM-DD.md
+Top friction: [#1 from top 10]
+```
+
+---
+
+## Absolute rules
+
+- Never modify CLAUDE.md or skills directly — scan detects, {USER_NAME} decides
+- If Postgres unavailable: signal and stop (no JSON file fallback — state must be reliable)
+- Max 5 parallel agents per batch — don't overload shared quota {USER_NAME}+Jay

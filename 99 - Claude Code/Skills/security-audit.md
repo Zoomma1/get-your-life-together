@@ -1,35 +1,35 @@
 ---
 name: security-audit
-description: Audit sécurité Claude Code — vérifie la version, les deny rules manquantes, les patterns secret-guard.js, et crée une note Knowledge de résumé. Relancer après chaque mise à jour majeure de Claude Code ou incident sécurité. Déclencher avec /security-audit.
+description: Claude Code security audit — verifies version, missing deny rules, secret-guard.js patterns, and creates a Knowledge note summary. Rerun after each major Claude Code update or security incident. Trigger with /security-audit.
 ---
 
-# Skill : /security-audit
+# Skill: /security-audit
 
-Audit complet du setup sécurité Claude Code en 5 étapes. Produit un rapport + note Knowledge datée.
+Complete Claude Code security setup audit in 5 steps. Produces a report + dated Knowledge note.
 
 ---
 
-## Étape 1 — Version Claude Code
+## Step 1 — Claude Code version
 
 ```bash
 claude --version
 ```
 
-Extraire le numéro de version (ex: `2.1.119`).
+Extract the version number (ex: `2.1.119`).
 
-**Version minimale de référence** : `2.1.90`
-(Fix bug Adversa AI — bypass deny rules si >50 subcommands)
+**Minimum reference version**: `2.1.90`
+(Adversa AI bug fix — deny rules bypass if >50 subcommands)
 
-- Si version ≥ 2.1.90 → ✅ SAFE
-- Si version < 2.1.90 → 🔴 **CRITIQUE** — mettre à jour immédiatement (`npm update -g @anthropic-ai/claude-code`)
+- If version ≥ 2.1.90 → ✅ SAFE
+- If version < 2.1.90 → 🔴 **CRITICAL** — update immediately (`npm update -g @anthropic-ai/claude-code`)
 
 ---
 
-## Étape 2 — Deny rules dans settings.json
+## Step 2 — Deny rules in settings.json
 
-Lire `~/.claude/settings.json` → section `permissions.deny`.
+Read `~/.claude/settings.json` → section `permissions.deny`.
 
-**Liste de référence** (deny rules attendues) :
+**Reference list** (expected deny rules):
 ```
 Bash(rm -rf*)
 Bash(sudo rm*)
@@ -42,19 +42,19 @@ Bash(git branch -D*)
 Bash(chmod -R 777*)
 ```
 
-Pour chaque règle de la liste de référence :
-- ✅ Présente dans `permissions.deny`
-- ⚠️ Absente → lister comme manquante
+For each rule from the reference list:
+- ✅ Present in `permissions.deny`
+- ⚠️ Absent → list as missing
 
-Si des règles manquent → proposer le bloc JSON à ajouter dans `settings.json` et attendre validation de Victor avant d'écrire.
+If rules are missing → propose the JSON block to add to `settings.json` and await {USER_NAME} validation before writing.
 
 ---
 
-## Étape 3 — Patterns secret-guard.js
+## Step 3 — secret-guard.js patterns
 
-Lire `~/.claude/hooks/secret-guard.js` → array `DANGER_PATTERNS`.
+Read `~/.claude/hooks/secret-guard.js` → array `DANGER_PATTERNS`.
 
-**Patterns de référence attendus** (au minimum) :
+**Expected reference patterns** (minimum):
 - `.env` files (cat/less/more/head/tail)
 - `.pem` / `.key` files
 - SSH private keys (`id_rsa`, `id_ed25519`…)
@@ -70,27 +70,27 @@ Lire `~/.claude/hooks/secret-guard.js` → array `DANGER_PATTERNS`.
 - `history`
 - `cat ~/.netrc`
 
-Lister les patterns de référence absents du fichier actuel. Proposer les additions si manquantes — attendre validation avant d'écrire.
+List the reference patterns absent from the current file. Propose additions if missing — await validation before writing.
 
 ---
 
-## Étape 4 — Fetch sources sécurité (optionnel, sur demande)
+## Step 4 — Fetch security sources (optional, on request)
 
-Si Victor demande "vérifie les dernières vulnérabilités" ou "fetch les sources" :
+If {USER_NAME} asks "check latest vulnerabilities" or "fetch sources":
 
-Sources à consulter :
-- Adversa AI blog (recherche "Claude Code security")
-- HN discussions récentes sur Claude Code (WebSearch "Claude Code security site:news.ycombinator.com")
+Sources to consult:
+- Adversa AI blog (search "Claude Code security")
+- HN recent discussions on Claude Code (WebSearch "Claude Code security site:news.ycombinator.com")
 
-Extraire uniquement les findings actionnables (nouvelles vulnérabilités, nouveaux patterns à bloquer, nouveaux bugs de version).
+Extract only actionable findings (new vulnerabilities, new patterns to block, new version bugs).
 
-Par défaut (sans demande explicite) : **skip cette étape** — trop lent pour un audit de routine.
+By default (without explicit request): **skip this step** — too slow for routine audit.
 
 ---
 
-## Étape 5 — Créer la note Knowledge
+## Step 5 — Create the Knowledge note
 
-Créer `{VAULT_PATH}\{KNOWLEDGE_FOLDER}\Claude code\security-audit-YYYY-MM-DD.md` :
+Create `{VAULT_PATH}\{KNOWLEDGE_FOLDER}\Claude code\security-audit-YYYY-MM-DD.md`:
 
 ```markdown
 ---
@@ -99,38 +99,38 @@ type: Security Audit
 claude_version: [version]
 ---
 
-# Audit sécurité Claude Code — YYYY-MM-DD
+# Claude Code security audit — YYYY-MM-DD
 
 ## Version
-- Installée : [version] ✅/🔴
-- Minimale requise : 2.1.90
+- Installed: [version] ✅/🔴
+- Minimum required: 2.1.90
 
 ## Deny rules
-[résumé : X/9 présentes — liste des manquantes ou "Toutes présentes"]
+[summary: X/9 present — list of missing or "All present"]
 
 ## secret-guard.js
-[résumé : X/14 patterns présents — liste des manquants ou "Tous présents"]
+[summary: X/14 patterns present — list of missing or "All present"]
 
-## Actions appliquées
-[liste des modifications faites ce run, ou "Aucune modification nécessaire"]
+## Actions applied
+[list of modifications made this run, or "No modifications needed"]
 
-## À relancer
-- Après chaque mise à jour majeure Claude Code
-- Après tout incident sécurité
-- Prochaine échéance : [date suggérée]
+## To rerun
+- After each major Claude Code update
+- After any security incident
+- Next scheduled: [suggested date]
 ```
 
 ---
 
-## Étape 6 — Mettre à jour le command-tracker
+## Step 6 — Update the command-tracker
 
-- Ouvrir `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
-- Ligne `/security-audit` → remplacer la date par la date du jour (`YYYY-MM-DD`)
+- Open `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
+- Line `/security-audit` → replace the date with today's date (`YYYY-MM-DD`)
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- Ne jamais modifier `settings.json` ou `secret-guard.js` sans validation explicite de Victor
-- Toujours créer la note Knowledge même si aucune modification n'est nécessaire (traçabilité)
-- Fréquence recommandée : après chaque mise à jour majeure Claude Code, ou au minimum mensuel
+- Never modify `settings.json` or `secret-guard.js` without explicit {USER_NAME} validation
+- Always create the Knowledge note even if no modifications are needed (traceability)
+- Recommended frequency: after each major Claude Code update, or at minimum monthly

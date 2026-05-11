@@ -1,129 +1,129 @@
 ---
 name: recapsession
-description: Créer un recap de la session de travail courante et proposer les capitalisations (ADR/Skills) si applicable. Utiliser quand Victor dit "recap session", "on s'arrête", "c'est bon pour aujourd'hui", "je coupe" ou via /recapsession.
+description: Create a recap of the current work session and propose capitalizations (ADR/Skills) if applicable. Use when the user says "recap session", "we're done", "that's it for today", "I'm out" or via /recapsession.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **qualitative narrative output**. Its effectiveness is measured by the **richness of output produced**, not structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet required even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in ways that strip narrative instructions (grouping, context, key moments, open questions, tone, narration). Qualitative content preservation takes priority over line reduction.
 
-# Skill : Recap de session + Capitalisation
+# Skill: Session Recap + Capitalization
 
-## À quoi ça sert
+## Purpose
 
-Un recap crée une trace persistante de ce qui a été accompli, quelles décisions ont été prises, et ce qui bloque pour demain. C'est le seul endroit où Claude documente ce qu'il a **vu**, pas ce que Victor a **changé** (c'est le job de git).
+A recap creates a persistent trace of what was accomplished, what decisions were made, and what blocks for tomorrow. It's the only place where Claude documents what it **saw**, not what {USER_NAME} **changed** (that's git's job).
 
-## Déclenchement
+## Triggering
 
-- Victor dit "recap session", "on s'arrête", "c'est bon pour aujourd'hui", "je coupe"
-- Commande `/recapsession`
+- the user says "recap session", "we're done", "that's it for today", "I'm out"
+- Command `/recapsession`
 
-## Étape 1 — Identifier le contexte
+## Step 1 — Identify Context
 
-1. Récupérer l'heure locale exacte via bash :
+1. Get exact local time via bash:
    ```bash
    date +%H:%M
    ```
-   Utiliser cette heure dans le titre de section. Ne jamais inventer une heure.
-2. **Date cible** : si `heure < 04:00` → date = veille, sinon date = aujourd'hui. Toutes les sessions s'écrivent dans `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[date cible].md`, quel que soit le projet.
-3. Si une note session du jour existe déjà → ajouter une nouvelle section `## Session [HH:MM]` plutôt que d'écraser.
+   Use this time in section title. Never make up a time.
+2. **Target date**: if `time < 04:00` → date = yesterday, else date = today. All sessions are written to `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[target_date].md`, regardless of project.
+3. If session note already exists for the day → add a new section `## Session [HH:MM]` rather than overwriting.
 
-## Étape 2 — Construire le recap
+## Step 2 — Build the Recap
 
-Résumer la session en couvrant ces 4 sections :
+Summarize the session covering these 4 sections:
 
-### Ce qui a été fait
-Liste concise des tâches accomplies, décisions prises.
+### What Was Done
+Concise list of tasks completed, decisions made.
 
-### Fichiers discutés ou consultés
-Fichiers abordés pendant la session (pas une vérité git — Claude ne voit pas le diff de Victor).
-**Si aucun fichier n'a été consulté**, noter "Aucun — session de discussion/réflexion".
+### Files Discussed or Consulted
+Files addressed during the session (not git truth — Claude doesn't see {USER_NAME}'s diff).
+**If no files were consulted**, note "None — discussion/reflection session".
 
-### Décisions techniques ou changements de direction
-Si des décisions ont été notées, relever leurs caractéristiques :
-- **Nature** : porte-elle sur plusieurs projets, un projet spécifique, ou un domaine technique ?
-- **Scope** : affecte-t-elle le code, l'infrastructure, le workflow quotidien, les skills ?
-**Si aucune décision notable**, noter "Aucune — session exploratoire".
+### Technical Decisions or Directional Changes
+If decisions were noted, highlight their characteristics:
+- **Nature**: does it affect multiple projects, a specific project, or a technical domain?
+- **Scope**: does it affect code, infrastructure, daily workflow, skills?
+**If no notable decisions**, note "None — exploratory session".
 
-### État à la fin
-Ce qui reste, prochaine étape logique, commande de reprise si applicable.
+### State at End
+What remains, next logical step, resume command if applicable.
 
-### Observation de la session
-Noter honnêtement selon ce qui s'est passé pendant la session, sans inventer :
-- **Flow** : Victor avançait vite, peu de blocages, réponses directes
-- **Concentré** : progressait bien mais avec effort
-- **Bloqué** : difficultés techniques, plusieurs tentatives
-- **Frustré** : signaux de frustration détectés (reformulations, corrections, "ça marche pas")
-- **Fatigué** : réponses courtes, moins d'engagement, pauses fréquentes
-- **Satisfait** : objectif atteint, bon avancement
+### Session Observation
+Note honestly based on what happened during the session, without making things up:
+- **Flow**: {USER_NAME} advanced quickly, few blockers, direct answers
+- **Focused**: progressed well but with effort
+- **Blocked**: technical difficulties, multiple attempts
+- **Frustrated**: frustration signals detected (rephrasing, corrections, "it's not working")
+- **Tired**: short answers, less engagement, frequent pauses
+- **Satisfied**: objective achieved, good progress
 
-Si aucun signal clair → noter "Neutre / pas de signal particulier".
+If no clear signal → note "Neutral / no particular signal".
 
-## Étape 3 — Écrire la note
+## Step 3 — Write the Note
 
-Écrire le recap dans `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[date cible].md` en ajoutant une section.
+Write the recap in `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[target_date].md` by adding a section.
 
-Titre de section selon le contexte :
-- Heure normale : `## Session [HH:MM] — [titre court]`
-- Après minuit : `## Session [HH:MM] 🌙 (après minuit) — [titre court]`
+Section title based on context:
+- Normal time: `## Session [HH:MM] — [short title]`
+- After midnight: `## Session [HH:MM] 🌙 (after midnight) — [short title]`
 
 ```markdown
-## Session [HH:MM] — [titre court]
+## Session [HH:MM] — [short title]
 
-### ✅ Accompli
+### ✅ Completed
 - ...
 - ...
 
-### 🔧 Fichiers discutés / consultés
+### 🔧 Files Discussed / Consulted
 - ...
 
-### 🧠 Décisions prises
+### 🧠 Decisions Made
 - ...
 
-### ⏭️ Prochaine étape
+### ⏭️ Next Step
 ...
 
 ### 🧭 Observation
-[Flow / Concentré / Bloqué / Frustré / Fatigué / Satisfait] — [une phrase de contexte]
+[Flow / Focused / Blocked / Frustrated / Tired / Satisfied] — [one sentence of context]
 ```
 
-Utiliser Write ou MCP si dispo, fallback sur Read + Write manuel si MCP échoue.
+Use Write or MCP if available, fallback to manual Read + Write if MCP fails.
 
-## Étape 3.5 — Sync Postgres
+## Step 3.5 — Postgres Sync
 
-Après l'écriture du fichier `.md`, lancer :
+After writing the `.md` file, launch:
 
 ```bash
 uv run ~/.claude/ingest_sessions.py
 ```
 
-**Non-bloquant** : si la commande échoue (Docker down, script absent, etc.), noter `[Postgres sync skippé]` dans la confirmation et continuer sans interrompre le recap. Ce step alimente la source `recap_md` dans Postgres, complémentaire aux JSONL bruts ingérés par `/friction-scan`.
+**Non-blocking**: if command fails (Docker down, script absent, etc.), note `[Postgres sync skipped]` in confirmation and continue without interrupting recap. This step feeds the `recap_md` source in Postgres, complementary to raw JSONL ingested by `/friction-scan`.
 
-## Étape 4 — Proposer les capitalisations (si applicable)
+## Step 4 — Propose Capitalizations (if applicable)
 
-**Uniquement si des décisions techniques ou ADR ont été identifiées à l'Étape 2** :
+**Only if technical decisions or ADR were identified in Step 2**:
 
-### Proposition ADR
-- **Si décision transverse** (affecte plusieurs projets ou domaine technique) → proposer ADR dans `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/ADR/`
-- **Si décision projet-spécifique** → proposer ADR dans `{VAULT_PATH}/{PROJECTS_FOLDER}/[Projet]/claude-code/ADR/`
-- **Ne pas créer l'ADR** — le proposer à Victor avec un titre et une description sommaire, attendre validation
+### ADR Proposal
+- **If transverse decision** (affects multiple projects or technical domain) → propose ADR in `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/ADR/`
+- **If project-specific decision** → propose ADR in `{VAULT_PATH}/{PROJECTS_FOLDER}/[Project]/claude-code/ADR/`
+- **Don't create the ADR** — propose it to {USER_NAME} with title and brief description, wait for validation
 
-### Proposition mise à jour INDEX
-- Si ADR créée → mettre à jour l'INDEX du répertoire ADR correspondant (avec validation Victor)
-- Si skill créé/modifié → mettre à jour `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Skills/INDEX.md`
+### INDEX Update Proposal
+- If ADR created → update INDEX of corresponding ADR directory (with {USER_NAME} validation)
+- If skill created/modified → update `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Skills/INDEX.md`
 
-**Attendre validation avant d'exécuter**.
+**Wait for validation before executing**.
 
-### Sauvegarde dans le fichier proposals (toujours)
+### Save to Proposals File (always)
 
-Après la proposition interactive (que Victor valide ou non), écrire les proposals dans `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/proposals-YYYY-MM-DD.md` :
+After the interactive proposal (whether {USER_NAME} validates or not), write proposals to `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/proposals-YYYY-MM-DD.md`:
 
-- Si le fichier n'existe pas → créer avec frontmatter `processed: false`
-- Si le fichier existe → append avec `---` entre sessions
-- Format :
+- If file doesn't exist → create with frontmatter `processed: false`
+- If file exists → append with `---` between sessions
+- Format:
 
 ```markdown
 ---
@@ -133,47 +133,47 @@ processed: false
 
 ## Session [HH:MM]
 
-### ADR à créer
-- **ADR** : [Titre] — [Scope : transverse | projet X] — [Contexte en 1 phrase]
+### ADR to Create
+- **ADR**: [Title] — [Scope: transverse | project X] — [Context in 1 sentence]
 
-### Skills à mettre à jour
-- **Skill** : [nom] — [Action : create | update] — [Contexte en 1 phrase]
+### Skills to Update
+- **Skill**: [name] — [Action: create | update] — [Context in 1 sentence]
 ```
 
-Omettre la section ADR ou Skills si aucune dans cette catégorie. Cette sauvegarde garantit que `/closeday` trouvera les proposals même si la session a été recapitulée manuellement (et non via le hook).
+Omit ADR or Skills section if none in that category. This save guarantees `/closeday` finds proposals even if session was recapped manually (not via hook).
 
-## Étape 4.5 — Proposition notes Knowledge (si applicable)
+## Step 4.5 — Propose Knowledge Notes (if applicable)
 
-**Uniquement si une synthèse substantielle a été produite pendant la session** (analyse, comparaison, décision documentée en profondeur, exploration d'un outil ou concept) :
+**Only if substantial synthesis was produced during the session** (analysis, comparison, documented decision in depth, exploration of tool or concept):
 
-Poser à Victor : *"Une synthèse produite dans cette session mérite-elle une note Knowledge ?"*
+Ask {USER_NAME}: *"Does a synthesis produced in this session deserve a Knowledge note?"*
 
-Si oui → proposer titre + dossier cible dans `03 - Knowledge/` :
+If yes → propose title + target folder in `03 - Knowledge/`:
 ```
-→ [[nom-de-la-note]] — 03 - Knowledge/[sous-dossier]/
-   Résumé en 1 ligne de ce qu'elle contiendrait
+→ [[note-name]] — 03 - Knowledge/[subfolder]/
+   Summary in 1 line of what it would contain
 ```
 
-Ajouter la proposition dans le fichier `proposals-YYYY-MM-DD.md` (même mécanique que les proposals ADR, section `### Notes Knowledge à créer`).
+Add proposal to `proposals-YYYY-MM-DD.md` file (same mechanism as ADR proposals, section `### Knowledge Notes to Create`).
 
-**Ne pas créer la note sans validation Victor.** Si Victor refuse ou ne répond pas → skip silencieux.
+**Don't create the note without {USER_NAME} validation.** If {USER_NAME} refuses or doesn't respond → skip silently.
 
-## Règles absolues
+## Absolute Rules
 
-- Ne jamais taper `/clear` — c'est Victor qui le fait après avoir lu le recap
-- Ne pas écraser une session existante du même jour — ajouter une section
-- Les observations doivent être factuelles, pas flatteuses
-- **Jamais de création autonome d'ADR ou modification d'INDEX sans validation Victor**
-- Si une note session existe déjà et qu'on crée une nouvelle section, laisser les sections précédentes intactes
-- Si MCP échoue → fallback sur Read + Write manuels sans bloquer le processus
+- Never run `/clear` — {USER_NAME} does that after reading recap
+- Don't overwrite existing session from same day — add a section
+- Observations must be factual, not flattering
+- **Never autonomously create ADR or modify INDEX without {USER_NAME} validation**
+- If a session note exists and you create a new section, leave previous sections intact
+- If MCP fails → fallback to manual Read + Write without blocking
 
 ---
 
-## Note technique — hook SessionEnd (ADR-055)
+## Technical Note — SessionEnd Hook (ADR-055)
 
-Le hook `recap-session.js` qui déclenche ce skill en fin de session est protégé par deux guards :
+The `recap-session.js` hook that triggers this skill at session end is protected by two guards:
 
-1. **Guard `entrypoint`** : `entrypoint: sdk-cli` → skip (subagents + `claude --print`). Seul `entrypoint: cli` = session interactive.
-2. **Déduplication par `transcript_path`** : marker fichier dans `~/.claude/cache/recap-done/` (mode `wx`, race-condition-safe). Empêche le double-fire sur compaction + exit.
+1. **Guard `entrypoint`**: `entrypoint: sdk-cli` → skip (subagents + `claude --print`). Only `entrypoint: cli` = interactive session.
+2. **Deduplication by `transcript_path`**: marker file in `~/.claude/cache/recap-done/` (mode `wx`, race-condition-safe). Prevents double-fire on compaction + exit.
 
-Ne **pas** utiliser `last-prompt` comme discriminateur — il apparaît aussi dans les sessions reprises après compaction (faux positifs).
+Do **not** use `last-prompt` as discriminator — it also appears in sessions resumed after compaction (false positives).

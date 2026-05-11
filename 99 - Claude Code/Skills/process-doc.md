@@ -1,51 +1,51 @@
 ---
 name: process-doc
-description: Convertir un fichier local (PDF, Word, Excel) en note Knowledge dans 03 - Knowledge/ via markitdown. Utiliser quand Victor dit "/process-doc [chemin]", "process ce PDF", "capitalise ce document". Skill distinct de /process (URLs) — ne jamais étendre /process avec des chemins locaux.
+description: Convert a local file (PDF, Word, Excel) to Knowledge note in 03 - Knowledge/ via markitdown. Use when user says "/process-doc [path]", "process this PDF", "capitalize this document". Skill distinct from /process (URLs) — never extend /process with local paths.
 ---
 
 # Skill `/process-doc`
 
-Transforme un fichier local (PDF, .docx, .xlsx) en note Knowledge dans le vault, via `markitdown`.
+Transforms a local file (PDF, .docx, .xlsx) into a Knowledge note in the vault, via `markitdown`.
 
-## Déclenchement
+## Trigger
 
 ```
-/process-doc /chemin/absolu/vers/fichier.pdf
-/process-doc /chemin/absolu/vers/fichier.docx --target Dev
-/process-doc /chemin/absolu/vers/fichier.xlsx
+/process-doc /path/to/absolute/file.pdf
+/process-doc /path/to/absolute/file.docx --target Dev
+/process-doc /path/to/absolute/file.xlsx
 ```
 
-- Chemin absolu requis — si chemin relatif fourni, demander la version absolue
-- `--target [sous-dossier]` optionnel — sinon Claude choisit selon le contenu
-- Formats supportés : `.pdf`, `.docx`, `.doc`, `.xlsx`, `.xls`, `.pptx`
+- Absolute path required — if relative path given, ask for absolute version
+- `--target [subfolder]` optional — otherwise Claude chooses based on content
+- Supported formats: `.pdf`, `.docx`, `.doc`, `.xlsx`, `.xls`, `.pptx`
 
 ---
 
-## Étape 1 — Vérifier markitdown
+## Step 1 — Verify markitdown
 
 ```bash
 markitdown --version
 ```
 
-Si la commande échoue → afficher :
+If command fails → display:
 ```
-markitdown non installé. Lance :
+markitdown not installed. Run:
   uv tool install markitdown
-ou :
+or:
   pip install markitdown
-Pour les PDFs scannés (OCR) : pip install markitdown[ocr]
+For scanned PDFs (OCR): pip install markitdown[ocr]
 ```
-Et arrêter.
+And stop.
 
 ---
 
-## Étape 1.5 — Copie temp si chemin avec accents (Windows)
+## Step 1.5 — Temp copy if path has accents (Windows)
 
-Si le chemin source contient des caractères accentués (`é`, `à`, `ê`, `è`, etc.) :
+If source path contains accented characters (`é`, `à`, `ê`, `è`, etc.):
 
 ```python
 import shutil, pathlib
-src = pathlib.Path(r"<chemin_original>")
+src = pathlib.Path(r"<original_path>")
 dst_name = src.name.encode('ascii', 'ignore').decode() or "doc_temp" + src.suffix
 tmp = pathlib.Path(r"C:\Temp") / dst_name
 tmp.parent.mkdir(exist_ok=True)
@@ -53,108 +53,108 @@ shutil.copy2(src, tmp)
 print(tmp)
 ```
 
-Utiliser le chemin `tmp` retourné à la place du chemin original pour l'Étape 2. Nettoyer `C:\Temp\` en fin de skill.
+Use the `tmp` path returned instead of original path for Step 2. Clean `C:\Temp\` at skill end.
 
-**Pourquoi** : markitdown sur Windows plante silencieusement sur les chemins avec accents — contenu retourné vide ou cassé. Workaround validé 2026-04-30.
+**Why**: markitdown on Windows silently crashes on accented paths — returned content empty or broken. Workaround validated 2026-04-30.
 
 ---
 
-## Étape 2 — Convertir le fichier
+## Step 2 — Convert the file
 
 ```bash
-markitdown "<chemin_absolu>"
+markitdown "<absolute_path>"
 ```
 
-Si la commande échoue ou retourne < 50 chars :
-- PDF multi-colonnes (rulebooks, docs complexes) → signaler : "Contenu insuffisant — PDF potentiellement multi-colonnes ou scanné. Essaie `pip install markitdown[ocr]` pour l'OCR."
-- Autre erreur → afficher le message d'erreur et arrêter
+If command fails or returns <50 chars:
+- Multi-column PDF (rulebooks, complex docs) → flag: "Insufficient content — PDF possibly multi-column or scanned. Try `pip install markitdown[ocr]` for OCR."
+- Other error → display error message and stop
 
 ---
 
-## Étape 3 — Titre et destination
+## Step 3 — Title and destination
 
-**Titre proposé** : nom du fichier nettoyé (sans extension, underscores/tirets → espaces, casse titre).
-Ex : `rapport-stage-2026.pdf` → "Rapport Stage 2026"
+**Proposed title**: cleaned filename (no extension, underscores/hyphens → spaces, title case).
+Ex: `rapport-stage-2026.pdf` → "Rapport Stage 2026"
 
-Afficher : `Titre proposé : "[titre]" — OK ou tu corriges ?`
-- Si Victor valide → continuer
-- Si Victor donne un titre → utiliser ce titre
+Display: `Proposed title: "[title]" — OK or do you change it?`
+- If {USER_NAME} validates → continue
+- If {USER_NAME} provides title → use it
 
-**Destination** : même mapping que `/process` :
+**Destination**: same mapping as `/process`:
 
-| Contenu détecté | Sous-dossier |
+| Content detected | Subfolder |
 |----------------|--------------|
-| Claude Code, LLM, agents IA, MCP | `03 - Knowledge/Claude code/` |
+| Claude Code, LLM, agents, MCP | `03 - Knowledge/Claude code/` |
 | Dev, code, architecture, patterns | `03 - Knowledge/Dev/` |
-| IA, ML, modèles | `03 - Knowledge/IA/` |
-| Business, management, stratégie | `03 - Knowledge/Business/` |
-| Voyage, lieux, culture | `03 - Knowledge/Travel/` |
-| Warhammer, peinture, figurines | `02 - Hobbies/Warhammer/` |
-| Cours, exam, ISEP, VUT | `03 - Knowledge/` (sous-dossier libre selon le sujet) |
-| Autre / inclassable | `03 - Knowledge/` (racine) |
+| AI, ML, models | `03 - Knowledge/IA/` |
+| Business, management, strategy | `03 - Knowledge/Business/` |
+| Travel, places, culture | `03 - Knowledge/Travel/` |
+| Warhammer, painting, miniatures | `02 - Hobbies/Warhammer/` |
+| Courses, exam, ISEP, VUT | `03 - Knowledge/` (subfolder free by subject) |
+| Other / unclassifiable | `03 - Knowledge/` (root) |
 
-Si `--target` fourni → utiliser ce chemin directement.
-
----
-
-## Étape 4 — Vérifier les doublons
-
-Lister les fichiers existants dans le sous-dossier cible.
-Si une note similaire existe → demander : "Note existante trouvée : [[nom-note]]. Créer quand même ou enrichir l'existante ?"
+If `--target` provided → use that path directly.
 
 ---
 
-## Étape 5 — Créer la note
+## Step 4 — Check for duplicates
 
-Slug depuis le titre (kebab-case, minuscules, sans accents, max 5-6 mots).
+List existing files in target subfolder.
+If similar note exists → ask: "Existing note found: [[note-name]]. Create anyway or enrich existing?"
+
+---
+
+## Step 5 — Create the note
+
+Slug from title (kebab-case, lowercase, no accents, max 5-6 words).
 
 ```markdown
 ---
 date: YYYY-MM-DD
-source: [chemin absolu du fichier]
-tags: [domaine, mots-clés]
-status: nouvelle
+source: [absolute path to file]
+tags: [domain, keywords]
+status: new
 ---
 
-# [Titre]
+# [Title]
 
-## En une phrase
-[Résumé en 1 phrase]
+## In one sentence
+[Summary in 1 sentence]
 
-## Points clés
+## Key points
 - ...
 
-## Cas d'usage avec mon workflow
+## Use cases with my workflow
 - ...
 
-## Voir aussi
-- [[note-existante]] — [raison]
+## See also
+- [[existing-note]] — [reason]
 ```
 
-**Remplissage :**
-- `source` : chemin absolu local (ex: `~/Downloads/rapport.pdf`)
-- `tags` : domaine + 2-4 mots-clés du contenu
-- `## Points clés` : 3-7 bullets, factuels, tirés du contenu markitdown
-- `## Cas d'usage avec mon workflow` : omettre si aucun lien évident
-- `## Voir aussi` : chercher les notes liées dans le vault. Omettre si aucune pertinente.
+**Filling:**
+- `source`: absolute local path (ex: `~/Downloads/report.pdf`)
+- `tags`: domain + 2-4 content keywords
+- `## Key points`: 3-7 bullets, factual, drawn from markitdown content
+- `## Use cases with my workflow`: omit if no obvious link
+- `## See also`: search vault for linked notes. Omit if none relevant.
 
 ---
 
-## Étape 6 — Annoncer le résultat
+## Step 6 — Announce result
 
 ```
-✅ Note créée : 03 - Knowledge/[sous-dossier]/[slug].md
-→ Source : [chemin fichier]
-→ Tags : [tags]
-→ Voir aussi : [[note-1]] (si trouvée)
+✅ Note created: 03 - Knowledge/[subfolder]/[slug].md
+→ Source: [file path]
+→ Tags: [tags]
+→ See also: [[note-1]] (if found)
 ```
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- **Jamais modifier `/process`** — deux skills distincts, deux fonctionnements distincts
-- **Chemin absolu obligatoire** — ne pas inférer le chemin depuis un chemin relatif
-- **Jamais créer sans contenu** — si markitdown retourne < 50 chars, signaler et proposer l'OCR
-- **Slug depuis le titre** — jamais depuis le nom de fichier brut
-- **Warhammer → Hobbies** — jamais dans Knowledge
+- **Never modify `/process`** — two distinct skills, two distinct workflows
+- **Absolute path mandatory** — don't infer path from relative path
+- **Never create without content** — if markitdown returns <50 chars, flag and propose OCR
+- **Slug from title** — never from raw filename
+- **Warhammer → Hobbies** — never in Knowledge

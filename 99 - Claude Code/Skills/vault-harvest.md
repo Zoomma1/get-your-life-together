@@ -1,30 +1,30 @@
 ---
 name: vault-harvest
-description: Scanner les daily notes pour en extraire des idées à capitaliser et des liens à traiter. Utiliser quand Victor dit "harvest", "fais le harvest", "scanne mes notes", ou quand /harvest est en retard dans le command-tracker, ou en fin de session si des daily notes ont été mentionnées.
+description: Scan daily notes to extract ideas to capitalize and links to process. Use when the user says "harvest", "do the harvest", "scan my notes", or when /harvest is overdue in the command-tracker, or at the end of a session if daily notes have been mentioned.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces a **qualitative narrative** output. Its effectiveness is measured by the **richness of the produced output**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, key moments, open questions, tone, narration). Preserving qualitative content takes priority over line reduction.
 
-# Skill : Vault Harvest
+# Skill: Vault Harvest
 
-Ce skill transforme les daily notes en capital structuré. Après validation de Victor, Claude Code crée les notes et tickets directement dans le vault via MCP.
+This skill transforms daily notes into structured capital. After validation by {USER_NAME}, Claude Code creates notes and tickets directly in the vault via MCP.
 
-## Déclenchement
+## Trigger
 
-- Victor dit "harvest", "fais le harvest", "scanne mes notes"
-- Victor précise une période : "harvest de la semaine" (lundi-dimanche dernier achevé), "harvest depuis lundi dernier", "harvest des 3 derniers jours"
-- Sans précision → proposer "7 derniers jours" et attendre validation (ne pas appliquer par défaut)
+- the user says "harvest", "fais le harvest", "scanne mes notes"
+- {USER_NAME} specifies a period: "harvest of the week" (last completed Monday-Sunday), "harvest since last Monday", "harvest of the last 3 days"
+- Without specification → propose "last 7 days" and wait for validation (do not apply by default)
 
-## Structure du vault — destinations valides
+## Vault structure — valid destinations
 
-| Type de contenu | Destination |
+| Content type | Destination |
 |----------------|-------------|
-| Réflexion personnelle, idée de vie | `01 - Me/` |
+| Personal reflection, life idea | `01 - Me/` |
 | Warhammer, peinture, technique | `02 - Hobbies/Warhammer/` |
 | Guitare, musique | `02 - Hobbies/Guitare/` |
 | Impression 3D | `02 - Hobbies/3D Printing/` |
@@ -42,20 +42,20 @@ Ce skill transforme les daily notes en capital structuré. Après validation de 
 
 ## Projets actifs — source de vérité
 
-Lire `04 - Projects/INDEX.md` au début de chaque harvest pour connaître les projets actifs et leurs Kanbans. Si une tâche identifiée concerne un projet listé → créer le ticket dans la colonne **Idea** du Kanban correspondant. Si le projet n'est pas dans l'INDEX → flaguer le projet inconnu pour l'Étape 4 (ne pas créer le ticket avant validation Victor).
+Lire `04 - Projects/INDEX.md` au début de chaque harvest pour connaître les projets actifs et leurs Kanbans. Si une tâche identifiée concerne un projet listé → créer le ticket dans la colonne **Idea** du Kanban correspondant. Si le projet n'est pas dans l'INDEX → flaguer le projet inconnu pour l'Étape 4 (ne pas créer le ticket avant validation {USER_NAME}).
 
 Structure Kanban universelle : `Idea → Ready → WIP → Done` (colonne `Blocked` disponible pour les tickets bloqués par dépendance externe)
 
 **Kanbans spéciaux :**
 - `Claude Code Kanban` — Kanban unique pour toutes les tâches sans projet spécifique : vie quotidienne, vault/Claude Code, skills, ADR, workflows. Les notes tickets vont dans `09 - Inbox/tickets/`.
 
-**Limite WIP Hobby** : À l'Étape 1 Groupe A, compter les tickets WIP par type (`#warhammer`, `#guitare`, `#3d`, `#jdr`) dans `02 - Hobbies/Hobby Kanban.md`. Si un type atteint 2 WIP, signaler à Victor à l'Étape 4. Ne jamais créer un ticket hobby directement en WIP si la limite est atteinte — créer en Backlog ou Ready à la place.
+**Limite WIP Hobby** : À l'Étape 1 Groupe A, compter les tickets WIP par type (`#warhammer`, `#guitare`, `#3d`, `#jdr`) dans `02 - Hobbies/Hobby Kanban.md`. Si un type atteint 2 WIP, signaler à {USER_NAME} à l'Étape 4. Ne jamais créer un ticket hobby directement en WIP si la limite est atteinte — créer en Backlog ou Ready à la place.
 
 ## Liens — règle permanente
 
 Lire `99 - Claude Code/treated-links.md` au début de chaque harvest. Ne jamais reproposer une URL listée dans ce fichier. Ignorer uniquement les URLs exactes listées — pas les domaines entiers.
 
-**Si une URL est dans treated-links mais mentionnée à nouveau dans les daily notes récentes** : l'ignorer (ne pas refetcher). Si le contexte suggère un contenu changé (ex: version mise à jour, lien partagé pour une raison différente), demander à Victor si c'est une reproposition volontaire avant de la traiter.
+**Si une URL est dans treated-links mais mentionnée à nouveau dans les daily notes récentes** : l'ignorer (ne pas refetcher). Si le contexte suggère un contenu changé (ex: version mise à jour, lien partagé pour une raison différente), demander à {USER_NAME} si c'est une reproposition volontaire avant de la traiter.
 
 ---
 
@@ -73,10 +73,10 @@ Lancer ces quatre lectures en parallèle — elles ne dépendent pas des daily n
 
 **Groupe B — Confirmation de période + contenu des daily notes (séquentiel après Groupe A)**
 
-1. **Confirmer la période avec Victor** (sauf si déjà précisée au déclenchement) :
+1. **Confirmer la période avec {USER_NAME}** (sauf si déjà précisée au déclenchement) :
    - Proposer : "semaine" (lundi-dimanche du calendrier dernier achevé) / "X derniers jours" / "depuis date Y (exacte)"
-   - Si Victor accepte "7 derniers jours" par défaut → appliquer sans délai
-   - Si Victor précise une période → l'appliquer
+   - Si {USER_NAME} accepte "7 derniers jours" par défaut → appliquer sans délai
+   - Si {USER_NAME} précise une période → l'appliquer
 2. **Une fois la période confirmée, lire en parallèle** :
    - Toutes les daily notes de la période dans `00 - Daily notes/` → extraire idées, tâches, URLs, images, signaux
    - Sessions correspondantes dans `99 - Claude Code/Sessions/` → capturer décisions et tâches non documentées
@@ -97,16 +97,16 @@ Scanner le contenu pour identifier :
 - Une réflexion personnelle qui revient
 - Une intention formulée mais pas suivie d'action
 - Une tâche liée à un projet actif (dont le nom figure dans `04 - Projects/INDEX.md`)
-- **Projet inconnu identifié** : Si une tâche vise un projet NON listé dans INDEX.md, le flaguer pour l'Étape 4 (ne pas créer le ticket avant validation Victor)
+- **Projet inconnu identifié** : Si une tâche vise un projet NON listé dans INDEX.md, le flaguer pour l'Étape 4 (ne pas créer le ticket avant validation {USER_NAME})
 - **Vrais signaux négatifs uniquement** : stress explicite, épuisement, mauvaise passe, isolement, nuits écourtées, perte d'envie générale — jamais signaler les mentions positives ou ambiguës (ex: "je dors moins mais je me sens bien" n'est PAS un signal d'alerte)
-- **Patterns de travail** : si une tendance émerge sur la période (énergie systématiquement basse certains jours, sessions plus productives à certains moments, perturbateurs récurrents, nouveau rituel) → proposer un enrichissement de la section "Mode de travail et énergie" dans `01 - Me/{USER_NAME}.md` — jamais écrire dedans directement, toujours proposer à Victor
+- **Patterns de travail** : si une tendance émerge sur la période (énergie systématiquement basse certains jours, sessions plus productives à certains moments, perturbateurs récurrents, nouveau rituel) → proposer un enrichissement de la section "Mode de travail et énergie" dans `01 - Me/{USER_NAME}.md` — jamais écrire dedans directement, toujours proposer à {USER_NAME}
 
 Catégoriser chaque signal :
 - **Idées à capitaliser** → créer une note dans le vault
 - **Tâches projet** → créer un ticket dans le Kanban du projet concerné (colonne Idea)
 - **Tâches vault/Claude Code** → ticket dans `Claude Code Kanban` (colonne Idea)
 - **Signaux d'alerte négatifs** → proposer une mise à jour de `01 - Me/Signaux d'alerte.md` — jamais écrire dedans directement
-- **Projets inconnus** → lister dans la présentation Étape 4 (ne pas créer sans validation Victor)
+- **Projets inconnus** → lister dans la présentation Étape 4 (ne pas créer sans validation {USER_NAME})
 
 ## Étape 3 — Traiter les liens et images
 
@@ -149,7 +149,7 @@ Pour chaque image détectée :
 
 **mediaType** : `image/png` pour `.png`, `image/jpeg` pour `.jpg`/`.jpeg`, `image/gif` pour `.gif`, `image/webp` pour `.webp`
 
-Si le fichier est introuvable dans le vault → signaler à Victor, ne pas bloquer le reste du harvest.
+Si le fichier est introuvable dans le vault → signaler à {USER_NAME}, ne pas bloquer le reste du harvest.
 
 ### URLs
 
@@ -225,11 +225,11 @@ Présenter le lien en attente de fallback :
 🔗 [url]
 → Accès bloqué / pas de transcript disponible / n8n en erreur
 → Fallback proposé : [prompt NotebookLM adapté]
-→ Victor peut : fournir un export HTML, un copier-coller, ou ignorer le lien
+→ {USER_NAME} peut : fournir un export HTML, un copier-coller, ou ignorer le lien
 → En attente de validation pour créer la note
 ```
 
-Si Victor ne fournit pas de contenu, ignorer le lien et le lister comme non traité dans le récapitulatif final.
+Si {USER_NAME} ne fournit pas de contenu, ignorer le lien et le lister comme non traité dans le récapitulatif final.
 
 ## Étape 4 — Validation groupée
 
@@ -274,17 +274,17 @@ Présenter un récapitulatif complet. **Ordre de présentation prioritaire : tic
 Valide tout / indique ce que tu veux ignorer / fournis les fallbacks manquants.
 ```
 
-**Attendre la validation de Victor sur l'Étape 4 (récapitulatif) avant de créer quoi que ce soit.**
+**Attendre la validation de {USER_NAME} sur l'Étape 4 (récapitulatif) avant de créer quoi que ce soit.**
 
 ## Étape 5 — Création via MCP et linking
 
-Uniquement pour les éléments validés par Victor.
+Uniquement pour les éléments validés par {USER_NAME}.
 
-**Prérequis** : Vérifier l'accès au vault avant de créer — tenter une lecture de test sur `04 - Projects/INDEX.md` (déjà lu en Étape 1). Si la lecture échoue, signaler à Victor que MCP est indisponible et lister le contenu exact à créer manuellement.
+**Prérequis** : Vérifier l'accès au vault avant de créer — tenter une lecture de test sur `04 - Projects/INDEX.md` (déjà lu en Étape 1). Si la lecture échoue, signaler à {USER_NAME} que MCP est indisponible et lister le contenu exact à créer manuellement.
 
-**Créer directement les fichiers et tickets validés par Victor** — lancer les créations sans nouvelle demande de confirmation. Les appels MCP sont atomiques par fichier. Signaler les erreurs de création explicitement.
+**Créer directement les fichiers et tickets validés par {USER_NAME}** — lancer les créations sans nouvelle demande de confirmation. Les appels MCP sont atomiques par fichier. Signaler les erreurs de création explicitement.
 
-Pour chaque ticket à créer, appliquer le skill `create-ticket` — il gère le fichier note ET l'insertion dans le kanban. Pour chaque note Knowledge, créer le fichier via Write ou MCP selon le contexte (pas de demande intermédiaire à Victor).
+Pour chaque ticket à créer, appliquer le skill `create-ticket` — il gère le fichier note ET l'insertion dans le kanban. Pour chaque note Knowledge, créer le fichier via Write ou MCP selon le contexte (pas de demande intermédiaire à {USER_NAME}).
 
 **Après création**, mettre à jour les notes existantes liées via des agents parallèles :
 
@@ -296,7 +296,7 @@ Pour chaque note nouvellement créée (notes Knowledge uniquement, pas les ticke
   - **B)** 1 bullet à ajouter dans la section la plus pertinente du corps
 - L'agent retourne ses proposals (ou rien si score < 2)
 
-Attendre que tous les agents aient terminé. Agréger et dédupliquer (une note existante peut être candidate de plusieurs nouvelles notes). Présenter à Victor pour validation :
+Attendre que tous les agents aient terminé. Agréger et dédupliquer (une note existante peut être candidate de plusieurs nouvelles notes). Présenter à {USER_NAME} pour validation :
 ```
 📎 Mises à jour proposées pour les notes existantes :
 - [[note-existante-1]] ← [[nouvelle-note-A]] :
@@ -304,9 +304,9 @@ Attendre que tous les agents aient terminé. Agréger et dédupliquer (une note 
   → Corps (section "## Points clés") : "- [bullet]"
 ```
 
-**Ces propositions ne sont que des suggestions** — appliquer uniquement après validation Victor. Si aucune candidate trouvée pour une note → passer silencieusement.
+**Ces propositions ne sont que des suggestions** — appliquer uniquement après validation {USER_NAME}. Si aucune candidate trouvée pour une note → passer silencieusement.
 
-Proposer aussi les liens entre les nouvelles notes elles-mêmes si elles sont liées — après validation de Victor.
+Proposer aussi les liens entre les nouvelles notes elles-mêmes si elles sont liées — après validation de {USER_NAME}.
 
 ### Structure d'une note de technique (Warhammer)
 ```markdown
@@ -325,7 +325,7 @@ tags: [warhammer, peinture, technique]
 - ...
 
 ## Notes personnelles
-> [ce que Victor a ajouté dans sa daily note]
+> [ce que {USER_NAME} a ajouté dans sa daily note]
 ```
 
 ### Structure d'une note de concept (Knowledge)
@@ -382,7 +382,7 @@ source: harvest YYYY-MM-DD
 
 ## Étape 6 — Finalisation et tracker
 
-Après création de tous les fichiers et tickets (validation de Victor incluse) :
+Après création de tous les fichiers et tickets (validation de {USER_NAME} incluse) :
 
 1. **Mettre à jour `treated-links.md`** : Ajouter les URLs traitées ou ignorées à la liste existante :
    ```markdown
@@ -397,9 +397,9 @@ Après création de tous les fichiers et tickets (validation de Victor incluse) 
 
 ## Règles absolues
 
-- **Jamais créer sans validation** — attendre la réponse de Victor sur l'Étape 4 (récapitulatif)
+- **Jamais créer sans validation** — attendre la réponse de {USER_NAME} sur l'Étape 4 (récapitulatif)
 - **Jamais modifier les daily notes** — elles restent telles quelles
-- **Jamais écrire dans `Signaux d'alerte.md` directement** — toujours proposer à Victor
+- **Jamais écrire dans `Signaux d'alerte.md` directement** — toujours proposer à {USER_NAME}
 - **Créer via MCP sans demande supplémentaire** — les créations suivent la validation de l'Étape 4
 - **Destinations valides uniquement** — utiliser le tableau de structure vault ci-dessus
 - **Fallback explicite** — si un lien est inaccessible, le dire clairement et attendre
@@ -407,6 +407,6 @@ Après création de tous les fichiers et tickets (validation de Victor incluse) 
 - **treated-links.md** — mis à jour en Étape 6 avec les liens traités ou ignorés
 - **Jamais reproposer l'existant** — vérifier le CLAUDE.md et le vault avant de proposer
 - **Claude Code Kanban** — créer un ticket ici pour toutes les tâches perso/vault sans projet associé. Notes dans `09 - Inbox/tickets/`, jamais dans `09 - Inbox/` directement
-- **Hobby Kanban WIP** — ne jamais créer en WIP si la limite est atteinte. Créer en Backlog ou Ready à la place et signaler à Victor
-- **Projets inconnus** — flaguer à l'Étape 4 (ne pas créer le ticket avant validation Victor)
+- **Hobby Kanban WIP** — ne jamais créer en WIP si la limite est atteinte. Créer en Backlog ou Ready à la place et signaler à {USER_NAME}
+- **Projets inconnus** — flaguer à l'Étape 4 (ne pas créer le ticket avant validation {USER_NAME})
 - **Fallback gracieux** — si `mood-tracker-data.json` ou `Hobby Kanban.md` n'existent pas, continuer sans ces données (section omise)

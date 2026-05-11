@@ -1,56 +1,56 @@
 ---
 name: addevent
-description: Quand Victor veut ajouter un bloc horaire dans sa daily note pour le visualiser dans Full Calendar. Déclenché via /addevent avec ou sans arguments — ex: /addevent 11:30 12:30 Révisions ibP
+description: When {USER_NAME} wants to add a time block to their daily note to visualize it in Full Calendar. Triggered via /addevent with or without arguments — e.g., /addevent 11:30 12:30 Revision ibP
 ---
 
 ## Arguments
 
-`$ARGUMENTS` accepte 0 à 3 éléments, dans l'ordre : `[startTime] [endTime] [titre]`
-- Format HH:mm : heures 00:00 à 23:59 (24h)
-- Exemple complet : `/addevent 11:30 12:30 Révisions ibP`
-- Exemple partiel (startTime + titre) : `/addevent 14:30 Dentiste`
-- Exemple minimal : `/addevent 14:00`
+`$ARGUMENTS` accepts 0 to 3 elements, in order: `[startTime] [endTime] [title]`
+- Format HH:mm : hours 00:00 to 23:59 (24h)
+- Complete example : `/addevent 11:30 12:30 Revision ibP`
+- Partial example (startTime + title) : `/addevent 14:30 Dentist`
+- Minimal example : `/addevent 14:00`
 
-## Comportement
+## Behavior
 
-1. Parser `$ARGUMENTS` en composants [startTime] [endTime] [titre] :
-   - Identifier les tokens au format HH:mm
-   - Remaining text = titre
-   - Cas 1 : trois éléments valides (HH:mm HH:mm texte) → continuer
-   - Cas 2 : deux HH:mm + titre → continuer
-   - Cas 3 : un HH:mm + titre (pas de deuxième HH:mm) → demander endTime
-   - Cas 4 : deux HH:mm (pas de titre) → demander titre
-   - Cas 5 : un HH:mm (pas de titre) → demander endTime et titre
-   - Cas 6 : texte seul (aucun HH:mm) → demander startTime et endTime
-   - Cas 7 : vide → demander startTime, endTime et titre
+1. Parse `$ARGUMENTS` into components [startTime] [endTime] [title] :
+   - Identify tokens in HH:mm format
+   - Remaining text = title
+   - Case 1 : three valid elements (HH:mm HH:mm text) → continue
+   - Case 2 : two HH:mm + title → continue
+   - Case 3 : one HH:mm + title (no second HH:mm) → ask for endTime
+   - Case 4 : two HH:mm (no title) → ask for title
+   - Case 5 : one HH:mm (no title) → ask for endTime and title
+   - Case 6 : text only (no HH:mm) → ask for startTime and endTime
+   - Case 7 : empty → ask for startTime, endTime and title
 
-2. Valider les heures :
-   - Format HH:mm : rejeter si MM >= 60 ou HH >= 24, redemander
-   - Logique : rejeter si startTime >= endTime, redemander
+2. Validate times :
+   - Format HH:mm : reject if MM >= 60 or HH >= 24, re-ask
+   - Logic : reject if startTime >= endTime, re-ask
 
-3. Lire (ou créer) la daily note : `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\YYYY-MM-DD.md` (date courante)
-   - Si le fichier n'existe pas, le créer en appliquant le template `{VAULT_PATH}\Ressources\Templates\Daily notes template.md` :
-     - Lire le template
-     - Résoudre tous les placeholders Templater `<% tp.date.now(...) %>` avec la date courante (ex: `<% tp.date.now("YYYY-MM-DD") %>` → `2026-04-02`)
-     - Créer la note avec ce contenu résolu (frontmatter complet + toutes les sections)
+3. Read (or create) the daily note : `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\YYYY-MM-DD.md` (current date)
+   - If file doesn't exist, create it using the template `{VAULT_PATH}\Resources\Templates\Daily notes template.md` :
+     - Read the template
+     - Resolve all Templater placeholders `<% tp.date.now(...) %>` with current date (e.g., `<% tp.date.now("YYYY-MM-DD") %>` → `2026-04-02`)
+     - Create the note with resolved content (full frontmatter + all sections)
 
-4. Localiser la section `### 📅 Agenda` :
-   - Si elle existe → insérer à la fin (au dernier item coché ou texte avant les lignes blanches)
-   - Si absente, mais `## 📅 Plan du jour` existe → ajouter `### 📅 Agenda` en-dessous
-   - Si les deux absent → créer `### 📅 Agenda` en fin de note
+4. Locate the `### 📅 Agenda` section :
+   - If it exists → insert at the end (at the last checked item or text before blank lines)
+   - If missing, but `## 📅 Plan du jour` exists → add `### 📅 Agenda` below
+   - If both absent → create `### 📅 Agenda` at end of note
 
-5. Ajouter la ligne :
+5. Add the line :
    ```
-   - [ ] [titre] [startTime:: HH:mm] [endTime:: HH:mm]
+   - [ ] [title] [startTime:: HH:mm] [endTime:: HH:mm]
    ```
-   Note : `startTime::` et `endTime::` sont des propriétés DataView pour suivi Full Calendar.
+   Note : `startTime::` and `endTime::` are DataView properties for Full Calendar tracking.
 
-6. Confirmer : "Événement ajouté : [titre] de HH:mm à HH:mm"
+6. Confirm : "Event added : [title] from HH:mm to HH:mm"
 
-## Règles
+## Rules
 
-- Format des heures : HH:mm (24h), plage 00:00-23:59
-- Validation temps : rejeter formats invalides (MM >= 60, HH >= 24) et startTime >= endTime, redemander
-- Insertion : fin de section Agenda, avant les lignes blanches si présentes
-- Création note : depuis template avec placeholders Templater résolus à la date courante
-- Confirmation : afficher l'événement ajouté avec les heures formatées
+- Time format : HH:mm (24h), range 00:00-23:59
+- Time validation : reject invalid formats (MM >= 60, HH >= 24) and startTime >= endTime, re-ask
+- Insertion : end of Agenda section, before blank lines if present
+- Note creation : from template with Templater placeholders resolved to current date
+- Confirmation : display added event with formatted times

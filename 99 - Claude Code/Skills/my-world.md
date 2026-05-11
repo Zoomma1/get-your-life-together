@@ -1,115 +1,115 @@
 ---
 name: my-world
-description: Charger le contexte global de Victor AVANT de savoir sur quoi travailler. Utiliser en début de session quand Victor ne sait pas encore où donner de la tête, veut une vue d'ensemble de sa situation actuelle, ou veut calibrer ses priorités avant de choisir un sujet. Différent de /workon (qui charge un sujet précis) et de /today (qui planifie la journée avec calendrier et kanbans).
+description: Load the global context of {USER_NAME} BEFORE knowing what to work on. Use at session start when the user doesn't yet know where to focus, wants an overview of their current situation, or wants to calibrate priorities before choosing a subject. Different from /workon (which loads a specific subject) and /today (which plans the day with calendar and kanbans).
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **qualitative narrative output**. Its effectiveness is measured on **output richness**, not structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: on mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (regrouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
 # Skill : /my-world
 
-Synthétise l'état actuel de la vie/projets de Victor en **4 blocs** pour répondre à "où j'en suis ?" avant de décider sur quoi bosser.
+Synthesizes the current state of {USER_NAME}'s life/projects in **4 blocks** to answer "where am I?" before deciding what to work on.
 
-## Étape 1 — Lire les daily notes récentes
+## Step 1 — Read recent daily notes
 
-Utiliser Glob sur `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\` pour lister tous les fichiers `.md` au format `YYYY-MM-DD.md` (ex : `2026-04-01.md`).
-Trier lexicographiquement et prendre les **5 fichiers les plus récents**.
-Lire dans l'ordre chronologique (du plus ancien au plus récent).
+Use Glob on `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\` to list all `.md` files in `YYYY-MM-DD.md` format (ex: `2026-04-01.md`).
+Sort lexicographically and take the **5 most recent files**.
+Read in chronological order (oldest to most recent).
 
-**Fallback** : si moins de 5 existent, lire celles disponibles sans signaler le manque.
-**Extraction** : noter ce qui occupe Victor — mentions récurrentes, sujets revernis, disparitions, décisions implicites.
+**Fallback**: if fewer than 5 exist, read those available without noting the shortage.
+**Extraction**: note what occupies {USER_NAME} — recurring mentions, revisited subjects, disappearances, implicit decisions.
 
-## Étape 2 — Lire la dernière session
+## Step 2 — Read the last session
 
-Utiliser Glob sur `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\Sessions\` pour lister tous les fichiers `.md`.
-Prendre le fichier à la **date la plus haute**.
+Use Glob on `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\Sessions\` to list all `.md` files.
+Take the file with the **highest date**.
 
-**Extraction** : accomplissements, prochaine étape, momentum perçu.
-**Fallback** : si aucune session, noter "aucun recap de session" dans la synthèse finale — utiliser daily notes seules.
+**Extraction**: accomplishments, next step, perceived momentum.
+**Fallback**: if no session, note "no session recap" in final synthesis — use daily notes alone.
 
-## Étape 2bis — Mémoire longue (optionnel)
+## Step 2bis — Long-term memory (optional)
 
-**Condition** : lancer seulement si Postgres et Ollama sont accessibles. Tester avec :
+**Condition**: launch only if Postgres and Ollama are accessible. Test with:
 ```bash
 python3 -c "import socket; s=socket.create_connection(('localhost',5433),timeout=2); s.close()"
 curl -s http://localhost:11434/api/tags > /dev/null
 ```
-Postgres écoute sur le port **5433** (pas 5432). Si l'un des deux échoue → non-bloquant, continuer vers Étape 3, afficher : `⚠️ Mémoire longue indisponible (Postgres/Ollama down) — synthèse sur daily notes uniquement.`
+Postgres listens on port **5433** (not 5432). If either fails → non-blocking, continue to Step 3, display: `⚠️ Long-term memory unavailable (Postgres/Ollama down) — synthesis from daily notes only.`
 
-Inférer 2 thèmes majeurs des daily notes lues (projets actifs, sujets récurrents). Pour chacun :
+Infer 2 major themes from daily notes read (active projects, recurring subjects). For each:
 ```bash
-uv run ~/.claude/semantic_search.py "<thème>" --top-k 2 --since <date J-30>
+uv run ~/.claude/semantic_search.py "<theme>" --top-k 2 --since <date J-30>
 ```
 
-**Usage dans la synthèse** — enrichir uniquement :
-- **Bloc 1** : si un projet est mentionné depuis plusieurs semaines (pattern historique), le noter `[évolue]` avec la date de première apparition
-- **Bloc 3** : si un shift est en réalité une récurrence ("déjà observé le YYYY-MM-DD"), le signaler explicitement
+**Usage in synthesis** — enrich only:
+- **Block 1**: if a project is mentioned over several weeks (historical pattern), note it `[evolving]` with first appearance date
+- **Block 3**: if a shift is actually a recurrence ("already observed YYYY-MM-DD"), flag it explicitly
 
-Ne pas créer de bloc supplémentaire. Ne pas surcharger la synthèse — max 1-2 enrichissements historiques.
+Don't create an extra block. Don't overload synthesis — max 1-2 historical enrichments.
 
 ---
 
-## Étape 3 — Synthétiser en 4 blocs
+## Step 3 — Synthesize into 4 blocks
 
-À partir des daily notes + session (si existe), construire une synthèse structurée.
-Limiter à **3-5 items par bloc** — prioriser par importance/fréquence.
-**Règle stricte** : ne jamais inventer d'infos absentes des fichiers lus. Si un bloc est vide, le déclarer explicitement.
+From daily notes + session (if exists), build structured synthesis.
+Limit to **3-5 items per block** — prioritize by importance/frequency.
+**Strict rule**: never invent info absent from read files. If a block is empty, declare it explicitly.
 
-### Bloc 1 — Priorités actives
+### Block 1 — Active priorities
 
-Ce sur quoi Victor travaille **réellement** en ce moment (tickets WIP, actions cochées, sujets récurrents dans daily notes).
-Tri par fréquence (plus souvent = plus haut).
-Marquer chaque priorité :
-- `[solide]` — mentionné dans dernière session OU dernière daily note
-- `[évolue]` — mentionné ≥2 fois dans les 5 jours
-- `[hypothèse]` — rarement/indirectement mentionné
+What {USER_NAME} is **actually working on** right now (WIP tickets, checked actions, recurring daily-note subjects).
+Sort by frequency (more often = higher).
+Mark each priority:
+- `[solid]` — mentioned in last session OR last daily note
+- `[evolving]` — mentioned ≥2 times in 5 days
+- `[hypothesis]` — rarely/indirectly mentioned
 
-### Bloc 2 — Questions ouvertes
+### Block 2 — Open questions
 
-Décisions non prises, incertitudes, sujets mentionnés sans suite.
-Chercher dans les daily notes : "je sais pas si", "à réfléchir", "pas sûr", tickets bloqués, abandons/reprises.
-Tri par urgence (blockers avant "à terme").
+Undecided decisions, uncertainties, topics mentioned without follow-up.
+Search daily notes for: "not sure if", "to think about", "unsure", blocked tickets, abandonments/restarts.
+Sort by urgency (blockers first).
 
-### Bloc 3 — Shifts récents
+### Block 3 — Recent shifts
 
-Ce qui a **changé** depuis dernière session ou depuis début des 5 daily notes.
-Chercher : changements de priorité, nouvelles mentions absentes de la session, disparitions de sujets récurrents, décisions prises.
-Tri par ampleur (impacts visibles d'abord).
+What has **changed** since last session or start of the 5 daily notes.
+Search for: priority changes, new mentions absent from session, disappearing recurring subjects, decisions made.
+Sort by magnitude (visible impacts first).
 
-### Bloc 4 — Énergie / contexte perso
+### Block 4 — Energy / personal context
 
-L'état **personnel** de Victor (distinct des priorités de travail).
-Extraire des 2-3 dernières daily notes : niveau d'énergie, fatigue/momentum, contraintes logistiques (Brno, déplacements, exam), état émotionnel.
+The **personal** state of {USER_NAME} (distinct from work priorities).
+Extract from last 2-3 daily notes: energy level, fatigue/momentum, logistical constraints (Brno, travel, exam), emotional state.
 
-## Format de sortie
+## Output format
 
 ```
-## Mon monde — [date du jour]
+## My world — [today's date]
 
-### 🎯 Priorités actives
-- [Priorité 1] [solide/évolue/hypothèse]
-- [Priorité 2] [solide/évolue/hypothèse]
+### 🎯 Active priorities
+- [Priority 1] [solid/evolving/hypothesis]
+- [Priority 2] [solid/evolving/hypothesis]
 
-### ❓ Questions ouvertes
-- [Question ou incertitude 1]
+### ❓ Open questions
+- [Question or uncertainty 1]
 
-### 🔄 Shifts récents
-- [Ce qui a changé]
+### 🔄 Recent shifts
+- [What changed]
 
-### ⚡ Énergie / contexte
-- [État actuel en 1-2 phrases]
+### ⚡ Energy / context
+- [Current state in 1-2 sentences]
 
 ---
-Sur quoi tu veux bosser ?
+What do you want to work on?
 ```
 
-## Étape 4 — Présenter et fermer
+## Step 4 — Present and close
 
-Utiliser le format fourni ci-dessous. **Règles** :
-- Ne pas proposer de plan d'action ni suggestions de tâches (rôle de `/today`)
-- Ne pas charger kanbans projets ni inbox (hors scope)
-- Terminer TOUJOURS par "Sur quoi tu veux bosser ?" sans enchaîner
+Use the format provided above. **Rules**:
+- Don't propose action plans or task suggestions (role of `/today`)
+- Don't load project kanbans or inbox (out of scope)
+- **Always** end with "What do you want to work on?" without continuing

@@ -1,24 +1,24 @@
 ---
 name: trace
-description: Retracer l'évolution d'une idée dans le vault de Victor — quand elle est apparue, comment elle a changé, où elle en est maintenant. Pair-programming chronologique : Claude cherche + synthétise, Victor valide à 3 points clés (synonymes, résultats bruts, timeline). Déclencher quand Victor veut comprendre comment une pensée a mûri, détecter une contradiction, ou cartographier la trajectoire d'un concept. Exemples : "/trace TDAH", "/trace architecture software", "/trace Brno", "/trace pair programming".
+description: Trace the evolution of an idea in {USER_NAME}'s vault — when it appeared, how it changed, where it stands now. Chronological pair-programming: Claude searches + synthesizes, {USER_NAME} validates at 3 key points (synonyms, raw results, timeline). Trigger when the user wants to understand how a thought matured, detect a contradiction, or map the trajectory of a concept. Examples: "/trace ADHD", "/trace software architecture", "/trace Brno", "/trace pair programming".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces a **qualitative narrative** output. Its effectiveness is measured by the **richness of the produced output**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, key moments, open questions, tone, narration). Preserving qualitative content takes priority over line reduction.
 
-# Skill : /trace
+# Skill: /trace
 
-Une idée dans un vault n'est jamais figée. Elle apparaît sous un nom, change de forme, fusionne avec d'autres, se contredit. Le skill `/trace` suit cette évolution chronologiquement — pas pour raconter une histoire propre, mais pour rendre visible ce qui s'est réellement passé dans la pensée de Victor.
+An idea in a vault is never fixed. It appears under a name, changes form, merges with others, contradicts itself. The `/trace` skill follows this evolution chronologically — not to tell a clean story, but to make visible what actually happened in {USER_NAME}'s thinking.
 
-**Différence avec `/recall`** : `recall` cherche *quoi existe* sur un sujet ; `trace` cherche *comment ce sujet a changé dans le temps*.
+**Difference from `/recall`**: `recall` looks for *what exists* on a subject; `trace` looks for *how this subject changed over time*.
 
 ---
 
-## Déclenchement
+## Trigger
 
 ```
 /trace [concept]         → trace l'évolution de ce concept dans le vault
@@ -29,15 +29,15 @@ Une idée dans un vault n'est jamais figée. Elle apparaît sous un nom, change 
 
 ---
 
-## Étape 0 — Vérifier la viabilité
+## Step 0 — Check viability
 
 **Avant de lancer la trace**, déterminer si le concept existe dans le vault sur une durée significative.
 
 Claude exécute un grep initial léger (10 secondes max) sur les termes évidentes du concept. Trois cas possibles :
 
 1. **Concept riche** (10+ occurrences, 2+ mois d'évolution) → continuer vers Étape 1
-2. **Concept très neuf ou rare** (1-5 occurrences, <1 mois) → signaler à Victor : "Ce concept a très peu de traces. La trace sera courte/mince. Continuer ?"
-3. **Concept absent** (0 occurrence) → arrêter et dire à Victor : "Je ne trouve aucune trace de [concept] dans le vault. Voulez-vous que je cherche des variantes ?" → revenir à Étape 1 si Victor donne des variantes
+2. **Concept très neuf ou rare** (1-5 occurrences, <1 mois) → signaler à {USER_NAME} : "Ce concept a très peu de traces. La trace sera courte/mince. Continuer ?"
+3. **Concept absent** (0 occurrence) → arrêter et dire à {USER_NAME} : "Je ne trouve aucune trace de [concept] dans le vault. Voulez-vous que je cherche des variantes ?" → revenir à Étape 1 si {USER_NAME} donne des variantes
 
 C'est une mini-validation AVANT d'investir 5 minutes en Étape 1-2.
 
@@ -52,7 +52,7 @@ Pour le concept passé en argument, lister :
 - Les synonymes directs
 - Les termes adjacents (concepts qui co-évoluent souvent avec celui-ci)
 - Les formulations négatives (ex: "je n'arrive pas à..." révèle une relation avec un concept)
-- Les abréviations et sigles utilisés par Victor
+- Les abréviations et sigles utilisés par {USER_NAME}
 
 Exemple pour `/trace TDAH` :
 ```
@@ -61,15 +61,15 @@ Termes : TDAH, TDA/H, attention, focus, concentration, procrastination,
 ```
 
 **VALIDATION DE VICTOR OBLIGATOIRE** — Présenter cette liste et attendre sa réponse :
-- Si Victor dit "c'est bon" ou valide implicitement → Étape 2.
-- Si Victor ajoute des termes, reformule ou retire → intégrer et redemander confirmation.
-- Si Victor dit "ce concept n'existe pas dans mon vault" ou "trop neuf" → arrêter et signaler.
+- Si the user says "c'est bon" ou valide implicitement → Étape 2.
+- Si {USER_NAME} ajoute des termes, reformule ou retire → intégrer et redemander confirmation.
+- Si the user says "ce concept n'existe pas dans mon vault" ou "trop neuf" → arrêter et signaler.
 
 ---
 
 ## Étape 2 — Rechercher dans les sources (5 répertoires en parallèle)
 
-La liste de synonymes validée est connue → lancer la recherche dans les 5 répertoires en parallèle. **Claude exécute les 5 Grep en parallèle, Victor valide les résultats ensuite.**
+La liste de synonymes validée est connue → lancer la recherche dans les 5 répertoires en parallèle. **Claude exécute les 5 Grep en parallèle, {USER_NAME} valide les résultats ensuite.**
 
 Chaque recherche retourne les matches avec leur contexte (fichier, date, extrait exact) :
 
@@ -87,7 +87,7 @@ Agent 5 : `04 - Projects/*/claude-code/` → cherche tous les termes + [[terme]]
 - Marquer les backlinks `[[terme]]` comme "confiance élevée"
 - Signaler si un terme n'a ZÉRO occurrence → note `[absent du vault]`
 
-**Pause pour validation** : présenter les résultats bruts à Victor. Il peut demander une recherche supplémentaire ou valider pour Étape 3.
+**Pause pour validation** : présenter les résultats bruts à {USER_NAME}. Il peut demander une recherche supplémentaire ou valider pour Étape 3.
 
 ---
 
@@ -98,7 +98,7 @@ Agent 5 : `04 - Projects/*/claude-code/` → cherche tous les termes + [[terme]]
 Patterns à chercher :
 - **Décisions qui révèlent une position** : un ADR peut refléter une croyance sans jamais nommer le concept
 - **Réactions émotionnelles** : "ça m'a frustré", "c'est exactement ça" indiquent une relation avec une idée sous-jacente
-- **Approches récurrentes** : si Victor résout toujours les mêmes problèmes de la même façon, c'est un pattern implicite
+- **Approches récurrentes** : si {USER_NAME} résout toujours les mêmes problèmes de la même façon, c'est un pattern implicite
 - **Absences significatives** : un sujet qui disparaît soudainement du vault après avoir été fréquent
 
 Ces patterns implicites seront marqués `[implicit]` dans la timeline.
@@ -108,7 +108,7 @@ Ces patterns implicites seront marqués `[implicit]` dans la timeline.
 - Termes absents du vault (marqués `[absent]`)
 - Fichiers attendus mais manquants (ex: CLAUDE.md de projet ne montrant pas une décision sur le sujet)
 
-**Note sur le découpage temporel** : si la trace couvre > 2 ans ou > 50 entrées, Claude demande à Victor : "La trace est très longue. Veux-tu la voir complète ou segmentée par période/theme ?" et attend la réponse avant Étape 4.
+**Note sur le découpage temporel** : si la trace couvre > 2 ans ou > 50 entrées, Claude demande à {USER_NAME} : "La trace est très longue. Veux-tu la voir complète ou segmentée par période/theme ?" et attend la réponse avant Étape 4.
 
 ---
 
@@ -135,13 +135,13 @@ Pour chaque entrée de la timeline :
 | `[implicit]` | Déduit d'un pattern, non nommé directement |
 | `[absent]` | Période sans occurrences ou terme introuvable |
 
-**Règle des citations** : toujours utiliser les mots exacts de Victor, entre guillemets. Ne jamais paraphraser. Si l'extrait est trop long, couper avec `[...]` mais préserver les formulations clés.
+**Règle des citations** : toujours utiliser les mots exacts de {USER_NAME}, entre guillemets. Ne jamais paraphraser. Si l'extrait est trop long, couper avec `[...]` mais préserver les formulations clés.
 
 **Catalyseurs** : si un changement est visible entre deux entrées, identifier ce qui l'a provoqué — une lecture, un événement, un projet, une décision. Les marquer `→ ⚡ Catalyseur : ...`.
 
 **VALIDATION DE VICTOR OBLIGATOIRE** — Avant Étape 5 :
 - Présenter la timeline brute
-- Victor peut signaler : maldates, mauvaise interprétation, entrée oubliée, contexte erroné
+- {USER_NAME} peut signaler : maldates, mauvaise interprétation, entrée oubliée, contexte erroné
 - Intégrer les retours, puis passer à Étape 5
 
 ---
@@ -159,7 +159,7 @@ Pour chaque entrée de la timeline :
 - Qu'est-ce qui a provoqué chaque pivot ?
 
 ### Position actuelle
-- Où en est Victor sur ce sujet maintenant ?
+- Où en est {USER_NAME} sur ce sujet maintenant ?
 - Avec quel niveau de confiance ?
 
 ### Pattern d'évolution
@@ -187,7 +187,7 @@ Où cette pensée semble-t-elle se diriger ? Quelles questions restent ouvertes 
 ```
 ## Trace : [concept] — [date d'analyse]
 
-### Termes cherchés (validés par Victor)
+### Termes cherchés (validés par {USER_NAME})
 [liste des synonymes + termes adjacents utilisés]
 
 ### Timeline
@@ -211,20 +211,20 @@ Où cette pensée semble-t-elle se diriger ? Quelles questions restent ouvertes 
 **Trajectoire** : [où ça semble aller, questions ouvertes]
 ```
 
-**Note** : Les synonymes apparaissent EN TÊTE (validés par Victor à Étape 1), pas à la fin. Les gaps et absences sont notés après la timeline pour contexte.
+**Note** : Les synonymes apparaissent EN TÊTE (validés par {USER_NAME} à Étape 1), pas à la fin. Les gaps et absences sont notés après la timeline pour contexte.
 
 ---
 
 ## Règles absolues
 
 ### Citations et dates
-- **Citations exactes obligatoires** — ne jamais paraphraser les mots de Victor, toujours utiliser guillemets et `[...]` pour couper
+- **Citations exactes obligatoires** — ne jamais paraphraser les mots de {USER_NAME}, toujours utiliser guillemets et `[...]` pour couper
 - **Dater chaque entrée** — une entrée sans date est inutile pour une timeline. Si la date est approximative, le noter `[~DATE]`
 - **Confidence markers sur chaque entrée** — `[solid]`, `[evolving]`, `[hypothesis]`, `[questioning]`, `[implicit]`, ou `[absent]`
 
 ### Workflow et validation
 - **Étape 1 → VALIDATION VICTOR** — ne jamais commencer le Grep sans accord sur les synonymes
-- **Étape 2 → présenter résultats bruts** — Victor peut demander des recherches supplémentaires
+- **Étape 2 → présenter résultats bruts** — {USER_NAME} peut demander des recherches supplémentaires
 - **Étape 4 → VALIDATION VICTOR** — antes de synthétiser l'arc, valider les dates et contextes
 - **Pas d'interprétation solo** — si une position est ambiguë, la marquer `[hypothesis]` ou `[questioning]`, pas `[solid]`
 

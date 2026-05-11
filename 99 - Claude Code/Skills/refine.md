@@ -1,165 +1,165 @@
 ---
 name: refine
-description: Challenger un ticket ou une feature avant de coder — discussion structurée en 6 étapes : extraction des assumptions cachées, severity matrix (Crack/Tension/Foundation risk), discussion libre, question sous-jacente, conclusion sur 5 issues possibles (Go / Adapter / Jeter / Backlog V2 / Blocker). Déclencher quand Victor dit "refine", "/refine [nom du ticket]", "on discute de cette feature", "challenge ce ticket", "est-ce que c'est faisable", "valide les specs", "quelles alternatives", ou avant de démarrer une feature dont les specs sont floues. Mode pair programming — pas de code tant que Victor ne dit pas explicitement "go" ou "prends la main".
+description: Challenge a ticket or feature before coding — structured discussion in 6 steps: uncover hidden assumptions, severity matrix (Crack/Tension/Foundation risk), open discussion, underlying question, conclusion on 5 possible issues (Go / Adapt / Jeter / Backlog V2 / Blocker). Trigger when the user says "refine", "/refine [ticket-name]", "let's discuss this feature", "challenge this ticket", "is this feasible", "validate the specs", "what alternatives", or before starting a feature with unclear specs. Pair programming mode — no code until {USER_NAME} explicitly says "go" or "take over".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **qualitative narrative output**. Its effectiveness is measured by the **richness of output produced**, not structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet required even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in ways that strip narrative instructions (grouping, context, key moments, open questions, tone, narration). Qualitative content preservation takes priority over line reduction.
 
-# Skill : Refine
+# Skill: Refine
 
-Ce skill ouvre une discussion structurée sur un ticket ou une feature **avant le code**. L'objectif est d'éviter 3 pièges courants :
-1. Coder la mauvaise chose parce que les specs sont floues
-2. Découvrir à mi-chemin qu'une dépendance ou assumption était fausse
-3. Implémenter dans une mauvaise direction faute d'avoir exploré les alternatives
+This skill opens a structured discussion on a ticket or feature **before coding**. The goal is to avoid 3 common pitfalls:
+1. Coding the wrong thing because specs are unclear
+2. Discovering mid-way that a dependency or assumption was false
+3. Implementing in the wrong direction for lack of exploring alternatives
 
-Refine = challenger les specs, identifier ce qui est implicite, évaluer la faisabilité, et décider ensemble de la suite.
+Refine = challenge the specs, identify what's implicit, evaluate feasibility, and decide together on the next step.
 
-## Déclenchement
+## Triggering
 
-- Commande `/refine [nom du ticket]`
-- Victor dit "on discute de cette feature", "challenge ce ticket", "est-ce que c'est faisable", "prends la main sur le refine du ticket X"
-- **Tout ticket passant en Ready** — `/refine` est obligatoire avant de confirmer le passage en Ready, que ce soit pendant `/today`, une session de raffinement standalone, ou toute autre session. Ne pas attendre la demande explicite de Victor.
+- Command `/refine [ticket-name]`
+- the user says "let's discuss this feature", "challenge this ticket", "is this feasible", "take over the refine on ticket X"
+- **Every ticket moving to Ready** — `/refine` is mandatory before confirming the move to Ready, whether during `/today`, a standalone refinement session, or any other session. Don't wait for explicit request from {USER_NAME}.
 
-**Structure du skill** : 6 étapes — charger contexte → extraction assumptions → analyse+risques → discussion → question sous-jacente → conclusion
+**Skill structure**: 6 steps — load context → extract assumptions → analysis+risks → discussion → underlying question → conclusion
 
-## Détection précoce — Ticket exploratoire (ADR-046)
+## Early Detection — Exploratory Ticket (ADR-046)
 
-**Avant l'Étape 1**, vérifier si le ticket est de type exploratoire :
-- Titre contient "Explorer", "Exploration", "Investigate", ou
-- Description indique clairement une activité de découverte ("lire", "regarder", "comprendre", "évaluer si X vaut le coup")
+**Before Step 1**, check if ticket is exploratory:
+- Title contains "Explore", "Exploration", "Investigate", or
+- Description clearly indicates discovery activity ("read", "watch", "understand", "evaluate if X is worth it")
 
-**Si exploratoire → format allégé** :
-- Sauter les Étapes 1-5 (assumptions, severity matrix, discussion, question sous-jacente)
-- Passe directe : **explorer / backlog V2 / jeter** + raisonnement 2-3 lignes
-- La seule question : "vaut-il la peine d'explorer ça, et si oui, sous quelle forme ?"
-- **Règle absolue** : ne jamais conclure "Jeter" sans avoir lu la source. Flow correct : lire → extraire apprentissages (note Knowledge si pertinent) → tickets d'implem dans la foulée si ça mérite.
+**If exploratory → streamlined format**:
+- Skip Steps 1-5 (assumptions, severity matrix, discussion, underlying question)
+- Direct pass: **explore / backlog V2 / jeter** + 2-3 line reasoning
+- Only question: "is it worth exploring this, and if so, how?"
+- **Absolute rule**: never conclude "Jeter" without reading the source. Correct flow: read → extract learnings (Knowledge note if relevant) → implementation tickets downstream if it deserves it.
 
-**Si non exploratoire → flow standard Étapes 1-6.**
+**If not exploratory → standard Steps 1-6 flow.**
 
-## Étape 1 — Charger le contexte
+## Step 1 — Load Context
 
-1. Chercher le ticket dans les Kanbans des projets actifs :
-   - Lire `{VAULT_PATH}\{PROJECTS_FOLDER}\[NomProjet]\` pour localiser le fichier Features ou Kanban
-   - Chercher la note du ticket (format : `NomFeature.md` ou équivalent)
-2. Si trouvé → lire la note du ticket + les specs existantes. **Procéder directement, sans demander permission — Victor a nommé le ticket, il s'attend à ce qu'on le charge.**
-3. Lire le README du projet concerné (`{VAULT_PATH}\{PROJECTS_FOLDER}\[NomProjet]\claude-code\README.md`) pour le contexte technique
-4. **Ne jamais charger les skills par anticipation** — attendre une demande explicite de Victor ("montre-moi", "comment tu ferais", "prends la main")
+1. Search for ticket in active project Kanbans:
+   - Read `{VAULT_PATH}\{PROJECTS_FOLDER}\[ProjectName]\` to locate Features or Kanban file
+   - Search for ticket note (format: `FeatureName.md` or equivalent)
+2. If found → read ticket note + existing specs. **Proceed directly, without asking permission — {USER_NAME} named the ticket, they expect it to be loaded.**
+3. Read project README (`{VAULT_PATH}\{PROJECTS_FOLDER}\[ProjectName]\claude-code\README.md`) for technical context
+4. **Never load skills by anticipation** — wait for explicit request from {USER_NAME} ("show me", "how would you", "take over")
 
-**Si le ticket n'est pas trouvé ou mal écrit** → demander à Victor de le décrire directement dans le chat. Accepter une description verbale comme source de vérité pour le refine. Si la description donnée est fragmentaire, itérer : poser des questions clarificatrices (scope, contexte, dépendances) avant de passer à l'Étape 2.
+**If ticket not found or poorly written** → ask {USER_NAME} to describe it directly in chat. Accept verbal description as truth source for refine. If description is fragmentary, iterate: ask clarifying questions (scope, context, dependencies) before moving to Step 2.
 
-## Étape 2 — Extraction et validation des assumptions
+## Step 2 — Extract and Validate Assumptions
 
-Avant d'analyser le ticket, identifier les assumptions cachées qu'il contient. Les énoncer explicitement :
+Before analyzing the ticket, identify hidden assumptions it contains. State them explicitly:
 
-- "On part du principe que..." (ex : "...la DB est accessible en temps réel")
-- "Ça suppose que..." (ex : "...Victor a accès à une API tierce")
-- "Ça marche seulement si..." (ex : "...on accepte une latence de 2s")
+- "We assume that..." (ex: "...the DB is accessible in real-time")
+- "This supposes that..." (ex: "...{USER_NAME} has access to a third-party API")
+- "This works only if..." (ex: "...we accept 2s latency")
 
-**Format concret** : présenter 3-5 assumptions clés, une par ligne, validées contre le ticket et le README du projet.
+**Concrete format**: present 3-5 key assumptions, one per line, validated against ticket and project README.
 
-**Puis valider avec Victor** avant de continuer. L'objectif : éviter de passer une heure à discuter d'une fausse version du ticket.
-- Si Victor confirme → continuer à Étape 3
-- Si Victor contredit → revenir immédiatement à Étape 1 pour relire et ajuster
-- Si Victor ajoute une assumption → incorporer et re-valider
+**Then validate with {USER_NAME}** before continuing. Goal: avoid spending an hour discussing a wrong version of the ticket.
+- If {USER_NAME} confirms → proceed to Step 3
+- If {USER_NAME} contradicts → immediately return to Step 1 to re-read and adjust
+- If {USER_NAME} adds assumption → incorporate and re-validate
 
-## Étape 3 — Analyse + Severity matrix
+## Step 3 — Analysis + Severity Matrix
 
-Présenter une analyse honnête avec classification de chaque risque :
+Present an honest analysis with risk classification:
 
 ```
-## Analyse de [NomDuTicket]
+## Analysis of [TicketName]
 
-### Ce que je comprends
-[Résumé de ce que le ticket demande]
+### What I Understand
+[Summary of what the ticket asks]
 
-### Faisabilité
-[Faisable / Faisable avec contraintes / Complexe / À reconsidérer]
+### Feasibility
+[Feasible / Feasible with constraints / Complex / Needs Reconsideration]
 
-### Risques et points qui coincent
-- **Crack** (mineur) — [ex: petite ambiguïté ou détail à clarifier]
-- **Tension** (bloquant tant que non résolu) — [ex: contradiction, décision manquante]
-- **Foundation risk** (critique) — [ex: dépendance externe, assumption fausse = ticket s'effondre]
+### Risks and Pain Points
+- **Crack** (minor) — [ex: small ambiguity or detail to clarify]
+- **Tension** (blocking until resolved) — [ex: contradiction, missing decision]
+- **Foundation risk** (critical) — [ex: external dependency, false assumption = ticket collapses]
 
-### Questions ouvertes
+### Open Questions
 - ...
 
-### Mon avis
-[Avis direct — pas de langue de bois]
+### My Take
+[Direct opinion — no corporate speak]
 ```
 
-**Classement des risques** :
-- **Crack** → continuer la discussion, révisiter au sprint suivant si besoin
-- **Tension** → poser la question à Victor maintenant, bloquer le Go tant que non tranché
-- **Foundation risk** → STOP. Identifier qui doit valider et documenter la dépendance. Taguer `#blocked` si bloquant.
+**Risk classification**:
+- **Crack** → continue discussion, revisit next sprint if needed
+- **Tension** → ask {USER_NAME} now, block Go until resolved
+- **Foundation risk** → STOP. Identify who must validate and document dependency. Tag `#blocked` if blocking.
 
-**Traiter en ordre** : Foundation risks d'abord, puis Tensions, puis Cracks.
+**Process in order**: Foundation risks first, then Tensions, then Cracks.
 
-## Étape 4 — Discussion
+## Step 4 — Discussion
 
-Mode discussion libre — Victor donne son avis, on itère jusqu'à une décision ou un pivot.
+Open discussion mode — {USER_NAME} shares opinion, we iterate until a decision or pivot.
 
-**Règles pendant la discussion** :
-- Nommer les problèmes directement, proposer une alternative, laisser Victor décider — pas de validation automatique
-- Rester concret — toujours ancrer dans le contexte du projet réel
-- Pas de code pendant la discussion — seulement quand Victor dit "montre-moi" ou "prends la main"
-- **Limite** : si la discussion tourne en boucle (même question posée 3+ fois, pas de progression), proposer d'arrêter et d'attendre plus d'info. Documenter le point d'arrêt dans le ticket.
+**Rules during discussion**:
+- Name problems directly, propose an alternative, let {USER_NAME} decide — no automatic validation
+- Stay concrete — always anchor in real project context
+- No code during discussion — only when {USER_NAME} says "show me" or "take over"
+- **Limit**: if discussion loops (same question asked 3+ times, no progress), propose stopping and waiting for more info. Document the stopping point in ticket.
 
-**Si Victor veut aborter ou pivoter** :
-- Respecter la décision sans négocier
-- Documenter ce qui a été exploré et pourquoi la discussion s'arrête (pour contexte futur)
-- Passer à l'Étape 6 (Conclusion) et sélectionner une issue appropriée (souvent Blocker si c'est une dépendance externe, ou Backlog V2 si c'est un pivot futur)
+**If {USER_NAME} wants to abort or pivot**:
+- Respect the decision without negotiating
+- Document what was explored and why discussion stops (for future context)
+- Move to Step 6 (Conclusion) and select appropriate issue (often Blocker if external dependency, or Backlog V2 if future pivot)
 
-## Étape 5 — La question sous-jacente
+## Step 5 — The Underlying Question
 
-Avant de conclure, identifier et poser la question cachée — celle qui n'a pas été nommée explicitement mais qui conditionne la décision finale :
+Before concluding, identify and ask the hidden question — the one not named explicitly but that conditions final decision:
 
-**Exemples concrets** :
-- "Est-ce qu'on accepte une solution compliquée maintenant ou on la simplifie en V2 ?"
-- "Quelle est vraiment la dépendance bloquante — est-ce vraiment insurmontable ?"
-- "On code pour le cas nominatif ou on prévient tous les edge cases ?"
-- "Ce ticket résout-il le vrai problème utilisateur, ou juste un symptôme ?"
+**Concrete examples**:
+- "Do we accept a complex solution now or simplify it in V2?"
+- "What's really the blocking dependency — is it truly insurmountable?"
+- "Do we code for the nominal case or prevent all edge cases?"
+- "Does this ticket solve the real user problem, or just a symptom?"
 
-**Pourquoi c'est important** : les Tensions et Cracks qu'on a identifiés reflètent souvent une seule vraie question sous-jacente. La poser directement accélère la décision finale.
+**Why it matters**: Tensions and Cracks often reflect a single underlying question. Asking it directly accelerates final decision.
 
-**Attitude** : poser la question directement, sans langue de bois. Ne pas valider automatiquement la réponse — attendre la réaction de Victor.
+**Attitude**: ask directly, no corporate speak. Don't automatically validate the answer — wait for {USER_NAME}'s reaction.
 
-## Étape 6 — Conclusion et issue
+## Step 6 — Conclusion and Issue
 
-Proposer une des cinq issues et documenter la décision :
+Propose one of five issues and document the decision:
 
-**✅ Go — implémenter tel quel**
-- Les specs sont claires, les assumptions confirmées, faisabilité OK
-- Demander si Victor veut démarrer maintenant ou plus tard
-- Si "plus tard" : noter la date et l'intention dans le ticket (pas juste verbal)
+**✅ Go — implement as-is**
+- Specs are clear, assumptions confirmed, feasibility OK
+- Ask if {USER_NAME} wants to start now or later
+- If "later": note the date and intent in ticket (not just verbal)
 
-**✏️ Adapter — modifier les specs**
-- Mettre à jour la section `## Specs générées` du ticket avec les décisions prises
-- Déplacer le ticket en colonne Ready si ce n'est pas déjà fait
+**✏️ Adapt — modify specs**
+- Update the `## Generated Specs` section of ticket with made decisions
+- Move ticket to Ready column if not already
 
-**🗑️ Jeter — abandonner le ticket**
-- Déplacer le ticket en colonne Done avec une note d'abandon
-- Documenter pourquoi dans la note du ticket
+**🗑️ Jeter — abandon the ticket**
+- Move ticket to Done column with cancellation note
+- Document why in ticket note
 
-**🧊 Backlog V2 — ticket valide mais prématuré**
-- Taguer `#V2` dans le kanban
-- Alimenter le fichier `V2 ideas.md` du projet avec le ticket et le raisonnement (créer le fichier s'il n'existe pas)
-- Laisser le ticket en colonne Idea — il sera repris quand les prérequis seront réunis
+**🧊 Backlog V2 — valid ticket but premature**
+- Tag `#V2` in kanban
+- Feed `V2 ideas.md` file in project with ticket and reasoning (create file if absent)
+- Leave ticket in Idea column — will be picked up when prerequisites are met
 
-**⏸️ Blocker — ticket valide mais bloqué**
-- Le ticket dépend d'une info externe manquante, d'une feature non livrée, ou d'une décision en attente
-- Identifier précisément ce qui bloque et qui doit le débloquer
-- Taguer `#blocked` dans le kanban + noter le bloquant dans la note du ticket
+**⏸️ Blocker — valid ticket but blocked**
+- Ticket depends on missing external info, undelivered feature, or pending decision
+- Precisely identify what blocks and who must unblock
+- Tag `#blocked` in kanban + note blocker in ticket
 
-**Pour toutes les issues** : mettre à jour la note du ticket avec le raisonnement complet — c'est la mémoire du refine pour une revue ultérieure.
+**For all issues**: update ticket note with full reasoning — it's the memory of refine for future review.
 
-## Règles absolues
+## Absolute Rules
 
-- Ne jamais commencer à coder sans que Victor dise explicitement "go" ou "prends la main"
-- Toujours mettre à jour la note du ticket avec les décisions de la discussion
-- Un avis honnête prime sur un avis rassurant
-- **Pendant /refine, le seul fichier modifié est la note du ticket** — jamais les fichiers cibles de l'implémentation ({USER_NAME}.md, skills, daily notes, CLAUDE.md, etc.). Toute modification hors-ticket doit attendre le "go" explicite.
+- Never start coding without {USER_NAME} explicitly saying "go" or "take over"
+- Always update ticket note with discussion decisions
+- Honest opinion beats reassuring opinion
+- **During /refine, the only modified file is the ticket note** — never target files ({USER_NAME}.md, skills, daily notes, CLAUDE.md, etc.). Any other modification awaits explicit "go" from {USER_NAME}.

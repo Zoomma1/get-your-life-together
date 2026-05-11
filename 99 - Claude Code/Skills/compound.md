@@ -1,218 +1,218 @@
 ---
 name: compound
-description: À lancer 2-3 fois par an sur une question stratégique — carrière, architecture personnelle, rapport au TDAH. Répond à la même question à trois moments du vault pour montrer comment la qualité de la réponse évolue quand le contexte s'accumule. Différent de /trace (comprendre comment une idée a évolué) : /compound mesure si le vault rend les réponses vraiment meilleures.
+description: Run 2-3 times per year on a strategic question — career, personal architecture, relationship to ADHD. Answers the same question at three different moments in the vault to show how the quality of the answer evolves as context accumulates. Different from /trace (understand how an idea evolved): /compound measures if the vault makes answers truly better.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces a **narrative qualitative output**. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips out narrative instructions (grouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
-# Skill : /compound
+# Skill: /compound
 
-Répond à la même question trois fois — à trois moments distincts du vault — avec uniquement le contexte disponible à chaque époque. La contrainte de longueur égale entre les trois réponses est le cœur du skill : elle isole la qualité du volume, et force à voir si le vault améliore vraiment les réponses ou se contente de les allonger.
+Answers the same question three times — at three distinct moments in the vault — using only the context available at each point in time. The constraint of equal length across all three answers is the core of the skill: it isolates quality from volume, and forces you to see if the vault actually improves answers or just makes them longer.
 
-**Différence avec `/trace`** : `/trace` suit l'évolution d'une idée dans le vault (comprendre). `/compound` répond à une question à trois moments différents (mesurer si le vault pense mieux).
+**Difference from `/trace`**: `/trace` follows the evolution of an idea in the vault (understand). `/compound` answers a question at three different moments (measure if the vault thinks better).
 
-**Flow complet :** Valider Q (Étape 0) → Analyser vault (Étape 1) → Choisir 3 périodes (Étape 2) → Inventaire contexte (Étape 3) → Prédire (Étape 4) → Générer 3 réponses (Étape 5) → Vérifier anachronismes (Étape 6) → Synthèse + delta (Étape 7) → Sauver (Étape 8).
+**Complete flow**: Validate Q (Step 0) → Analyze vault (Step 1) → Choose 3 periods (Step 2) → Inventory context (Step 3) → Predict (Step 4) → Generate 3 answers (Step 5) → Verify anachronisms (Step 6) → Synthesis + delta (Step 7) → Save (Step 8).
 
-## Déclenchement
+## Trigger
 
 ```
 /compound [question]
 ```
 
-**Bonnes questions :**
-- Questions dont la réponse dépend du contexte personnel (pas de réponse universelle)
-- Questions de stratégie, de posture, ou de prise de décision
-- Questions où plus de contexte change la réponse — pas juste sa longueur
+**Good questions:**
+- Questions whose answer depends on personal context (no universal answer)
+- Questions of strategy, posture, or decision-making
+- Questions where more context changes the answer — not just its length
 
-**Mauvaises questions :**
-- Questions factuelles à réponse stable ("comment fonctionne JWT ?")
-- Sujets à peine effleurés dans le vault
-
----
-
-## Étape 0 — Valider la question et chercher un run précédent
-
-**Valider d'abord :** Est-ce que cette question dépend du contexte personnel de Victor ?
-
-- **Oui** → continuer
-- **Non** → le dire clairement et proposer une reformulation si possible
-
-**Vérifier la profondeur du vault sur ce sujet :** Glob `03 - Knowledge/` et daily notes (`00 - Daily notes/`). Est-ce que le vault contient au moins **6 mois d'historique substantiel** sur ce sujet ? (Au moins 3+ notes de connaissance OU 20+ daily notes mentionnant le sujet, distribuées sur la période.)
-- Si **oui** → continuer
-- Si **non** → signaler clairement que le vault est trop jeune pour ce sujet et proposer un null result plutôt que de forcer trois périodes
-
-**Chercher un run précédent :** Glob `03 - Knowledge/Compound/` pour lister les notes existantes (le dossier peut ne pas exister si c'est le premier run — c'est normal). Chercher une note dont le nom contient les termes clés de la question.
-- Si trouvée → lire la note : extraire la date du run, les 3 réponses (surtout la Période C — "Maintenant"), et la synthèse finale
-- Si absente (dossier vide ou inexistant) → continuer sans comparaison (le delta sera omis à l'Étape 7)
+**Bad questions:**
+- Factual questions with stable answers ("how does JWT work?")
+- Topics barely touched in the vault
 
 ---
 
-## Étape 1 — Analyser la chronologie du vault
+## Step 0 — Validate the question and search for a previous run
 
-Comprendre quand le contexte pertinent s'est vraiment accumulé. Chercher des **points d'inflexion opérationnels** — moments où la densité du contexte change significativement.
+**Validate first:** Does this question depend on {USER_NAME}'s personal context?
 
-**Critères d'analyse :**
+- **Yes** → continue
+- **No** → say so clearly and propose a reformulation if possible
 
-- **Densité des daily notes** : mesurer le passage d'une phase "épars" (< 5 mentions/mois) vers "régulier" (5-10 mentions/mois) vers "dense" (> 10 mentions/mois). Noter les dates de transition.
-- **Notes de connaissance** : quand les premières notes substantielles sur ce sujet ont-elles été créées ? Lister les dates clés (first mention, major essay, ADR, projet actif, etc.). Une note compte si elle a >100 mots et n'est pas un bookmark.
-- **Backlinks entrants** : from quelles notes datées ce sujet est-il référencé ? Permet de voir les reconvergences et l'intégration transversale.
-- **Signaux de changement** : changement de ton dans les daily notes, apparition de nouvelles préoccupations, abandon de vieilles questions, nouveaux projets lancés
+**Check vault depth on this subject:** Glob `03 - Knowledge/` and daily notes (`00 - Daily notes/`). Does the vault contain at least **6 months of substantial history** on this subject? (At least 3+ knowledge notes OR 20+ daily notes mentioning the subject, distributed over the period.)
+- If **yes** → continue
+- If **no** → clearly signal that the vault is too young for this subject and propose a null result rather than force three periods
 
----
-
-## Étape 2 — Sélectionner trois périodes
-
-Choisir des points d'inflexion réels — **pas des intervalles fixes**. Critère : à quel moment le contexte pertinent sur ce sujet a-t-il significativement augmenté (passage d'une densité à la suivante dans Étape 1) ?
-
-- **Période A (Début)** : Première note substantielle sur ce sujet. Contexte minimal — juste assez pour répondre, pas plus. La date est celle du premier fichier identifié dans Étape 1 (première mention).
-- **Période B (Milieu)** : Inflexion notable — à partir de là, la densité a augmenté (passage épars → régulier, ou régulier → dense). Les réponses auraient été visiblement différentes.
-- **Période C (Maintenant)** : Vault complet — aujourd'hui, avec tout l'historique accumulé.
-
-**Vault jeune ?** Si tu ne peux identifier qu'une ou deux périodes distinctes (moins de 6 mois d'historique pertinent), le signaler à Victor — null result est valide, ne pas forcer trois périodes.
-
-Si le vault n'a pas assez de profondeur temporelle sur ce sujet → le dire, ne pas fabriquer.
+**Search for a previous run:** Glob `03 - Knowledge/Compound/` to list existing notes (the folder may not exist if this is the first run — that's normal). Search for a note whose name contains the key terms of the question.
+- If found → read the note: extract the run date, the 3 answers (especially Period C — "Now"), and the final synthesis
+- If absent (empty folder or nonexistent) → continue without comparison (delta will be omitted at Step 7)
 
 ---
 
-## Étape 3 — Inventaire de contexte par période
+## Step 1 — Analyze vault chronology
 
-Pour chaque période, **lister les fichiers concrets** disponibles à ce moment. Stratégie de sélection :
+Understand when the relevant context really accumulated. Search for **operational inflection points** — moments when context density changes significantly.
 
-1. **Identifier tous les fichiers pertinents** : glob `03 - Knowledge/*`, daily notes, `Projects/[Projet]/ADR/`, `99 - Claude Code/` si créés avant la période.
-2. **Filtrer par date** : éliminer tout ce qui a été créé après la période.
-3. **Sélectionner 3-5 des plus pertinents** en priorité : (a) notes dédiées au sujet, (b) ADRs qui révèlent une position, (c) daily notes qui montrent la densité de préoccupation à cette époque. Exclure les bookmarks et notes < 100 mots.
-4. **Lister le résultat** : format 3-5 bullet points avec chemin exact.
+**Analysis criteria:**
 
-**Exemple format :**
-- `03 - Knowledge/How I think about X — 2025-11-20.md` (décision clé)
-- `00 - Daily notes/2025-11-18.md` (3 mentions de sujet)
-- `Projects/Rust/ADR/001 — Stack choices.md` (contexte d'apprentissage)
+- **Daily note density**: measure the transition from "sparse" (< 5 mentions/month) to "regular" (5-10 mentions/month) to "dense" (> 10 mentions/month). Note transition dates.
+- **Knowledge notes**: when were the first substantial notes on this subject created? List key dates (first mention, major essay, ADR, active project, etc.). A note counts if it has >100 words and is not a bookmark.
+- **Incoming backlinks**: from which dated notes is this subject referenced? Lets you see reconvergences and cross-integration.
+- **Signals of change**: tone shift in daily notes, appearance of new concerns, abandonment of old questions, new projects launched
 
 ---
 
-## Étape 4 — Prédictions avant génération
+## Step 2 — Select three periods
 
-Avant d'écrire les trois réponses, formuler une prédiction structurée : comment la qualité et la forme de la réponse va-t-elle changer entre A, B et C ? **Cette étape verrouille ta compréhension avant la génération — elle prévient la confabulation.**
+Choose actual inflection points — **not fixed intervals**. Criterion: at what moment did the relevant context on this subject significantly increase (transition from one density to the next in Step 1)?
 
-**Format structuré :**
-- **Dimension 1** : [Aspect measurable — ex: clarté, profondeur, nuance, résilience, ton, actions concrètes]. Prédiction : "A sera X (parce que [fichiers limités]), B montrera Y (grâce à [nouvelle accumulation]), C atteindra Z (avec [intégration complète])".
-- **Dimension 2** : idem (au moins 2 dimensions, max 3)
-- **Incertitude** : Une zone où tu ne sais pas prédire — pourquoi c'est flou ?
+- **Period A (Start)**: First substantial note on this subject. Minimal context — just enough to answer, no more. The date is that of the first file identified in Step 1 (first mention).
+- **Period B (Middle)**: Notable inflection — from here on, density increased (sparse → regular, or regular → dense). Answers would have been visibly different.
+- **Period C (Now)**: Complete vault — today, with all accumulated history.
 
-**Avant de continuer à Étape 5 :** Valide ta prédiction avec Victor — vérifier qu'elle a du sens au vu des inventaires Étape 3. Adapter si besoin. Continuer seulement quand Victor valide (ou dit "c'est bon, génère").
+**Vault young?** If you can only identify one or two distinct periods (less than 6 months of relevant history), signal it to {USER_NAME} — null result is valid, don't force three periods.
+
+If the vault doesn't have enough temporal depth on this subject → say so, don't fabricate.
 
 ---
 
-## Étape 5 — Générer les trois réponses
+## Step 3 — Context inventory by period
 
-### Contraintes strictes (non-négociables)
+For each period, **list the concrete files** available at that time. Selection strategy:
 
-1. **Frontière de contexte** — la réponse A utilise UNIQUEMENT le contexte de la période A. Aucune fuite d'info ultérieure. Vérification : chaque fait/référence cité doit exister dans l'inventaire Étape 3 pour cette période.
+1. **Identify all relevant files**: glob `03 - Knowledge/*`, daily notes, `Projects/[Project]/ADR/`, `99 - Claude Code/` if created before the period.
+2. **Filter by date**: eliminate anything created after the period.
+3. **Select 3-5 of the most relevant** in priority: (a) notes dedicated to the subject, (b) ADRs that reveal a position, (c) daily notes showing density of concern at that time. Exclude bookmarks and notes < 100 words.
+4. **List the result**: format as 3-5 bullet points with exact path.
 
-2. **Longueur égale ±20%** — c'est le cœur du dispositif : elle isole la qualité du volume (pas du baratin). **Mesure stricte** : `wc -w` (word count brut, excluant titres/métadonnée). Moyenne des trois = M. Accepter A/B/C si chacun ∈ [0.8×M, 1.2×M]. Recalculer M si Étape 6 nécessite une réécriture.
+**Example format:**
+- `03 - Knowledge/How I think about X — 2025-11-20.md` (key decision)
+- `00 - Daily notes/2025-11-18.md` (3 mentions of subject)
+- `Projects/Rust/ADR/001 — Stack choices.md` (learning context)
 
-3. **Même voix** — première personne, incarnant Victor à chaque période (pas narrateur externe). La voix peut mûrir A→C (naturel), mais reste toujours celle de Victor. Pas de condescendance en A, pas d'autosatisfaction en C.
+---
 
-### Format de présentation
+## Step 4 — Predictions before generation
+
+Before writing the three answers, formulate a structured prediction: how will the quality and form of the answer change between A, B, and C? **This step locks down your understanding before generation — it prevents confabulation.**
+
+**Structured format:**
+- **Dimension 1**: [Measurable aspect — ex: clarity, depth, nuance, resilience, tone, concrete actions]. Prediction: "A will be X (because [limited files]), B will show Y (thanks to [new accumulation]), C will reach Z (with [complete integration])".
+- **Dimension 2**: idem (at least 2 dimensions, max 3)
+- **Uncertainty**: An area where you don't know how to predict — why is it unclear?
+
+**Before continuing to Step 5:** Validate your prediction with {USER_NAME} — check that it makes sense given the Step 3 inventories. Adjust if needed. Continue only when the user validates (or says "it's good, generate").
+
+---
+
+## Step 5 — Generate the three answers
+
+### Strict constraints (non-negotiable)
+
+1. **Context boundary** — answer A uses ONLY the context of Period A. No information leakage from later periods. Verification: each fact/reference cited must exist in the Step 3 inventory for that period.
+
+2. **Equal length ±20%** — this is the core of the device: it isolates quality from volume (not from padding). **Strict measurement**: `wc -w` (raw word count, excluding titles/metadata). Average of three = M. Accept A/B/C if each ∈ [0.8×M, 1.2×M]. Recalculate M if Step 6 requires a rewrite.
+
+3. **Same voice** — first person, embodying {USER_NAME} at each period (not external narrator). Voice can mature A→C (natural), but always remains {USER_NAME}'s. No condescension in A, no self-satisfaction in C.
+
+### Presentation format
 
 ```
-## Période A — [label temporel]
-[Contexte disponible : liste en 2-3 lignes]
+## Period A — [temporal label]
+[Available context: list in 2-3 lines]
 
-[Réponse — X mots]
-
----
-
-## Période B — [label temporel]
-[Contexte disponible : liste en 2-3 lignes]
-
-[Réponse — X mots]
+[Answer — X words]
 
 ---
 
-## Période C — Maintenant
-[Contexte disponible : liste en 2-3 lignes]
+## Period B — [temporal label]
+[Available context: list in 2-3 lines]
 
-[Réponse — X mots]
+[Answer — X words]
+
+---
+
+## Period C — Now
+[Available context: list in 2-3 lines]
+
+[Answer — X words]
 ```
 
 ---
 
-## Étape 6 — Vérification
+## Step 6 — Verification
 
-### Contrôle anachronisme
-Avant d'accepter les trois réponses, vérifier que A/B ne contiennent AUCUN fait apparu après sa période. Si un anachronisme est trouvé :
-1. Identifier précisément : quel fait, quelle date réelle d'apparition dans le vault
-2. Réécrire la réponse en supprimant ce fait et le remplaçant par un équivalent disponible à la période
-3. Refaire le word count — recalculer M si longueur totale change
-4. Loguer le correctif en Étape 7
+### Anachronism check
+Before accepting the three answers, verify that A/B contain NO facts appearing after their period. If an anachronism is found:
+1. Identify precisely: which fact, what date it actually appeared in the vault
+2. Rewrite the answer by removing that fact and replacing it with an equivalent available at the period
+3. Redo word count — recalculate M if total length changes
+4. Log the correction in Step 7
 
-### Contrôle prédictions
-Comparer prédictions Étape 4 vs résultats réels. Qu'est-ce qui a divergé ? Pourquoi ? Integrer ce décalage dans la synthèse finale — c'est une donnée valide.
+### Predictions check
+Compare predictions from Step 4 vs actual results. What diverged? Why? Integrate this gap into the final synthesis — it's valid data.
 
 ---
 
-## Étape 7 — Synthèse
+## Step 7 — Synthesis
 
-Une synthèse courte (5-8 lignes) qui répond à : le vault a-t-il amélioré la qualité de la réponse, ou seulement son volume ?
+A short synthesis (5-8 lines) answering: did the vault improve the quality of the answer, or only its volume?
 
-Si les réponses ne se sont pas significativement améliorées → c'est le résultat. Ne pas forcer une narrative de progression. Un null result est une information valide.
+If the answers haven't significantly improved → that's the result. Don't force a narrative of progress. A null result is valid and informative.
 
-### Delta avec le run précédent (si applicable)
+### Delta from previous run (if applicable)
 
-Si un run précédent a été trouvé à l'Étape 0, ajouter cette section :
+If a previous run was found in Step 0, add this section:
 
 ```
-## Delta depuis le run du [YYYY-MM-DD]
+## Delta since run on [YYYY-MM-DD]
 
-**Ce qui a changé** : points de vue qui ont évolué, nouvelles dimensions absentes du run précédent, positions abandonnées ou nuancées.
+**What changed**: viewpoints that evolved, new dimensions absent from the previous run, positions abandoned or nuanced.
 
-**Ce qui s'est confirmé** : positions stables entre les deux runs — signe de pensée ancrée.
+**What held steady**: stable positions between the two runs — sign of anchored thinking.
 
-**Shifts observables** : changements dans le mode de travail, les priorités ou le contexte de Victor entre les deux runs (déduit du contenu des réponses, pas inventé).
+**Observable shifts**: changes in how {USER_NAME} works, priorities, or context between the two runs (inferred from response content, not invented).
 
-**Qualité du compounding** : la réponse est-elle meilleure, plus nuancée, plus riche ? Ou stagnante ? Être honnête — la stagnation est une information valide.
+**Quality of compounding**: is the answer better, more nuanced, richer? Or stagnant? Be honest — stagnation is valid information.
 ```
 
-Si aucun run précédent → omettre cette section entièrement.
+If no previous run → omit this section entirely.
 
 
 ---
 
-## Étape 8 — Sauver le résultat
+## Step 8 — Save the result
 
-Après la synthèse, créer `03 - Knowledge/Compound/YYYY-MM-DD — [question en 3-5 mots].md` avec le contenu complet de la session (question, 3 réponses, vérification, synthèse, delta si applicable). Format de date : `YYYY-MM-DD` (e.g., `2026-04-01`). Toujours créer cette note — elle permet de comparer les runs suivants sur la même question.
+After synthesis, create `03 - Knowledge/Compound/YYYY-MM-DD — [question in 3-5 words].md` with the full session content (question, 3 answers, verification, synthesis, delta if applicable). Date format: `YYYY-MM-DD` (e.g., `2026-04-01`). Always create this note — it allows you to compare subsequent runs on the same question.
 
-Si une note `/compound` sur la même question existe déjà (même sujet, même question) → l'indiquer à Victor et lui demander s'il veut créer une nouvelle note ou enrichir l'existante. Un même sujet peut avoir plusieurs runs (ex: `2026-02-15 — how i think about refactoring.md` et `2026-04-01 — how i think about refactoring.md` = deux snapshots différents).
-
----
-
-## Anti-patterns (classés par impact — à prévenir)
-
-### Critiques (cassent le skill)
-1. **Fuite de contexte** — utiliser en A une info n'existant qu'en C. Invalide A/B/C.
-2. **Compounding forcé** — fabriquer une "amélioration" que le vault ne montre pas. Le skill mesure, ne raconte pas.
-3. **Réponse A caricaturale** — A doit être honnête (ce que le vault avait), pas volontairement appauvri pour faire contraste.
-
-### Importants (affaiblissent la fiabilité)
-4. **Illusion du volume** — plus long ≠ meilleur. Longueur égale existe pour ça.
-5. **Résumé de vault** — répondre à la question, pas lister le contenu disponible.
-6. **Cheerleading aveugle** — célébrer chaque progression. Un null result est valide et informatif.
-
-### À éviter
-7. **Périodes trop proches** — si A et B ne sont séparées que de quelques semaines, le delta sera bruyant. Signaler à Victor si le vault est trop jeune.
+If a `/compound` note on the same question already exists (same subject, same question) → indicate this to {USER_NAME} and ask if they want to create a new note or enrich the existing one. The same subject can have multiple runs (ex: `2026-02-15 — how i think about refactoring.md` and `2026-04-01 — how i think about refactoring.md` = two different snapshots).
 
 ---
 
-## Règles absolues
+## Anti-patterns (ranked by impact — to prevent)
 
-- **Valider la question d'abord** — si elle ne dépend pas du contexte personnel, le dire clairement
-- **Longueur égale ±20%** — non-négociable, c'est le cœur du dispositif
-- **Null result = résultat valide** — ne jamais forcer une narrative de progression
-- **Prédire avant de générer** — Étape 4 + validation Victor avant Étape 5
-- **Usage introspectif** — ce skill est pour Victor, pas une démonstration externe
+### Critical (break the skill)
+1. **Context leakage** — use in A an info existing only in C. Invalidates A/B/C.
+2. **Forced compounding** — fabricate an "improvement" that the vault doesn't show. The skill measures, doesn't narrate.
+3. **Caricatured answer A** — A must be honest (what the vault had), not deliberately impoverished for contrast.
+
+### Important (weaken reliability)
+4. **Illusion of volume** — longer ≠ better. Equal length exists for that reason.
+5. **Vault summary** — answer the question, don't list available content.
+6. **Blind cheerleading** — celebrate every progression. A null result is valid and informative.
+
+### To avoid
+7. **Periods too close** — if A and B are separated only by a few weeks, the delta will be noisy. Signal to {USER_NAME} if the vault is too young.
+
+---
+
+## Absolute rules
+
+- **Validate the question first** — if it doesn't depend on personal context, say so clearly
+- **Equal length ±20%** — non-negotiable, it's the core of the device
+- **Null result = valid result** — never force a narrative of progression
+- **Predict before generating** — Step 4 + {USER_NAME} validation before Step 5
+- **Introspective use** — this skill is for {USER_NAME}, not external demonstration

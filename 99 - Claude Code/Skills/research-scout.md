@@ -1,38 +1,38 @@
 ---
 name: research-scout
-description: Veille quotidienne orientée vault × Claude Code — ce qui sort et trend cette semaine dans l'écosystème. Déclencher via /research-scout ou automatiquement à la fin de /digest.
+description: Daily watch focused on what's coming out and trending in the **Claude Code × vault × AI agents** space this week. Format and logic close to `/pulse`, but daily and lightweight — no ticket creation (the `/harvest` handles that).
 ---
 
-# Skill : /research-scout
+# Skill: /research-scout
 
-Veille ciblée sur ce qui sort et trend dans l'espace **Claude Code × vault × agents IA** cette semaine. Format et logique proches de `/pulse`, mais quotidien et léger — pas de création de tickets (le `/harvest` s'en charge).
+Targeted watch on what's coming out and trending in the **Claude Code × vault × AI agents** space this week. Format and logic close to `/pulse`, but daily and lightweight — no ticket creation (the `/harvest` handles that).
 
 ---
 
-## Étape 1 — Calculer la date et fetcher les tendances (parallèle)
+## Step 1 — Calculate the date and fetch trends (parallel)
 
-**Date dynamique** : calculer la date d'aujourd'hui et la date J-7. Utiliser le format `YYYY-MM-DD` dans les requêtes — ne jamais hardcoder une date.
+**Dynamic date**: calculate today's date and J-7 date. Use `YYYY-MM-DD` format in queries — never hardcode a date.
 
-Lancer **5 recherches en parallèle** (4 WebSearch + 1 webhook n8n YouTube) :
+Run **5 searches in parallel** (4 WebSearch + 1 n8n webhook YouTube):
 
 **A — GitHub trending vault/agents**
 ```
-WebSearch : "GitHub trending Claude Code vault Obsidian agents [mois courant] [année courante]"
+WebSearch: "GitHub trending Claude Code vault Obsidian agents [current month] [current year]"
 ```
 
-**B — HN discussions récentes**
+**B — HN recent discussions**
 ```
-WebSearch : "Hacker News Claude Code Obsidian PKM agents [mois courant] [année courante]"
-```
-
-**C — Anthropic nouveautés**
-```
-WebSearch : "Anthropic Claude new product tool release [mois courant] [année courante]"
+WebSearch: "Hacker News Claude Code Obsidian PKM agents [current month] [current year]"
 ```
 
-**D — Écosystème IA dev tools**
+**C — Anthropic news**
 ```
-WebSearch : "AI developer tools release agents [mois courant] [année courante] new"
+WebSearch: "Anthropic Claude new product tool release [current month] [current year]"
+```
+
+**D — AI dev tools ecosystem**
+```
+WebSearch: "AI developer tools release agents [current month] [current year] new"
 ```
 
 **E — YouTube trending 72h** (sidecar direct)
@@ -40,93 +40,93 @@ WebSearch : "AI developer tools release agents [mois courant] [année courante] 
 curl -s -m 60 "http://localhost:3001/youtube?hours_old=72"
 ```
 
-Retourne JSON `{ videos: [{ title, url, channel, published_at, transcript, has_transcript, matched_keyword }], total, errors }`.
+Returns JSON `{ videos: [{ title, url, channel, published_at, transcript, has_transcript, matched_keyword }], total, errors }`.
 
-**Gestion erreur sidecar** :
-- Container down / timeout / JSON malformé → marquer `YOUTUBE_FAILED = true`, continuer sans bloquer
-- En Étape 4 : signaler à Victor `⚠️ YouTube source skip — sidecar n8n-sidecar down`
+**Sidecar error handling**:
+- Container down / timeout / malformed JSON → set `YOUTUBE_FAILED = true`, continue without blocking
+- In Step 4: signal to {USER_NAME} `⚠️ YouTube source skip — n8n sidecar down`
 
-**Extraction** : pour chaque résultat (toutes sources), noter :
-- Titre + URL
-- Source : `[GitHub]` `[HN]` `[Anthropic]` `[Outillage]` `[YouTube]` (préfixe explicite)
-- Date de publication — **ignorer si > 7 jours** pour A/B/C/D, **ignorer si > 72h** pour E (le sidecar filtre déjà mais double-check)
-- Catégorie : [Claude Code] [Vault/PKM] [Agents IA] [Release Anthropic] [Outillage dev]
-- **Pour E uniquement** : `channel` + `insights` (résumé extrait du transcript par le workflow)
-
----
-
-## Étape 2 — Gap analysis contre le setup existant
-
-Lire en parallèle :
-1. `99 - Claude Code/Skills/INDEX.md` — skills actifs
-2. `99 - Claude Code/Claude Code Kanban.md` — colonnes Idea, Blocked, Ready (ce qui est déjà en backlog)
-
-Pour chaque résultat de l'Étape 1 :
-- Déjà couvert par un skill actif ? → ignorer
-- Déjà en backlog kanban ? → ignorer
-- URL déjà dans la section `## 📰 Digest` de la daily du jour ? → ignorer
-- Topic déjà présent dans `99 - Claude Code/` ou `03 - Knowledge/` (Grep rapide) ? → ignorer
+**Extraction**: for each result (all sources), note:
+- Title + URL
+- Source: `[GitHub]` `[HN]` `[Anthropic]` `[Tooling]` `[YouTube]` (explicit prefix)
+- Publication date — **ignore if > 7 days** for A/B/C/D, **ignore if > 72h** for E (sidecar already filters but double-check)
+- Category: [Claude Code] [Vault/PKM] [AI Agents] [Anthropic Release] [Dev Tooling]
+- **For E only**: `channel` + `insights` (summary extracted from transcript by the workflow)
 
 ---
 
-## Étape 3 — Filtrer et sélectionner
+## Step 2 — Gap analysis against existing setup
 
-Retenir **3 à 5 items maximum** (toutes sources confondues). Critères stricts :
+Read in parallel:
+1. `99 - Claude Code/Skills/INDEX.md` — active skills
+2. `99 - Claude Code/Claude Code Kanban.md` — Idea, Blocked, Ready columns (what's already in backlog)
 
-| Inclure | Exclure |
+For each result from Step 1:
+- Already covered by an active skill? → ignore
+- Already in kanban backlog? → ignore
+- URL already in the `## 📰 Digest` section of today's daily note? → ignore
+- Topic already present in `99 - Claude Code/` or `03 - Knowledge/` (quick grep)? → ignore
+
+---
+
+## Step 3 — Filter and select
+
+Retain **3 to 5 items maximum** (all sources combined). Strict criteria:
+
+| Include | Exclude |
 |---------|---------|
-| Release Anthropic (nouveau produit, nouveau modèle, nouvelle feature) | Tutoriels "top X", guides, "how to" génériques |
-| Outil concret ou repo sorti cette semaine | Contenu déjà présent dans le vault |
-| Discussion communauté avec signal fort (300+ HN, 100+ upvotes) | Articles > 7 jours (24h pour YouTube) |
-| Pattern ou outil dans l'écosystème Claude Code / agents / PKM qui mérite d'être sur le radar (même si ça demande un refacto ou l'ajout d'un MCP) | Contenu marketing sans substance |
-| **Vidéo YouTube** avec `insights` substantiels (extraction transcript révèle un pattern, un outil, un retour terrain) | **Vidéo YouTube** monétisée pure (titres clickbait, contenu < 30% utile vs longueur, présentateur générique du type "5 things you should know") |
+| Anthropic release (new product, new model, new feature) | "top X" tutorials, guides, generic "how to" |
+| Concrete tool or repo released this week | Content already present in the vault |
+| Community discussion with strong signal (300+ HN, 100+ upvotes) | Articles > 7 days old (24h for YouTube) |
+| Pattern or tool in the Claude Code / agents / PKM ecosystem worth keeping on radar (even if it requires a refactor or adding an MCP) | Content marketing without substance |
+| **YouTube video** with substantial `insights` (transcript extraction reveals a pattern, tool, field feedback) | **YouTube video** monetized pure (clickbait titles, content < 30% useful vs length, generic presenter like "5 things you should know") |
 
-**Filtrage vidéos YouTube spécifique** : si ≥ 70% des résultats E ressemblent à du clickbait ou contenu monétisé générique (analyse rapide titres + insights) → ne retenir aucune vidéo plutôt que de remplir avec du bruit. La qualité prime sur la quantité.
+**Specific YouTube video filtering**: if ≥ 70% of results E look like clickbait or generic monetized content (quick title + insights analysis) → retain no videos rather than fill with noise. Quality over quantity.
 
-**Si moins de 2 items pertinents** (toutes sources confondues) → terminer silencieusement, ne rien insérer.
+**If fewer than 2 relevant items** (all sources combined) → end silently, insert nothing.
 
 ---
 
-## Étape 4 — Présenter pour validation
+## Step 4 — Present for validation
 
-Format tableau proche de `/pulse`. Si `YOUTUBE_FAILED = true` → afficher en haut `⚠️ YouTube source skip — workflow n8n down ou pas encore créé`.
+Table format close to `/pulse`. If `YOUTUBE_FAILED = true` → display at top `⚠️ YouTube source skip — n8n workflow down or not yet created`.
 
 ```
-🔭 Research intel — [N] items — semaine du [date]
+🔭 Research intel — [N] items — week of [date]
 
-| # | Item | Source | Angle vault |
+| # | Item | Source | Vault angle |
 |---|------|--------|-------------|
-| 1 | [Titre](url) | HN / GitHub / Reddit / Anthropic / Outillage | [Claude Code / Vault / Agents / Release] |
-| 2 | [Titre vidéo](url) — *insights : [résumé 1 phrase]* | YouTube — chaîne "[Nom]" | [Claude Code / Agents / Vault] |
+| 1 | [Title](url) | HN / GitHub / Reddit / Anthropic / Tooling | [Claude Code / Vault / Agents / Release] |
+| 2 | [Video title](url) — *insights: [1-sentence summary]* | YouTube — "[Channel]" | [Claude Code / Agents / Vault] |
 
-→ Quels numéros tu gardes ? ("1 3", "tout", "skip")
+→ Which numbers do you keep? ("1 3", "all", "skip")
 ```
 
-**Différenciation vidéos** : pour les items `[YouTube]`, ajouter le résumé `insights` (1 phrase) directement après le titre, pour que Victor décide sans cliquer. Préciser la chaîne en source.
+**Video differentiation**: for `[YouTube]` items, add the `insights` summary (1 sentence) directly after the title, so {USER_NAME} decides without clicking. Specify the channel in source.
 
-Timeout 45s → skip tout.
+Timeout 45s → skip everything.
 
 ---
 
-## Étape 5 — Écrire dans la daily note
+## Step 5 — Write in the daily note
 
-Date cible : si heure < 04:00 → veille, sinon aujourd'hui.
+Target date: if hour < 04:00 → yesterday's watch, otherwise today.
 
-**Si items acceptés**, ajouter en bas de `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\[date cible].md` :
+**If items are accepted**, add to the bottom of `{VAULT_PATH}\{DAILY_NOTES_FOLDER}\[target date].md`:
 
 ```markdown
 ## 🔭 Research intel
 
 | Item | Angle |
 |------|-------|
-| **[Titre](url)** | [Claude Code / Vault / Agents / Release] |
-| **[Titre vidéo](url)** — *[chaîne]* — insights : [résumé 1 phrase] | [YouTube / Claude Code] |
+| **[Title](url)** | [Claude Code / Vault / Agents / Release] |
+| **[Video title](url)** — *[channel]* — insights: [1-sentence summary] | [YouTube / Claude Code] |
 ```
 
-Pour les items vidéo `[YouTube]` : inclure la chaîne en italique + le résumé d'insights (1 phrase) dans la cellule `Item`, pour que la table reste auto-suffisante (Victor relit sa daily note sans cliquer).
+For `[YouTube]` video items: include the channel in italics + the insights summary (1 sentence) in the `Item` cell, so the table is self-contained ({USER_NAME} rereads their daily note without clicking).
 
-Confirmer : "✅ [N] item(s) ajoutés dans Research intel." Si une partie venait de YouTube : "(dont [N] vidéos)"
+Confirm: "✅ [N] item(s) added to Research intel." If some came from YouTube: "(including [N] videos)"
 
-**Si tout skipé** → confirmer "Research intel — rien retenu." sans rien écrire.
+**If everything was skipped** → confirm "Research intel — nothing retained." without writing anything.
 
-**Si `YOUTUBE_FAILED = true`** : ajouter à la fin du message de confirmation `⚠️ YouTube source skip ce run — vérifier n8n / workflow youtube-search.`
+**If `YOUTUBE_FAILED = true`**: add to the end of the confirmation message `⚠️ YouTube source skip this run — check n8n / youtube-search workflow.`

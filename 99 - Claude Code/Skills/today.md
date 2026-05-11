@@ -1,34 +1,35 @@
 ---
 name: today
-description: Générer ou mettre à jour le plan de la journée — agenda adapté à l'énergie, aux contraintes calendaires, aux heures work/perso/hobby et au feedback récent. Lit les daily notes, sessions, kanbans projet, mood tracker, calendrier ICS et webhook mails. Déclencher quand Victor dit "today", "/today", "plan du jour", "qu'est-ce que je fais aujourd'hui", "génère mon plan", "je commence quoi", ou en début de journée. Adapte automatiquement selon l'heure (matin = plan complet, après-midi = recentré, soir = allégé).
+description: Generate or update today's plan — agenda adapted to energy, calendar constraints, work/personal/hobby hours and recent feedback. Reads daily notes, sessions, project kanbans, mood tracker, ICS calendar and mail webhooks. Trigger when the user says "today", "/today", "today's plan", "what am I doing today", "generate my plan", "what should I start", or at the start of the day. Automatically adapts based on time (morning = full plan, afternoon = refocused, evening = simplified).
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces a **qualitative narrative** output. Its effectiveness is measured by the **richness of the produced output**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, key moments, open questions, tone, narration). Preserving qualitative content takes priority over line reduction.
 
-**Déclenche le plan de la journée** — Génère un agenda adapté à l'énergie, aux contraintes et aux priorités. 
+**Triggers today's plan** — Generates an agenda adapted to energy, constraints and priorities. 
 
-**Invocation** : `/today` à tout moment de la journée (avant 12h = plan complet, 12h-17h = plan recentré, après 17h = plan allégé).
+**Invocation**: `/today` at any time of day (before 12pm = full plan, 12pm-5pm = refocused, after 5pm = simplified).
 
-**Exemple scénario** : Victor appelle `/today` à 14h45, il a une réunion à 15h30 (45 min avant). Le skill détecte la fenêtre courte, affiche "⚡ Micro-session (< 0.5h)", propose 1 tâche légère + le WIP en cours, puis demande la prochaine action après la réunion.
+**Example scenario**: {USER_NAME} calls `/today` at 2:45pm, he has a meeting at 3:30pm (45 min before). The skill detects the short window, displays "⚡ Micro-session (< 0.5h)", proposes 1 light task + the current WIP, then asks for the next action after the meeting.
 
   
 
-## Préambule — Initialiser les variables
+## Preamble — Initialize variables
 
-Avant toute étape, initialiser ces variables de contrôle pour éviter les undefined à la lecture :
+Before any step, initialize these control variables to avoid undefined values when reading:
 
 ```
-HEURE_LANCEMENT = null
-FENETRE_MIN = Infinity  
-FENETRE_COURTE = false
+LAUNCH_TIME = null
+MIN_WINDOW = Infinity  
+SHORT_WINDOW = false
 CALENDAR_FAILED = false
 MAIL_FAILED = false
 FIRST_SESSION_TODAY = false
+MAINTENANCE_OVERDUE = false
 ```
 
 ---
@@ -60,9 +61,9 @@ Afficher `HEURE_LANCEMENT` en en-tête du plan final (Étape 5 template).
 
 Si la daily note du jour existe déjà avec une section `## 📅 Plan du jour` **et que cette section contient des tâches cochables** (au moins une checkbox `- [ ]` dans une sous-section autre que `### 📅 Agenda`, ex: `### 💼 Travail`) → utiliser le focus implicite du plan existant, passer directement à l'Étape 6 de suivi.
 
-Sinon (section absente ou contenant uniquement l'agenda), poser à Victor : *"Tu as une envie particulière sur quoi travailler aujourd'hui ?"* — attendre sa réponse avec timeout court.
+Sinon (section absente ou contenant uniquement l'agenda), poser à {USER_NAME} : *"Tu as une envie particulière sur quoi travailler aujourd'hui ?"* — attendre sa réponse avec timeout court.
 - Si réponse reçue → utiliser comme contrainte, l'intégrer en priorité 1 des suggestions (Étape 4)
-- Si silence (timeout ~5s) → continuer sans focus explicite (fallback : proposer les WIP et laisser Victor valider en Étape 5)
+- Si silence (timeout ~5s) → continuer sans focus explicite (fallback : proposer les WIP et laisser {USER_NAME} valider en Étape 5)
 
 ---
 
@@ -78,7 +79,7 @@ Les étapes 2.0 à 2.12 sont exécutées **en parallèle** (aucune dépendance i
    - Format DTSTART (3 cas) : 
      * `DTSTART;TZID=Europe/Prague:20260321T140000` → heure locale Prague, extraire timestamp `20260321T140000` → convertir en `21/03 14h00` (fuseau déjà local, ne pas transformer)
      * `DTSTART;VALUE=DATE:20260321` → journée entière (pas d'heure) → convertir en `21/03 (journée)`
-     * `DTSTART:20260321T140000Z` → UTC avec `Z`, transformer en fuseau local Victor (Brno = UTC+1 hiver, UTC+2 été) → convertir en `21/03 15h00 (ou 16h00)` selon saison
+     * `DTSTART:20260321T140000Z` → UTC avec `Z`, transformer en fuseau local {USER_NAME} (Brno = UTC+1 hiver, UTC+2 été) → convertir en `21/03 15h00 (ou 16h00)` selon saison
    - Extraire events du **jour en cours** et des **7 prochains jours** (utiliser date YYYY-MM-DD pour filtrer)
    - Stocker events dans deux listes : `EVENTS_TODAY` (pour jour), `EVENTS_FUTURE` (pour 7 jours)
    - Si `EVENTS_TODAY` est vide → ne pas signaler "agenda vide", continuer normalement (journée complète possible)
@@ -87,7 +88,7 @@ Les étapes 2.0 à 2.12 sont exécutées **en parallèle** (aucune dépendance i
      * Si event dans les 3 prochains jours contient `rendu|deadline|remise|livraison|dossier|exam|soutenance` → stocker comme `DEADLINE_SIGNALED = true`
      * Si event aujourd'hui ou demain contient `réunion|présentation|entretien|soutenance|meeting` → prévoir tâche contexte "Préparer résumé"
    
-   **Si fetch échoue ou ICS invalide** → marquer `CALENDAR_FAILED = true`, laisser `EVENTS_TODAY` et `EVENTS_FUTURE` vides, `FENETRE_MIN` à `Infinity`. Signal à Victor en Étape 5 template.
+   **Si fetch échoue ou ICS invalide** → marquer `CALENDAR_FAILED = true`, laisser `EVENTS_TODAY` et `EVENTS_FUTURE` vides, `FENETRE_MIN` à `Infinity`. Signal à {USER_NAME} en Étape 5 template.
 
 **2.1 — Daily note d'aujourd'hui**
 
@@ -114,7 +115,7 @@ Chercher aussi la section `## 📅 Plan du jour` dans la note d'hier. Extraire t
 Chercher les patterns dans les daily notes (aujourd'hui, hier, avant-hier si dispo) qui indiquent un engagement non suivi :
 - Patterns : lignes contenant `(je vais|j'ai dit|à faire|je dois|promis)` en minuscules, NON précédées de `[x]` (coché) et NON mentionnées dans un kanban en WIP/Done
 - Pour chaque match → extraire le texte complet (la ligne jusqu'au `\n`) 
-- Classifier en Perso (mentions perso/hobby/dev) ou Travail (mentions pro/Theodo/projets client)
+- Classifier en Perso (mentions perso/hobby/dev) ou Travail (mentions pro/work projects)
 - Remonter comme tâche portée en Étape 4 avec source = note d'origine
 
 **2.4 — Dernière session**
@@ -159,6 +160,7 @@ Lire `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md` si existe. Pour chaq
 - Exclure automatiquement : `/essay-check` (hook post-session, géré `/closeday`), `/my-world` (gestion Étape 4.0 déjà intégrée)
 - Contexte spécial : proposer `/closeweek` si jour = dimanche ou lundi, `/closemonth` si jour = 1er du mois
 - Fichier manquant → continuer sans signal (vault neuve)
+- **Guard non-droppable** : si au moins une commande est overdue → `MAINTENANCE_OVERDUE = true`. La section `🔄 Maintenance vault` est obligatoire dans le plan final si `MAINTENANCE_OVERDUE = true`, quels que soient le budget ou la charge du plan. Ne jamais la dropper silencieusement — c'est le seul garde-fou contre l'effet cluster (tout overdue en même temps une semaine plus tard).
 
 **2.12 — Mails (n8n)**
 
@@ -170,7 +172,7 @@ Vérifier n8n et webhook mail-analysis (bash/WSL2) — initialiser `MAIL_SECTION
   * Si réponse est JSON avec clé `.markdown` non-vide → stocker le contenu texte dans `MAIL_SECTION`
   * Si réponse JSON mais `.markdown` absent ou vide → `MAIL_SECTION = ""` (pas de mails à afficher, pas d'erreur)
   * **Si curl réussit (exit code 0) mais retourne une réponse vide (chaîne vide)** → `MAIL_SECTION = ""` (boîte vide ou webhook sans mails à remonter — pas une erreur, ne pas mettre `MAIL_FAILED = true`)
-  * Si réponse invalide (JSON malformé ou curl échoue avec code non-zero) → marquer `MAIL_FAILED = true`, `MAIL_SECTION = ""`. Signal à Victor en Étape 5 template.
+  * Si réponse invalide (JSON malformé ou curl échoue avec code non-zero) → marquer `MAIL_FAILED = true`, `MAIL_SECTION = ""`. Signal à {USER_NAME} en Étape 5 template.
   * Si curl timeout (> 10s) ou container down → `MAIL_FAILED = true`, continuer sans mails
 
 ---
@@ -181,7 +183,7 @@ Après avoir lu tout le contexte (Étapes 2.0–2.12) :
 
 Utiliser `FENETRE_MIN` calculée en Étape 2.0 :
 - Si `FENETRE_MIN` < 90 minutes (1.5h) ET `CALENDAR_FAILED` = false (ie, calendrier opérationnel ET event trouvé) → stocker `FENETRE_COURTE = true` pour Étape 4 (surfacing tickets rapides avant l'event)
-- Sinon → `FENETRE_COURTE = false`
+- Sinon → `SHORT_WINDOW = false`
 
 Rappel: `CALENDAR_FAILED` et `MAIL_FAILED` initialisés en Préambule, mis à jour en Étape 2.0/2.12.
 
@@ -246,10 +248,10 @@ La section Raffinement est hors quota et s'ajoute toujours.
 - Sinon continuer normalement
 
 **Règle batterie sociale — PC = recharge, pas décharge** :
-- Si l'agenda du jour contient une sortie / activité sociale dans l'après-midi (cours présentiel non-routine, sortie avec Jay, événement Ludisep, déjeuner amis, RDV médical…) → **ne pas réduire automatiquement** `personal_hours` du budget soirée sur cette base
-- Le pattern *PC = recharge* tient pour Victor — voir [[01 - Me/hypothese-batterie-sociale]] et `{USER_NAME}.md`
-- Continuer à respecter le frontmatter (Victor déclare la charge réelle), mais ne jamais auto-couper le soir sous prétexte que la journée a été socialement chargée
-- Exception : si Victor a **explicitement** signalé une fatigue sociale durable dans une daily note récente (ex: dump "je peux plus voir personne") → traiter comme une surcharge et appliquer la règle ci-dessus
+- Si l'agenda du jour contient une sortie / activité sociale dans l'après-midi (cours présentiel non-routine, social outings, déjeuner amis, RDV médical…) → **ne pas réduire automatiquement** `personal_hours` du budget soirée sur cette base
+- Le pattern *PC = recharge* tient pour {USER_NAME} — voir [[01 - Me/hypothese-batterie-sociale]] et `{USER_NAME}.md`
+- Continuer à respecter le frontmatter ({USER_NAME} déclare la charge réelle), mais ne jamais auto-couper le soir sous prétexte que la journée a été socialement chargée
+- Exception : si {USER_NAME} a **explicitement** signalé une fatigue sociale durable dans une daily note récente (ex: dump "je peux plus voir personne") → traiter comme une surcharge et appliquer la règle ci-dessus
 
   
 
@@ -263,7 +265,7 @@ Piocher dans ces sources par ordre de priorité :
 
 0.5. **Reprise de session** (si `FIRST_SESSION_TODAY = false`) → une session existe déjà pour aujourd'hui (lue en Étape 2.4). Mentionner en tête du plan : `⚠️ Reprise de session — si tu reviens après une compaction, vérifie que les décisions importantes sont toujours dans le contexte.` Signal non-bloquant, une ligne, puis continuer.
 
-1. **Tickets WIP** — finir ce qui est en cours avant de commencer autre chose. Si WIP est vide mais Victor a exprimé un focus (Étape 1) → le focus devient la 1re suggestion (remplace WIP comme point de départ)
+1. **Tickets WIP** — finir ce qui est en cours avant de commencer autre chose. Si WIP est vide mais {USER_NAME} a exprimé un focus (Étape 1) → le focus devient la 1re suggestion (remplace WIP comme point de départ)
 
 1.5. **Tâches non cochées J-1** (`TACHES_NON_COCHEES_J1`) — si la liste est non vide, injecter chaque tâche dans la section correspondante (Perso, Travail ou Hobby selon son contexte), labelisée *"→ report J-1"*. Appliquer le filtre durée (énergie) : ignorer les tâches estimées trop longues. Ne pas remonter les tâches Agenda ni Raffinement.
 
@@ -278,14 +280,14 @@ Piocher dans ces sources par ordre de priorité :
 **Règles de composition du pool (mode normal uniquement)** :
 
 - **Identifier le projet prioritaire** : appliquer dans l'ordre — (1) compter les mentions du nom de projet (slug ou nom exact) dans les 3 dernières daily notes — le plus mentionné l'emporte ; (2) à égalité, projet avec le plus de tickets WIP ; (3) à égalité finale, prendre le premier dans l'ordre de `04 - Projects/INDEX.md` → lui allouer 2-3 suggestions en priorité. Règle déterministe : jamais de jugement sur "l'activité ressentie".
-- **Ordre de sélection dans un kanban** : au sein d'un kanban, les tickets sont pris dans l'**ordre d'apparition dans le fichier** (haut = prioritaire). Ne jamais réordonner par jugement — l'ordre dans le kanban est l'ordre de priorité décidé par Victor. WIP avant Ready, Ready avant Idea.
+- **Ordre de sélection dans un kanban** : WIP avant Ready, Ready avant Idea. Au sein de la colonne Ready, **ne pas supposer que le haut = prioritaire** — le kanban est une liste non-ordonnée. Utiliser les signaux de priorité déjà définis (projet prioritaire, dormance, WIP existant) pour sélectionner dans Ready, pas la position dans le fichier.
 - **Couverture obligatoire de tous les kanbans** : chaque kanban actif (projets actifs + Claude Code Kanban + Hobby Kanban) doit contribuer au moins 1 suggestion si des tickets WIP ou Ready sont disponibles et non bloqués (sauf si budget épuisé ou plafond énergie basse atteint)
 - **Fenêtre courte** : si `FENETRE_COURTE = true`, identifier dans le pool les tickets estimés à moins de 30min et les réserver pour la section `⚡ Avant [event]` de l'Étape 5 — ils font partie du pool mais sont présentés séparément
 - **Équilibre Travail / Perso / Hobby** : respecter la répartition des heures du frontmatter. Si budget = 0 pour une section → l'omettre du pool.
-- **Filtrage géographique** : si Victor est en déplacement (vérifier `project_victor_location.md` en mémoire), exclure les tâches nécessitant l'appart d'Issy, du matériel stocké là-bas, ou une présence physique locale. Appliquer à toutes les sources (inbox, kanbans, bilan J-1).
+- **Filtrage géographique** : si {USER_NAME} est en déplacement (vérifier `project_victor_location.md` en mémoire), exclure les tâches nécessitant l'appart d'Issy, du matériel stocké là-bas, ou une présence physique locale. Appliquer à toutes les sources (inbox, kanbans, bilan J-1).
 - **Pool vide** : si aucun candidat (tous WIP/Ready vides, inbox vide) → ne pas générer de section vide, signaler simplement "Aucune tâche en stock, c'est un bon jour pour le raffinement !" et afficher uniquement Raffinement si tickets Idea existent.
-- **Présenter le pool comme une liste à choix** : afficher toutes les suggestions, puis demander à Victor de sélectionner celles qu'il retient pour son plan. Ne pas pré-sélectionner à sa place.
-- **La daily note n'est écrite qu'après validation** : écrire uniquement les tâches que Victor a retenues (budget horaire par contexte = contrainte principale). La section Raffinement est hors quota.
+- **Présenter le pool comme une liste à choix** : afficher toutes les suggestions, puis demander à {USER_NAME} de sélectionner celles qu'il retient pour son plan. Ne pas pré-sélectionner à sa place.
+- **La daily note n'est écrite qu'après validation** : écrire uniquement les tâches que {USER_NAME} a retenues (budget horaire par contexte = contrainte principale). La section Raffinement est hors quota.
 - **Énergie basse (< 2.5)** : après présentation des 5 tâches, ajouter en bas du plan : *"Énergie basse — 5 tâches proposées. Tu peux me redemander des tâches si tu veux en faire plus dans la journée."*
 
 **Section `🗂️ Raffinement` — logique de génération :**
@@ -298,13 +300,13 @@ Compter le total de tickets Idea dans tous les kanbans (projets actifs + Claude 
 - Si total ≥ 10 → proposer jusqu'à 5 tickets
 
 Ordre de sélection (apply dans cet ordre) :
-- **Priorité 1** : tickets proposés dans la section `🗂️ Raffinement` de la daily note d'hier mais non cochés → reprendre en tête (Victor a du contexte frais)
+- **Priorité 1** : tickets proposés dans la section `🗂️ Raffinement` de la daily note d'hier mais non cochés → reprendre en tête ({USER_NAME} a du contexte frais)
 - **Priorité 2** : tickets dont la note associée apparaît dans les daily notes ou sessions des 3 derniers jours (résonnance contexte)
 - **Priorité 3** : tickets sans note ou note détachée — pris dans l'ordre d'apparition dans le kanban (haut = prioritaire). Pas de jugement sur la pertinence thématique.
 
 Pour chaque ticket : `[[NomTicket]]` (ou texte brut si pas de note) + contexte en 1 phrase + action : **→ spec** ou **→ poubelle**
 
-**Après validation du plan (Étape 5)** : pour chaque ticket que Victor marque **spec** → invoquer immédiatement `/refine [[NomTicket]]`. Ne pas écrire la daily note avant la fin de chaque `/refine`. Si Victor marque plusieurs tickets spec, les traiter en séquence (un `/refine` à la fois).
+**Après validation du plan (Étape 5)** : pour chaque ticket que {USER_NAME} marque **spec** → invoquer immédiatement `/refine [[NomTicket]]`. Ne pas écrire la daily note avant la fin de chaque `/refine`. Si {USER_NAME} marque plusieurs tickets spec, les traiter en séquence (un `/refine` à la fois).
 
 La section `🗂️ Raffinement` **ne compte pas** dans les budgets contexte ni dans le plafond énergie basse (5 tâches). Toujours affichée si ≥ 1 ticket.
 
@@ -332,7 +334,7 @@ Avant de présenter quoi que ce soit, vérifier mécaniquement :
 4. Si une tâche n'a pas de durée estimée → lui attribuer 45min avant de sommer
 5. **Jamais présenter un plan non conforme** — tronquer d'abord, présenter ensuite
 
-Ce dry-run est silencieux (pas affiché à Victor). Son résultat est la liste définitive envoyée à l'Étape 5.
+Ce dry-run est silencieux (pas affiché à {USER_NAME}). Son résultat est la liste définitive envoyée à l'Étape 5.
 
 ---
 
@@ -346,15 +348,15 @@ Chaque suggestion doit être :
 
 - **Une à la fois** — ne pas proposer des tâches qui nécessitent de switcher de contexte
 
-- **Liée à sa source** — toujours inclure un lien Obsidian `[[]]` vers la note ou le ticket d'origine pour que Victor retrouve le contexte sans chercher
+- **Liée à sa source** — toujours inclure un lien Obsidian `[[]]` vers la note ou le ticket d'origine pour que {USER_NAME} retrouve le contexte sans chercher
 
   
 
-## Étape 5 — Présenter le plan à Victor et l'écrire dans la daily note
+## Étape 5 — Présenter le plan à {USER_NAME} et l'écrire dans la daily note
 
   
 
-Présenter le plan à Victor :
+Présenter le plan à {USER_NAME} :
 
 **Template et ordre d'affichage** :
 
@@ -388,7 +390,7 @@ Afficher dans cet ordre. Omettre les sections avec indication entre parenthèses
 
 ### ⚡ Avant [event] à [heure]
 - [ ] [ticket rapide estimé <30min] — (~Xmin)
-(Omettre si FENETRE_COURTE = false)
+(Omettre si SHORT_WINDOW = false)
 
 ### 💼 Travail
 - [ ] [Action pro concrète] — [raison courte] — (~Xh / ~Xmin)
@@ -405,7 +407,7 @@ Afficher dans cet ordre. Omettre les sections avec indication entre parenthèses
 ### 🔄 Maintenance vault
 - [ ] /harvest — dernière : [date] (+[X]j)
 - [ ] /link — dernière : [date] (+[X]j)
-(Omettre si aucune commande overdue)
+(Omettre si MAINTENANCE_OVERDUE = false — **obligatoire si MAINTENANCE_OVERDUE = true**)
 
 ### 📬 Mails
 [MAIL_SECTION]
@@ -427,9 +429,9 @@ Afficher dans cet ordre. Omettre les sections avec indication entre parenthèses
 
 - Pour les suggestions hobby : s'appuyer sur les mentions dans les daily notes récentes (activités hobby mentionnées : peinture, guitare, 3D, JDR, etc.)
 
-Une fois validé par Victor, écrire le plan dans la section `## 📅 Plan du jour` de la daily note du jour sous forme de checkboxes avec liens Obsidian vers la note source.
+Une fois validé par {USER_NAME}, écrire le plan dans la section `## 📅 Plan du jour` de la daily note du jour sous forme de checkboxes avec liens Obsidian vers la note source.
 
-**⚠️ Règle critique : écrire TOUTES les sections non-vides** — Agenda, Mails, Perso, Hobby, Travail, Maintenance vault, Raffinement. Ne jamais écrire seulement un sous-ensemble des sections sous prétexte qu'elles sont les "principales". Si une section est vide (ex : aucun mail, pas d'agenda) → l'omettre ; si elle a du contenu → toujours l'écrire, même si Victor n'en a pas parlé pendant la discussion de validation.
+**⚠️ Règle critique : écrire TOUTES les sections non-vides** — Agenda, Mails, Perso, Hobby, Travail, Maintenance vault, Raffinement. Ne jamais écrire seulement un sous-ensemble des sections sous prétexte qu'elles sont les "principales". Si une section est vide (ex : aucun mail, pas d'agenda) → l'omettre ; si elle a du contenu → toujours l'écrire, même si {USER_NAME} n'en a pas parlé pendant la discussion de validation.
 
   
 
@@ -443,7 +445,7 @@ Une fois validé par Victor, écrire le plan dans la section `## 📅 Plan du jo
 
 ### ⚡ Avant [event] à [heure]
 - [ ] [ticket rapide estimé <30min]
-(Omettre si FENETRE_COURTE = false)
+(Omettre si SHORT_WINDOW = false)
 
 ### 💼 Travail
 
@@ -498,13 +500,13 @@ Si la section n'existe pas dans la daily note → la créer. Si elle existe déj
 
   
 
-Quand Victor dit "j'ai fini", "c'est fait", "next", "j'ai quoi à faire" :
+Quand the user says "j'ai fini", "c'est fait", "next", "j'ai quoi à faire" :
 
 1. Lire la section `## 📅 Plan du jour` de la daily note du jour
 
-2. Cocher la tâche terminée : `- [x] [Action] ✅ HH:mm` (exemple : `- [x] Affiner la spec FSTG ✅ 10:47`)
+2. Cocher la tâche terminée : `- [x] [Action] ✅ HH:mm` (exemple : `- [x] Finish task X ✅ HH:mm`)
 
-3. Si la tâche correspond à un ticket kanban → **demander à Victor** : "Je peux déplacer ce ticket en Done sur le kanban ?" — attendre confirmation avant le déplacer
+3. Si la tâche correspond à un ticket kanban → **demander à {USER_NAME}** : "Je peux déplacer ce ticket en Done sur le kanban ?" — attendre confirmation avant le déplacer
 
 4. **Si des tâches non cochées existent** → proposer la prochaine sans attendre demande supplémentaire
 

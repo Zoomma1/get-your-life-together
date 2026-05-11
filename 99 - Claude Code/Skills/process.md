@@ -1,193 +1,193 @@
 ---
 name: process
-description: Donner une URL → Claude fetch le contenu et crée une note structurée dans 03 - Knowledge/ immédiatement. Utiliser quand Victor dit "/process [url]" ou "process ce lien", "capitalise cet article/cette vidéo". Court-circuite le harvest pour un traitement immédiat.
+description: Give a URL → Claude fetches the content and creates a structured note in 03 - Knowledge/ immediately. Use when the user says "/process [url]" or "process this link", "capitalize this article/video". Bypasses harvest for immediate processing.
 ---
 
 # Skill `/process`
 
-Transforme un lien externe en note Knowledge dans le vault, sans passer par l'inbox ni attendre le `/harvest`.
+Transforms an external link into a Knowledge note in the vault, without going through inbox or waiting for `/harvest`.
 
-## Déclenchement
+## Triggering
 
 ```
 /process [url]
-/process [url] --target [sous-dossier]
-/process [url] --tag [tag-custom]
+/process [url] --target [subfolder]
+/process [url] --tag [custom-tag]
 ```
 
-- Sans `--target` → Claude choisit le sous-dossier selon le domaine
-- Sans `--tag` → Claude génère les tags depuis le contenu
-- URL requise — sans URL, demander à Victor de la fournir
-- Si Victor annule à tout moment (Ctrl+C) → arrêter immédiatement et signaler l'annulation
+- Without `--target` → Claude chooses the subfolder based on domain
+- Without `--tag` → Claude generates tags from content
+- URL required — without URL, ask {USER_NAME} to provide it
+- If {USER_NAME} cancels at any time (Ctrl+C) → stop immediately and signal the cancellation
 
 ---
 
-## Étape 1 — Récupération et validation du contenu
+## Step 1 — Content Retrieval and Validation
 
-**Validation préalable :**
-- Vérifier que l'URL est bien-formée (commence par `http://` ou `https://`)
-- Rejeter les URLs `localhost`, `127.0.0.1`, ou fichier local (`file://`)
-- Si validation échoue → signaler "URL invalide, réessaye avec une URL publique"
+**Pre-validation:**
+- Verify the URL is well-formed (starts with `http://` or `https://`)
+- Reject `localhost`, `127.0.0.1`, or local file (`file://`) URLs
+- If validation fails → signal "Invalid URL, try again with a public URL"
 
-**Fetch nominal — defuddle d'abord :**
-1. Construire l'URL defuddle : `https://defuddle.md/<url_originale>`
-2. Fetcher via WebFetch
-3. Si réponse valide (markdown propre, > 100 chars) → utiliser le contenu defuddle. Récupérer le frontmatter defuddle (`title`, `author`, `site`, `word_count`) pour pré-remplir les métadonnées de la note.
-4. Si réponse invalide (erreur, page auth, SPA JS, < 100 chars) → fallback WebFetch classique sur l'URL originale
+**Nominal fetch — defuddle first:**
+1. Build the defuddle URL: `https://defuddle.md/<original_url>`
+2. Fetch via WebFetch
+3. If valid response (clean markdown, > 100 chars) → use defuddle content. Retrieve defuddle frontmatter (`title`, `author`, `site`, `word_count`) to pre-fill note metadata.
+4. If invalid response (error, auth page, JS SPA, < 100 chars) → fallback to classic WebFetch on original URL
 
-**Cas YouTube :**
-Pour shortcut `youtu.be/ID` ou paramètre `?v=ID` → normaliser vers `https://www.youtube.com/watch?v=ID`.
-WebFetch récupère titre + description (pas de transcript sans API YouTube). Minimum 100 caractères de contenu requis.
+**YouTube case:**
+For shortcut `youtu.be/ID` or parameter `?v=ID` → normalize to `https://www.youtube.com/watch?v=ID`.
+WebFetch retrieves title + description (no transcript without YouTube API). Minimum 100 characters of content required.
 
-**Fetch échoué (timeout, 4xx, 5xx, contenu < 100 chars) :**
-Proposer à Victor dans cet ordre :
+**Fetch failed (timeout, 4xx, 5xx, content < 100 chars):**
+Propose to {USER_NAME} in this order:
 
-1. **Fallback n8n** — si actif :
+1. **Fallback n8n** — if active:
    ```bash
    docker ps --filter name=n8n --filter status=running --format "{{.Names}}"
    ```
-   Si arrêté, démarrer et attendre 3 secondes :
+   If stopped, start and wait 3 seconds:
    ```bash
    docker start n8n && sleep 3
    ```
-   Lancer le webhook (inclure le type détecté à l'Étape 2 : `youtube`, `article`, `image`, etc.) :
+   Launch the webhook (include detected type from Step 2: `youtube`, `article`, `image`, etc.):
    ```bash
    curl -s -X POST {N8N_WEBHOOK_URL}/webhook/fallback-link \
      -H "Content-Type: application/json" \
      -d "{\"url\": \"[URL]\", \"type\": \"[type]\"}"
    ```
-   Analyser réponse : si `{ "title": "...", "content": "..." }` avec contenu >= 100 chars → continuer.
-   Sinon → proposer NotebookLM. Arrêter n8n après usage :
+   Parse response: if `{ "title": "...", "content": "..." }` with content >= 100 chars → continue.
+   Otherwise → propose NotebookLM. Stop n8n after use:
    ```bash
    docker stop n8n
    ```
 
-2. **Fallback NotebookLM** — si Victor accepte, présenter le prompt adapté au type détecté (voir ci-dessous) et laisser Victor copier-coller le résumé.
+2. **Fallback NotebookLM** — if {USER_NAME} accepts, present the prompt adapted to detected type (see below) and let {USER_NAME} copy-paste the summary.
 
-**Prompts NotebookLM :**
+**NotebookLM prompts:**
 
-Article/doc :
+Article/doc:
 ```
-Résume ce contenu : le problème/sujet, concepts/outils, points clés, conclusions.
-Sois factuel et concis.
-```
-
-Vidéo tech/dev :
-```
-Résume : problème résolu, outils/concepts, étapes clés, points importants pour un dev.
-Sois factuel et concis.
+Summarize this content: the problem/topic, concepts/tools, key points, conclusions.
+Be factual and concise.
 ```
 
-Vidéo Warhammer/peinture :
+Tech/dev video:
 ```
-Résume : techniques mentionnées, peintures/couleurs (base, wash, layer, etc.),
-étapes dans l'ordre, conseils pratiques. Sois factuel et concis.
+Summarize: problem solved, tools/concepts, key steps, important points for a dev.
+Be factual and concise.
+```
+
+Warhammer/painting video:
+```
+Summarize: techniques mentioned, paints/colors (base, wash, layer, etc.),
+steps in order, practical tips. Be factual and concise.
 ```
 
 ---
 
-## Étape 2 — Identifier le type et le domaine
+## Step 2 — Identify Type and Domain
 
-À partir du contenu obtenu, déterminer :
-- **Type** : `article`, `vidéo`, `forum`, `doc`, `podcast`
-- **Domaine** : voir tableau ci-dessous
+From the content obtained, determine:
+- **Type**: `article`, `video`, `forum`, `doc`, `podcast`
+- **Domain**: see table below
 
-**Mapping domaine → sous-dossier :**
+**Domain mapping → destination subfolder:**
 
-| Domaine détecté | Sous-dossier destination |
+| Detected domain | Destination subfolder |
 |----------------|--------------------------|
-| Claude Code, LLM, prompt engineering, MCP, agents IA | `03 - Knowledge/Claude code/` |
-| Dev, code, architecture, patterns, frameworks, outils dev | `03 - Knowledge/Dev/` |
-| IA générale, ML, modèles, recherche IA | `03 - Knowledge/IA/` |
-| Business, product, startup, management, stratégie | `03 - Knowledge/Business/` |
-| Voyage, lieux, culture | `03 - Knowledge/Travel/` |
-| Warhammer, peinture, figurines | `02 - Hobbies/Warhammer/` |
-| Autre / inclassable | `03 - Knowledge/` (racine) |
+| Claude Code, LLM, prompt engineering, MCP, AI agents | `03 - Knowledge/Claude code/` |
+| Dev, code, architecture, patterns, frameworks, dev tools | `03 - Knowledge/Dev/` |
+| General AI, ML, models, AI research | `03 - Knowledge/IA/` |
+| Business, product, startup, management, strategy | `03 - Knowledge/Business/` |
+| Travel, places, culture | `03 - Knowledge/Travel/` |
+| Warhammer, painting, miniatures | `02 - Hobbies/Warhammer/` |
+| Other / unclassifiable | `03 - Knowledge/` (root) |
 
-Si `--target` fourni → utiliser ce chemin directement. Créer le dossier s'il n'existe pas (`mkdir -p`). Accepter tout chemin valide sous `03 - Knowledge/` ou `02 - Hobbies/`.
-
----
-
-## Étape 3 — Vérifier les doublons
-
-Lister les fichiers existants dans le sous-dossier cible.
-
-Si une note similaire existe déjà :
-→ Présenter à Victor : "Note existante trouvée : [[nom-note]]. Créer quand même ou enrichir l'existante ?"
-→ Attendre sa réponse avant de continuer.
+If `--target` provided → use that path directly. Create the folder if it doesn't exist (`mkdir -p`). Accept any valid path under `03 - Knowledge/` or `02 - Hobbies/`.
 
 ---
 
-## Étape 4 — Créer la note
+## Step 3 — Check for Duplicates
 
-Générer le slug depuis le titre (kebab-case, minuscules, sans accents, max 5-6 mots).
+List existing files in target subfolder.
 
-Créer `03 - Knowledge/[sous-dossier]/[slug].md` :
+If a similar note already exists:
+→ Present to {USER_NAME}: "Existing note found: [[note-name]]. Create anyway or enrich the existing one?"
+→ Wait for their answer before continuing.
+
+---
+
+## Step 4 — Create the Note
+
+Generate slug from title (kebab-case, lowercase, no accents, max 5-6 words).
+
+Create `03 - Knowledge/[subfolder]/[slug].md`:
 
 ```markdown
 ---
 date: YYYY-MM-DD
 source: [url]
-tags: [domaine, mots-clés]
-status: nouvelle
+tags: [domain, keywords]
+status: new
 ---
 
-# [Titre]
+# [Title]
 
-## En une phrase
-[Résumé en 1 phrase]
+## In one sentence
+[Summary in 1 sentence]
 
-## Points clés
+## Key points
 - ...
 
-## Cas d'usage avec mon workflow
+## Use case with my workflow
 - ...
 
-## Voir aussi
-- [[note-existante]] — [raison en une phrase]
+## See also
+- [[existing-note]] — [reason in one sentence]
 ```
 
-**Remplissage :**
-- `tags` : domaine + 2-4 mots-clés du contenu. Si `--tag [custom]` → ajouter en fin de liste (accepter tel quel)
-- `## Points clés` : 3-7 bullets, factuels
-- `## Cas d'usage avec mon workflow` : liens concrets (FSTG, vault, projets) — omettre si aucun lien évident
-- `## Voir aussi` : chercher les notes liées dans le vault. Au moins 1 lien si pertinent existe, sinon omettre cette section.
+**Filling in:**
+- `tags`: domain + 2-4 content keywords. If `--tag [custom]` → add at end of list (accept as-is)
+- `## Key points`: 3-7 bullets, factual
+- `## Use case with my workflow`: concrete links (FSTG, vault, projects) — omit if no obvious link
+- `## See also`: search for linked notes in vault. At least 1 link if relevant exists, otherwise omit this section.
 
-**Validation du contenu :**
-- Minimum 100 caractères de contenu utile (titre + résumé)
-- Sinon → signaler "Contenu insuffisant" et proposer NotebookLM
+**Content validation:**
+- Minimum 100 characters of useful content (title + summary)
+- Otherwise → signal "Insufficient content" and propose NotebookLM
 
 ---
 
-## Étape 5 — Annoncer le résultat
+## Step 5 — Announce the Result
 
-**Succès — note créée :**
+**Success — note created:**
 ```
-✅ Note créée : 03 - Knowledge/[sous-dossier]/[slug].md
-→ Type : [type]
-→ Tags : [tags]
-→ Voir aussi : [[note-1]], [[note-2]] (si trouvées)
+✅ Note created: 03 - Knowledge/[subfolder]/[slug].md
+→ Type: [type]
+→ Tags: [tags]
+→ See also: [[note-1]], [[note-2]] (if found)
 ```
 
-**Définition du succès :**
-- Fichier créé et écrit sur disque
-- Frontmatter valide (date, source, tags, status)
-- Contenu minimum : titre + résumé 1-phrase + au moins 3 points clés
-- Tag custom (si `--tag` fourni) présent dans le frontmatter
+**Definition of success:**
+- File created and written to disk
+- Valid frontmatter (date, source, tags, status)
+- Minimum content: title + 1-sentence summary + at least 3 key points
+- Custom tag (if `--tag` provided) present in frontmatter
 
-**Cas d'échec :**
-- [Doublon détecté] → signaler et demander confirmation avant d'écraser
-- [Contenu insuffisant] → proposer NotebookLM ou enrichissement manuel
-- [Fetch échoué] → signaler l'erreur avec la raison (timeout, 404, etc.) et proposer NotebookLM
+**Failure cases:**
+- [Duplicate detected] → signal and ask for confirmation before overwriting
+- [Insufficient content] → propose NotebookLM or manual enrichment
+- [Fetch failed] → signal the error with reason (timeout, 404, etc.) and propose NotebookLM
 
 ---
 
-## Règles absolues
+## Absolute Rules
 
-- **Jamais créer sans contenu récupéré** — ne pas générer depuis l'URL seule
-- **Jamais écraser une note existante** — demander confirmation si doublon
-- **Destinations valides uniquement** — utiliser le mapping domaine → sous-dossier
-- **Slug depuis le titre** — jamais depuis l'URL
-- **Fallbacks explicites** — signaler l'échec et proposer options (n8n ou NotebookLM)
-- **Warhammer → Hobbies** — jamais dans Knowledge
-- **Pair-programming** — attendre validation de Victor aux points critiques (doublon, fallback, annulation)
+- **Never create without retrieved content** — don't generate from URL alone
+- **Never overwrite existing note** — ask for confirmation if duplicate
+- **Valid destinations only** — use domain → subfolder mapping
+- **Slug from title** — never from URL
+- **Explicit fallbacks** — signal failure and propose options (n8n or NotebookLM)
+- **Warhammer → Hobbies** — never in Knowledge
+- **Pair-programming** — wait for {USER_NAME} validation at critical points (duplicate, fallback, cancellation)

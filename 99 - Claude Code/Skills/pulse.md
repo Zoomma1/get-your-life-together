@@ -1,147 +1,147 @@
 ---
 name: pulse
-description: Veille hebdomadaire setup × tendances — scrute GitHub trending + HN, analyse le setup actuel, identifie les gaps et crée les tickets manquants dans le kanban Claude Code. Invoquer quand Victor dit "veille setup", "quoi de neuf à intégrer", "pulse", "check les trends", "/pulse", ou en début de semaine.
+description: Weekly setup monitoring × trends — scans GitHub trending + HN, analyzes current setup, identifies gaps and creates missing tickets in Claude Code kanban. Invoke when the user says "setup monitoring", "what's new to integrate", "pulse", "check trends", "/pulse", or at the start of the week.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **qualitative narrative output**. Its effectiveness is measured by the **richness of output produced**, not structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet required even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in ways that strip narrative instructions (grouping, context, key moments, open questions, tone, narration). Qualitative content preservation takes priority over line reduction.
 
-# Skill : /pulse
+# Skill: /pulse
 
-Veille hebdomadaire qui croise les tendances tech avec le setup actuel. Résultat : 3-5 tickets créés dans le kanban Claude Code pour les améliorations les plus pertinentes.
+Weekly monitoring that crosses tech trends with current setup. Result: 3-5 tickets created in Claude Code kanban for the most relevant improvements.
 
-Fréquence recommandée : une fois par semaine (typiquement le samedi ou lundi matin).
-
----
-
-## Étape 1 — Fetch tendances (parallèle)
-
-Lancer deux recherches en parallèle :
-
-**Recherche A — GitHub trending (semaine)**
-```
-WebSearch : "GitHub trending projects this week [mois année courante]"
-WebSearch : "GitHub trending weekly [mois année courante]"
-```
-Cibler : [shareuhack.com GitHub trending weekly], [gitstars.substack.com], [trendshift.io].
-Fetcher la page la plus récente trouvée avec WebFetch.
-
-**Recherche B — HN + écosystème Claude Code**
-```
-WebSearch : "Hacker News trending Claude Code [mois année courante]"
-WebSearch : "site:reddit.com/r/ClaudeCode trending [mois année courante]"
-```
-
-**Extraction** : pour chaque source, noter les projets avec :
-- Nom + description courte
-- Nombre d'étoiles ou score HN
-- Catégorie : [IA/LLM] [Outillage dev] [Infra] [Vault/PKM] [Productivité]
+Recommended frequency: once a week (typically Saturday or Monday morning).
 
 ---
 
-## Étape 2 — Scanner le setup actuel
+## Step 1 — Fetch Trends (parallel)
 
-Lire en parallèle :
+Launch two searches in parallel:
 
-1. `99 - Claude Code/Skills/INDEX.md` — liste des skills actifs
-2. `~/.claude/settings.json` — plugins activés, hooks
-3. Kanban Claude Code colonnes **Idea** et **Spec** — ce qui est déjà en backlog
+**Search A — GitHub trending (weekly)**
+```
+WebSearch: "GitHub trending projects this week [month year current]"
+WebSearch: "GitHub trending weekly [month year current]"
+```
+Target: [shareuhack.com GitHub trending weekly], [gitstars.substack.com], [trendshift.io].
+Fetch the most recent page found with WebFetch.
 
-**Extraction** : construire deux listes :
-- Ce que le setup fait déjà (skills + plugins actifs)
-- Ce qui est déjà en backlog (titres des tickets Idea/Spec)
+**Search B — HN + Claude Code ecosystem**
+```
+WebSearch: "Hacker News trending Claude Code [month year current]"
+WebSearch: "site:reddit.com/r/ClaudeCode trending [month year current]"
+```
 
----
-
-## Étape 3 — Gap analysis
-
-Croiser les tendances (Étape 1) avec le setup (Étape 2).
-
-Pour chaque projet/pattern trending :
-1. Est-ce déjà couvert par un skill ou plugin actif ? → ignorer
-2. Est-ce déjà en backlog (Idea/Spec) ? → ignorer
-3. Est-ce pertinent pour le workflow de Victor (vault, dev, ML, productivité) ? → candidat
-
-**Critères de pertinence** (au moins un) :
-- Réduction directe des frictions quotidiennes
-- Extension naturelle d'un skill existant
-- Économie de tokens ou de temps de session
-- Intégration avec un projet actif (FSTG, MPA-MLF, Rustlings, Ludisep)
-
-Trier les candidats par pertinence décroissante. Sélectionner **3 à 5 maximum**.
-
-Si moins de 3 candidats pertinents → signaler "peu de nouveautés pertinentes cette semaine" et s'arrêter sans créer de tickets.
+**Extraction**: for each source, note projects with:
+- Name + short description
+- Star count or HN score
+- Category: [AI/LLM] [Dev Tooling] [Infra] [Vault/PKM] [Productivity]
 
 ---
 
-## Étape 4 — Présenter les candidats à Victor
+## Step 2 — Scan Current Setup
 
-Avant de créer les tickets, présenter la liste des candidats sélectionnés :
+Read in parallel:
+
+1. `99 - Claude Code/Skills/INDEX.md` — list of active skills
+2. `~/.claude/settings.json` — activated plugins, hooks
+3. Claude Code kanban columns **Idea** and **Spec** — what's already in backlog
+
+**Extraction**: build two lists:
+- What the setup already does (active skills + plugins)
+- What's already in backlog (titles of Idea/Spec tickets)
+
+---
+
+## Step 3 — Gap Analysis
+
+Cross trends (Step 1) with setup (Step 2).
+
+For each trending project/pattern:
+1. Is it already covered by an active skill or plugin? → ignore
+2. Is it already in backlog (Idea/Spec)? → ignore
+3. Is it relevant to {USER_NAME}'s workflow (vault, dev, ML, productivity)? → candidate
+
+**Relevance criteria** (at least one):
+- Direct reduction of daily friction
+- Natural extension of existing skill
+- Token or session time savings
+- Integration with active project (FSTG, MPA-MLF, Rustlings, Ludisep)
+
+Sort candidates by descending relevance. Select **3 to 5 maximum**.
+
+If fewer than 3 relevant candidates → signal "few relevant updates this week" and stop without creating tickets.
+
+---
+
+## Step 4 — Present Candidates to {USER_NAME}
+
+Before creating tickets, present the selected candidates list:
 
 ```
-## Candidats pulse — [date]
+## Pulse candidates — [date]
 
-| # | Amélioration | Inspiration | Pertinence |
+| # | Improvement | Inspiration | Relevance |
 |---|-------------|-------------|------------|
 | 1 | ... | ... | ... |
 | 2 | ... | ... | ... |
 
-→ Je crée les tickets pour tous ? Ou veux-tu en retirer certains ?
+→ Create tickets for all? Or do you want to remove some?
 ```
 
-Attendre la validation de Victor avant de passer à l'Étape 5.
+Wait for {USER_NAME} validation before moving to Step 5.
 
 ---
 
-## Étape 5 — Créer les tickets
+## Step 5 — Create Tickets
 
-Pour chaque candidat validé, appliquer le skill `create-ticket` :
+For each validated candidate, apply the `create-ticket` skill:
 
 ```
-create-ticket avec :
-- title: "[titre descriptif]"
-- type: "💡 Idée" (ou "⏫ Improvement" si c'est une amélioration d'existant)
-- project: null (→ "Personnel")
+create-ticket with:
+- title: "[descriptive title]"
+- type: "💡 Idea" (or "⏫ Improvement" if enhancement to existing)
+- project: null (→ "Personal")
 - column: "Idea"
-- context: "[lien avec la tendance source en 1 phrase]"
+- context: "[link with source trend in 1 sentence]"
 ```
 
-Créer les tickets séquentiellement (le kanban est modifié à chaque fois).
+Create tickets sequentially (kanban is modified each time).
 
 ---
 
-## Étape 6 — Résumé
+## Step 6 — Summary
 
-Afficher :
+Display:
 ```
 ## Pulse — [date]
 
-**Sources scannées :** GitHub trending semaine + HN + r/ClaudeCode
-**Candidats identifiés :** N (M ignorés — déjà en setup ou backlog)
-**Tickets créés :** K
+**Sources scanned:** GitHub trending weekly + HN + r/ClaudeCode
+**Candidates identified:** N (M ignored — already in setup or backlog)
+**Tickets created:** K
 
 | Ticket | Inspiration |
 |--------|-------------|
-| [titre] | [source] |
+| [title] | [source] |
 ```
 
 ---
 
-## Étape 7 — Mettre à jour le command-tracker
+## Step 7 — Update Command Tracker
 
-- Ouvrir `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
-- Ligne `/pulse` → remplacer la date par la date du jour au format `YYYY-MM-DD`
+- Open `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
+- Line `/pulse` → replace date with today's date in `YYYY-MM-DD` format
 
 ---
 
-## Règles
+## Rules
 
-- Ne jamais créer un ticket déjà présent dans le setup ou le backlog — vérifier en Étape 2
-- Ne jamais dépasser 5 tickets par run — filtrer rigoureusement
-- Toujours présenter les candidats avant de créer (Étape 4) — pas de création silencieuse
-- Si WebFetch échoue sur une source → noter "source indisponible" et continuer avec les autres
-- **Tickets pulse = exploration uniquement** — jamais d'implémentation directe ; le ticket résulte en une note Knowledge OU un ticket d'implémentation, seulement si Victor demande explicitement
+- Never create a ticket already present in setup or backlog — verify in Step 2
+- Never exceed 5 tickets per run — filter rigorously
+- Always present candidates before creating (Step 4) — no silent creation
+- If WebFetch fails on a source → note "source unavailable" and continue with others
+- **Pulse tickets = exploration only** — never direct implementation; the ticket results in a Knowledge note OR an implementation ticket, only if {USER_NAME} explicitly requests

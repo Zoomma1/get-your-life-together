@@ -1,121 +1,121 @@
 ---
 name: define-done
-description: Génère une checklist de done-criteria avant de démarrer un milestone, pour n'importe quel type de projet. Invoquer via /define-done [NomMilestone] dès que Victor veut cadrer explicitement la fin d'un milestone avant de s'y lancer, éviter le flou post-milestone, ou s'assurer que le scope est complet et vérifiable. Déclencher aussi si Victor dit "on cadre le milestone X", "qu'est-ce que done veut dire pour ce milestone", "définis les critères de fin", "checklist de done pour X" — même sans /define-done explicite.
+description: Generate a done-criteria checklist before starting a milestone, for any type of project. Invoke via /define-done [MilestoneName] whenever {USER_NAME} wants to explicitly frame the end of a milestone before diving in, avoid post-milestone confusion, or ensure scope is complete and verifiable. Also trigger if the user says "let's frame milestone X", "what does done mean for this milestone", "define the end criteria", "done checklist for X" — even without explicit /define-done.
 ---
 
 ## Argument
 
-`$ARGUMENTS` = nom du milestone. Si vide → demander : "Quel milestone veux-tu cadrer ?"
+`$ARGUMENTS` = milestone name. If empty → ask: "Which milestone do you want to frame?"
 
 ---
 
-## Étape 1 — Identifier le projet et charger le contexte
+## Step 1 — Identify the project and load context
 
-Chercher dans l'ordre :
-1. **Contexte actif** : un projet est-il en cours de discussion dans la session ? Le retenir.
-2. **CLAUDE.md ou session courante** : un README ou kanban a-t-il été lu récemment ?
-3. **Demander** : si le projet n'est pas évident → "Pour quel projet ?"
+Search in this order:
+1. **Active context**: is a project being discussed in the session? Keep it.
+2. **CLAUDE.md or current session**: has a README or kanban been read recently?
+3. **Ask**: if the project isn't obvious → "Which project?"
 
-Puis charger ce qui existe — sans supposer une structure fixe :
-- Fichier de planning ou kanban (`Project management.md`, `PLANNING.md`, tickets, ou équivalent)
-- Documentation de contexte (`README.md`, `claude-code/README.md`, note principale du projet)
-
----
-
-## Étape 2 — Identifier les éléments du milestone
-
-Chercher les éléments liés à `$ARGUMENTS` dans les sources disponibles :
-
-1. **Section nommée** : le planning a une section `## [NomMilestone]` → prendre tout son contenu
-2. **Tag/label** : éléments avec `#[NomMilestone]` ou `milestone: [NomMilestone]`
-3. **Correspondance partielle** : éléments dont le titre contient `$ARGUMENTS` (insensible à la casse)
-4. **Contexte implicite** : si c'est le seul milestone en cours, les éléments en WIP/Ready lui appartiennent probablement
-
-**Si rien trouvé** : afficher ce qui existe et demander → "Je ne vois pas d'éléments associés à '[NomMilestone]'. Tu veux me dire lesquels en font partie, ou je génère depuis le contexte projet seul ?"
-**Attendre avant de continuer.**
+Then load what exists — without assuming fixed structure:
+- Planning or kanban file (`Project management.md`, `PLANNING.md`, tickets, or equivalent)
+- Context documentation (`README.md`, `claude-code/README.md`, main project note)
 
 ---
 
-## Étape 3 — Générer la checklist
+## Step 2 — Identify milestone elements
 
-Analyser le contexte disponible et produire une checklist adaptée au type de projet.
+Search for elements related to `$ARGUMENTS` in available sources:
 
-**Structure en 4 sections :**
+1. **Named section**: planning has a `## [MilestoneName]` section → take all its content
+2. **Tag/label**: elements with `#[MilestoneName]` or `milestone: [MilestoneName]`
+3. **Partial match**: elements whose title contains `$ARGUMENTS` (case-insensitive)
+4. **Implicit context**: if it's the only active milestone, WIP/Ready elements probably belong to it
+
+**If nothing found**: display what exists and ask → "I don't see elements linked to '[MilestoneName]'. Can you tell me which ones belong to it, or should I generate from project context alone?"
+**Wait before continuing.**
+
+---
+
+## Step 3 — Generate the checklist
+
+Analyze available context and produce a checklist tailored to the project type.
+
+**Structure in 4 sections:**
 
 ```markdown
-## Done criteria — [NomMilestone]
-> Généré le [date] — [Projet]
+## Done criteria — [MilestoneName]
+> Generated on [date] — [Project]
 
-### Livrables
-- [ ] [Élément/feature/tâche] — [résultat attendu en 1 phrase, formulé côté utilisateur ou bénéficiaire]
+### Deliverables
+- [ ] [Element/feature/task] — [expected result in 1 sentence, phrased for the user or stakeholder]
 - [ ] ...
 
-### Critères de qualité
-- [ ] [Critère vérifiable spécifique au projet]
+### Quality criteria
+- [ ] [Specific verifiable criterion for this project type]
 - [ ] ...
 
 ### Validation
-- [ ] [Comment confirmer que c'est done — test, revue, démo, acceptation]
+- [ ] [How to confirm it's done — test, review, demo, sign-off]
 - [ ] ...
 
-### Conditions de clôture
-- [ ] [Action finale pour fermer officiellement le milestone]
+### Closure conditions
+- [ ] [Final action to officially close the milestone]
 - [ ] ...
 ```
 
-**Adapter les sections au type de projet :**
+**Adapt sections by project type:**
 
-| Type | Livrables | Validation | Clôture |
-|------|-----------|------------|---------|
-| **Dev** | features, bugfixes | tests qui passent, pas d'erreur console | déployé en prod |
-| **Organisationnel** | décisions prises, actions réalisées | validé par les parties prenantes | CR envoyé/archivé |
-| **Apprentissage/recherche** | rapport, code, notes capitalisées | objectifs atteints, exercices faits | capitalisé dans vault |
-| **Hardware/infra** | composants installés, config validée | services up, tests fonctionnels | documenté |
+| Type | Deliverables | Validation | Closure |
+|------|--------------|------------|---------|
+| **Dev** | features, bugfixes | tests pass, no console errors | deployed to production |
+| **Organizational** | decisions made, actions taken | validated by stakeholders | report sent/archived |
+| **Learning/research** | report, code, notes capitalized | goals reached, exercises completed | capitalized in vault |
+| **Hardware/infra** | components installed, config validated | services up, functional tests | documented |
 
-**Règle de qualité** : chaque item doit être vérifiable objectivement.
-- ❌ "le code est propre" → ✅ "les tests passent sans modification"
-- ❌ "c'est bien préparé" → ✅ "l'ordre du jour est envoyé 48h avant"
-- ❌ critère flou → `[À préciser : ...]`
+**Quality rule**: each item must be objectively verifiable.
+- ❌ "code is clean" → ✅ "tests pass without modifications"
+- ❌ "well prepared" → ✅ "agenda sent 48 hours before"
+- ❌ vague criterion → `[To clarify: ...]`
 
-**Présenter la checklist avant de sauvegarder.**
+**Present the checklist before saving.**
 
 ---
 
-## Étape 4 — Validation
+## Step 4 — Validation
 
-Attendre que Victor valide, ajuste ou complète les items.
+Wait for {USER_NAME} to validate, adjust, or complete the items.
 
-**Ne pas sauvegarder avant confirmation explicite** ("OK", "sauvegarde", "c'est bon").
+**Don't save before explicit confirmation** ("OK", "save", "it's good").
 
 ---
 
-## Étape 5 — Sauvegarder
+## Step 5 — Save
 
-Sauvegarder la note dans le vault projet :
+Save the note in the vault project:
 ```
-{VAULT_PATH}\{PROJECTS_FOLDER}\[Projet]\milestones\[nom-milestone]-done-criteria.md
+{VAULT_PATH}\{PROJECTS_FOLDER}\[Project]\milestones\[milestone-name]-done-criteria.md
 ```
-Créer le dossier `milestones/` s'il n'existe pas.
+Create the `milestones/` folder if it doesn't exist.
 
-Si le projet n'est pas dans le vault → demander où sauvegarder.
+If the project isn't in the vault → ask where to save.
 
-Frontmatter minimal :
+Minimal frontmatter:
 ```yaml
 ---
-title: Done criteria — [NomMilestone]
+title: Done criteria — [MilestoneName]
 date: [YYYY-MM-DD]
-milestone: [NomMilestone]
+milestone: [MilestoneName]
 status: active
 ---
 ```
 
-Confirmer : "Sauvegardé → `[chemin]/[nom]-done-criteria.md`"
+Confirm: "Saved → `[path]/[name]-done-criteria.md`"
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- Jamais de sauvegarde sans validation explicite
-- Si le milestone est introuvable → afficher ce qui existe et demander, ne pas improviser
-- Tous les critères doivent être vérifiables — reformuler ou marquer `[À préciser]`
-- La structure des sections s'adapte au projet — ne pas forcer des sections dev sur un projet org
+- Never save without explicit validation
+- If milestone is unfound → display what exists and ask, don't improvise
+- All criteria must be verifiable — rephrase or mark `[To clarify]`
+- Section structure adapts to project type — don't force dev sections on org projects

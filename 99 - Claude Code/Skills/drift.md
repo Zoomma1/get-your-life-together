@@ -1,196 +1,196 @@
 ---
 name: drift
-description: Détecter les idées récurrentes non capitalisées sur les 15 derniers jours — idées mentionnées plusieurs fois sans note ni ticket existant. Ciblé et compact. Jamais créer sans validation explicite de Victor.
+description: Detect recurring ideas not yet captured over the last 15 days — ideas mentioned multiple times without existing note or ticket. Targeted and compact. Never create without explicit validation from {USER_NAME}.
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces **qualitative narrative output**. Its effectiveness is measured on the **richness of output produced**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (grouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
-# Skill : /drift
+# Skill: /drift
 
-Le drift révèle ce qui compte vraiment vs ce qui sonne bien. Quand une idée revient régulièrement sans jamais être actionnée, c'est un signal : soit elle mérite une place dans le système, soit elle occupe de l'espace mental pour rien. Le but du skill est de rendre ce signal visible et de forcer une décision.
+Drift reveals what really matters vs what sounds good. When an idea comes up regularly without ever being acted on, it's a signal: either it deserves a place in the system, or it's taking up mental space for nothing. The skill's purpose is to make this signal visible and force a decision.
 
-**Différence clé avec `/harvestdeep`** : drift est ciblé (15j, répétitions uniquement, compact) ; harvestdeep est exhaustif (30j, capitalisation large, signaux, inbox review). Si Victor hésite entre les deux, choisir drift pour une vérification rapide, harvestdeep pour un bilan complet.
+**Key difference from `/harvestdeep`**: drift is targeted (15d, repetitions only, compact); harvestdeep is exhaustive (30d, broad capitalization, signals, inbox review). If {USER_NAME} hesitates between the two, choose drift for quick check, harvestdeep for full review.
 
-## Déclenchement
+## Trigger
 
-- Victor dit "drift", "check les drifts", "qu'est-ce qui revient"
-- **Période par défaut** : 15 derniers jours uniquement (scoped = rapide)
-- Optionnel : période personnalisée ("drift de la semaine", "drift du mois") → sinon, 15j
-
----
-
-## Étape 1 — Lire le contexte minimal
-
-Lire en parallèle les 3 sources indépendantes (ne pas scanner le vault entier) :
-
-1. **Daily notes** (15 derniers jours) dans `00 - Daily notes/` → sujets mentionnés 2+ fois, intentions sans suite
-   - Chercher les fichiers au format `YYYY-MM-DD.md` uniquement
-   - Pas de daily note pour un jour ? Sauter (ne pas forcer), mais **compter ce jour comme potentiel context pour autres sources** (session, index)
-2. **Sessions** (15 derniers jours) dans `99 - Claude Code/Sessions/` → idées non capitalisées, sujets reportés
-3. **Projects/INDEX.md** → projets actifs, kanbans associés
-
-Agréger avant l'Étape 2. Ciblé uniquement.
+- the user says "drift", "check the drifts", "what keeps coming up"
+- **Default period**: last 15 days only (scoped = fast)
+- Optional: custom period ("drift of the week", "drift of the month") → otherwise, 15d
 
 ---
 
-## Étape 2 — Détecter les répétitions non capitalisées
+## Step 1 — Read minimal context
 
-Chercher les sujets **mentionnés 2+ fois sur jours ou contextes différents** qui **n'ont ni note ni ticket** :
+Read in parallel 3 independent sources (don't scan entire vault):
 
-**Définition d'une occurrence** : une mention du sujet dans un jour/session distinct. Plusieurs mentions le même jour = 1 occurrence. Exemple : "Refacto paint service" mentionné 3 fois le 2026-03-20 = 1 occurrence. Mentionné aussi le 2026-03-25 = 2e occurrence → seuil atteint.
+1. **Daily notes** (last 15 days) in `00 - Daily notes/` → subjects mentioned 2+ times, intentions without follow-up
+   - Search for files in `YYYY-MM-DD.md` format only
+   - No daily note for a day? Skip (don't force), but **count that day as potential context for other sources** (session, index)
+2. **Sessions** (last 15 days) in `99 - Claude Code/Sessions/` → uncapitalized ideas, deferred subjects
+3. **Projects/INDEX.md** → active projects, associated kanbans
 
-**Seuil de détection** : 2 occurrences minimum sur jours/sessions différents. Fréquence plus haute (3+) = priorité plus haute.
-
-**Filtrer avant Étape 3** :
-1. **Kanban check** : le sujet existe-t-il en Idea/Specs/Ready/WIP ? → ne pas signaler (déjà capitalisé)
-2. **Orpheline check** : existe-t-il une note orpheline via glob `04 - Projects/*/Todos/` ou `09 - Inbox/` ? → ne pas créer doublon, lier au kanban (Étape 5)
-
-**Ne pas signaler** :
-- Idées en WIP ou Done
-- Mentions dans un seul jour/session uniquement
-- Signaux d'alerte personnels (harvestdeep)
+Aggregate before Step 2. Targeted only.
 
 ---
 
-## Étape 3 — Classifier : résistance ou obstacle ?
+## Step 2 — Detect uncapitalized repetitions
 
-Pour chaque drift détecté, identifier pourquoi il n'a pas été actionné :
+Search for subjects **mentioned 2+ times across different days or contexts** that **have neither note nor ticket**:
 
-**Résistance vraie** : le sujet revient, Victor l'évite activement, mais rien n'empêche concrètement d'avancer.
-- Le sujet est mentionné mais aucune suite n'est donnée
-- Pas de dépendance externe identifiée
-- Les prochaines étapes seraient définissables immédiatement
+**Definition of occurrence**: one mention of subject in distinct day/session. Multiple mentions same day = 1 occurrence. Example: "Refactor paint service" mentioned 3 times on 2026-03-20 = 1 occurrence. Also mentioned 2026-03-25 = 2nd occurrence → threshold reached.
 
-**Obstacle structurel** : bloqué par une contrainte réelle, pas par de l'évitement.
-- Dépendance externe non résolue (réponse attendue, info manquante, pas le bon moment)
-- Prochaine étape floue ou hors de contrôle de Victor
-- Timing contraint par un facteur extérieur
+**Detection threshold**: 2 occurrences minimum across different days/sessions. Higher frequency (3+) = higher priority.
 
-Cette distinction change la conclusion proposée :
-- **Résistance** → forcer une décision (drop / schedule 48h / reframe)
-- **Obstacle** → identifier le déblocage concret et le noter
+**Filter before Step 3**:
+1. **Kanban check**: does subject exist in Idea/Specs/Ready/WIP? → don't flag (already captured)
+2. **Orphan check**: does orphaned note exist via glob `04 - Projects/*/Todos/` or `09 - Inbox/`? → don't create duplicate, link to kanban (Step 5)
 
----
-
-## Étape 4 — Présentation compacte
-
-### Si aucun drift
-```
-Aucun drift sur les 15 derniers jours — tout est capitalisé ou trop récent.
-```
-
-### Si drifts détectés
-Présenter liste rapide d'abord, puis détails :
-
-**Drifts détectés (à valider) :**
-- [Sujet 1]
-- [Sujet 2]
-
-Puis pour chaque drift :
-
-```
-🌊 DRIFT : [Sujet]
-→ Apparu [X fois] : [date/contexte], [date/contexte]
-→ Capitalisé : NON
-→ Type : Résistance / Obstacle
-→ Action proposée : [drop / schedule 48h / reframe / déblocage : quoi]
-```
-
-**Exemple 2 drifts** :
-```
-🌊 DRIFT : Refacto service paint-session
-→ Apparu 3 fois : 2026-03-12 daily, 2026-03-18 session, 2026-03-25 daily
-→ Capitalisé : NON
-→ Type : Résistance
-→ Action proposée : Schedule 48h ou drop
-
-🌊 DRIFT : Contacter prof Brno
-→ Apparu 2 fois : 2026-03-20 daily, 2026-03-24 session
-→ Capitalisé : NON
-→ Type : Obstacle — attente email
-→ Action proposée : Vérifier réponse, sinon relancer
-```
-
-**PAUSE avant Étape 5 — Attendre validation Victor.** Pour chaque drift, Victor répond : `validé`, `invalidé [raison]`, ou `déjà en [colonne kanban]`.
-
-### Drifts invalidés par Victor
-Lister ici avec commentaire (si fourni) :
-```
-- [Sujet] — [raison Victor si fournie]
-```
+**Do not flag**:
+- Ideas in WIP or Done
+- Mentions in single day/session only
+- Personal alert signals (harvestdeep)
 
 ---
 
-## Étape 5 — Créer les tickets validés
+## Step 3 — Classify: true resistance or obstacle?
 
-Pour chaque drift **validé** :
+For each detected drift, identify why it hasn't been acted on:
+
+**True resistance**: subject comes up, {USER_NAME} actively avoids it, but nothing concretely prevents moving forward.
+- Subject is mentioned but no follow-up is given
+- No identified external dependency
+- Next steps would be definable immediately
+
+**Structural obstacle**: blocked by real constraint, not avoidance.
+- External dependency unresolved (waiting for response, missing info, wrong timing)
+- Next step unclear or outside {USER_NAME}'s control
+- Timing constrained by external factor
+
+This distinction changes proposed conclusion:
+- **Resistance** → force a decision (drop / schedule 48h / reframe)
+- **Obstacle** → identify concrete unblocking and note it
+
+---
+
+## Step 4 — Compact presentation
+
+### If no drift
+```
+No drift in the last 15 days — everything is captured or too recent.
+```
+
+### If drifts detected
+Present quick list first, then details:
+
+**Detected drifts (to validate):**
+- [Subject 1]
+- [Subject 2]
+
+Then for each drift:
+
+```
+🌊 DRIFT: [Subject]
+→ Appeared [X times]: [date/context], [date/context]
+→ Captured: NO
+→ Type: Resistance / Obstacle
+→ Proposed action: [drop / schedule 48h / reframe / unblock: what]
+```
+
+**Example 2 drifts**:
+```
+🌊 DRIFT: Refactor paint-session service
+→ Appeared 3 times: 2026-03-12 daily, 2026-03-18 session, 2026-03-25 daily
+→ Captured: NO
+→ Type: Resistance
+→ Proposed action: Schedule 48h or drop
+
+🌊 DRIFT: Contact prof Brno
+→ Appeared 2 times: 2026-03-20 daily, 2026-03-24 session
+→ Captured: NO
+→ Type: Obstacle — waiting for email
+→ Proposed action: Check response, otherwise follow up
+```
+
+**PAUSE before Step 5 — Wait for {USER_NAME} validation.** For each drift, {USER_NAME} responds: `validated`, `invalidated [reason]`, or `already in [kanban column]`.
+
+### Drifts invalidated by {USER_NAME}
+List here with comment (if provided):
+```
+- [Subject] — [reason {USER_NAME} if provided]
+```
+
+---
+
+## Step 5 — Create validated tickets
+
+For each **validated** drift:
 
 | Condition | Destination | Action |
 |-----------|-------------|--------|
-| Note orpheline existe dans `Todos/` | Kanban concerné | Lier `[[Note]]` en Idea, signaler à Victor |
-| Lié à projet actif, pas de note orpheline | Kanban projet — colonne Idea | Créer ticket drift |
-| Lié à projet, kanban inexistant | Claude Code Kanban | Créer ticket drift + signaler Victor pour création kanban projet |
-| Tech/Claude Code, aucun projet | Claude Code Kanban — colonne Idea | Créer ticket drift |
-| Perso/hobby, aucun projet | Claude Code Kanban — colonne Idea | Créer ticket drift |
-| Mérite note knowledge | Destination appropriée | Créer note + lier ticket |
+| Orphaned note exists in `Todos/` | Concerned kanban | Link `[[Note]]` in Idea, signal to {USER_NAME} |
+| Related to active project, no orphaned note | Project kanban — Idea column | Create drift ticket |
+| Related to project, kanban missing | Claude Code Kanban | Create drift ticket + signal {USER_NAME} for kanban creation |
+| Tech/Claude Code, no project | Claude Code Kanban — Idea column | Create drift ticket |
+| Personal/hobby, no project | Claude Code Kanban — Idea column | Create drift ticket |
+| Deserves knowledge note | Appropriate destination | Create note + link ticket |
 
-Drifts **invalidés** : déjà listés dans "Drifts invalidés" (voir Étape 4), ne pas relancer.
+**Invalidated** drifts: already listed in "Invalidated drifts" (see Step 4), don't re-launch.
 
-**Ticket drift** — utiliser le skill `create-ticket` avec :
-- `type` = `💡 Idée`
+**Drift ticket** — use `/create-ticket` skill with:
+- `type` = `💡 Idea`
 - `column` = `Idea`
-- `project` = projet concerné (ou null pour Claude Code Kanban)
-- `context` = résumé en 1 phrase de la récurrence
+- `project` = project concerned (or null for Claude Code Kanban)
+- `context` = 1-sentence summary of recurrence
 
-Ajouter dans le corps de la note les sections suivantes :
+Add following sections to note body:
 
-## Idée récurrente
-[Description telle qu'apparue]
+## Recurring idea
+[Description as it appeared]
 
 ## Occurrences
-- [date] : "[extrait]"
-- [date] : "[extrait]"
+- [date]: "[excerpt]"
+- [date]: "[excerpt]"
 ```
 
-**CRÉER VIA MCP APRÈS VALIDATION, PAS AVANT.**
+**CREATE VIA MCP AFTER VALIDATION, NOT BEFORE.**
 
 ---
 
-## Étape finale — Mettre à jour le tracker
+## Final step — Update tracker
 
-Après completion du drift (validation de Victor incluse), mettre à jour `99 - Claude Code/command-tracker.md` :
-- Ligne `/drift` → remplacer la date par la date du jour au format `YYYY-MM-DD`
+After drift completion (validation by {USER_NAME} included), update `99 - Claude Code/command-tracker.md`:
+- Line `/drift` → replace date with today's date in format `YYYY-MM-DD`
 
-Si command-tracker inaccessible ou malformé :
-- Logger le timestamp dans le rapport final
-- Signaler à Victor : "command-tracker non accessible, drift validé manuellement le YYYY-MM-DD"
-- Continuer sans bloquer la création des tickets
+If command-tracker inaccessible or malformed:
+- Log timestamp in final report
+- Signal to {USER_NAME}: "command-tracker inaccessible, drift validated manually on YYYY-MM-DD"
+- Continue without blocking ticket creation
 
 ---
 
-## Règles absolues
+## Absolute rules
 
-- **Zéro action autonome** : PAUSE avant tout création, validation Victor obligatoire
-- Ciblé 15j uniquement — pas de harvest complet
-- Vérifier l'existant : kanban + Todos/ orphelins
-- Orpheline trouvée → lier au kanban, pas créer doublon
-- Créer via MCP après validation — ne pas demander Victor
-- Une idée = un ticket unique
-- Drifts invalidés non relancés
+- **Zero autonomous action**: PAUSE before any creation, {USER_NAME} validation mandatory
+- Targeted 15d only — no full harvest
+- Check existing: kanban + Todos/ orphans
+- Orphan found → link to kanban, don't create duplicate
+- Create via MCP after validation — don't ask {USER_NAME}
+- One idea = one unique ticket
+- Invalidated drifts not re-launched
 
 ## Edge cases
 
-| Scénario | Gestion |
+| Scenario | Handling |
 |----------|---------|
-| Aucun drift détecté | Message "tout capitalisé", terminer |
-| Kanban inexistant pour projet | Créer ticket dans Claude Code Kanban + signaler Victor (voir Étape 5) |
-| Note orpheline non trouvée | Chercher récursivement `04 - Projects/` + `09 - Inbox/`, signaler à Victor si absente |
-| Victor invalide un drift | Lister en "Drifts invalidés" (Étape 4), zéro création |
-| Command-tracker inaccessible | Logger dans le rapport + signaler Victor, continuer sans bloquer (voir Étape finale) |
-| Drift mentionné 1 fois daily + 1 fois session | Compte comme 2 occurrences (sources distinctes) → signaler |
-| Drift en session, zéro daily note ce jour-là | Ne pas pénaliser, compter l'occurrence session seule |
+| No drift detected | Message "everything captured", terminate |
+| Missing kanban for project | Create ticket in Claude Code Kanban + signal {USER_NAME} (see Step 5) |
+| Orphaned note not found | Search recursively `04 - Projects/` + `09 - Inbox/`, signal {USER_NAME} if absent |
+| {USER_NAME} invalidates drift | List in "Invalidated drifts" (Step 4), zero creation |
+| Command-tracker inaccessible | Log in report + signal {USER_NAME}, continue without blocking (see Final step) |
+| Drift mentioned 1x daily + 1x session | Count as 2 occurrences (distinct sources) → flag |
+| Drift in session, zero daily note that day | Don't penalize, count session occurrence alone |

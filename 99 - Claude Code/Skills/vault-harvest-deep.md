@@ -1,42 +1,42 @@
 ---
 name: vault-harvest-deep
-description: Scan complet du vault sur une longue période pour détecter les patterns émergents, les idées récurrentes inter-contextes et les connexions profondes. Utiliser une fois par mois ou quand Victor dit "harvest deep", "deep harvest", "analyse le vault".
+description: Complete vault scan over a long period to detect emerging patterns, recurring cross-context ideas and deep connections. Use once per month or when the user says "harvest deep", "deep harvest", "analyze the vault".
 narrative_critical: true
 ---
 
-> **⚠️ narrative-critical — Skill protégé contre l'optimisation agressive**
+> **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> Ce skill produit une sortie **narrative qualitative**. Son efficacité se mesure sur la **richesse de la sortie produite**, pas sur la compacité structurelle.
+> This skill produces a **qualitative narrative** output. Its effectiveness is measured by the **richness of the produced output**, not on structural compactness.
 >
-> **Pour `/evaluateskills`** : en cas de mutation, **dry-run Sonnet obligatoire même si delta < 2**. Ne PAS appliquer `[LEAN]` / `[STRUCTURE]` de manière à décaper les instructions narratives (regroupement, contexte, moments forts, questions ouvertes, ton, narration). La préservation du contenu qualitatif prime sur la réduction de lignes.
+> **For `/evaluateskills`**: in case of mutation, **Sonnet dry-run mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips the narrative instructions (grouping, context, key moments, open questions, tone, narration). Preserving qualitative content takes priority over line reduction.
 
-# Skill : Vault Harvest Deep
+# Skill: Vault Harvest Deep
 
-Ce skill est la version mensuelle du harvest — il analyse l'intégralité du vault pour détecter ce que le harvest quotidien ne voit pas : les patterns qui émergent sur la durée, les idées qui reviennent dans des contextes différents, les connexions entre hobbies, projets et vie personnelle.
+This skill is the monthly version of harvest — it analyzes the entire vault to detect what the daily harvest doesn't see: patterns that emerge over time, ideas that return in different contexts, connections between hobbies, projects and personal life.
 
-## Déclenchement
+## Trigger
 
-- Victor dit "harvest deep", "deep harvest", "analyse le vault"
-- Fréquence recommandée : une fois par mois
-- Sans précision de période → analyser les 30 derniers jours de daily notes + tout le vault
+- the user says "harvest deep", "deep harvest", "analyse le vault"
+- Recommended frequency: once per month
+- Without time specification → analyze the last 30 days of daily notes + entire vault
 - **Durée :** quelques minutes à plusieurs heures selon le volume du vault
 
-## Différence avec le harvest normal
+## Difference from normal harvest
 
 | Harvest | Harvest Deep |
 |---------|-------------|
-| 7 derniers jours | 30 derniers jours + tout le vault |
-| Idées récentes | Patterns sur la durée |
-| Capitalisation immédiate | Détection de ce qui émerge |
-| Rapide (5-10 min) | Long (peut prendre plusieurs minutes) |
+| Last 7 days | Last 30 days + entire vault |
+| Recent ideas | Long-term patterns |
+| Immediate capitalization | Detection of what emerges |
+| Fast (5-10 min) | Long (can take several minutes) |
 
 ---
 
 ## Étape 0 — Proposition optionnelle du /map
 
-Proposer à Victor : *"Veux-tu lancer `/map` avant de commencer ? (recommandé — il contextualise les patterns topologiques du vault)"*
+Proposer à {USER_NAME} : *"Veux-tu lancer `/map` avant de commencer ? (recommandé — il contextualise les patterns topologiques du vault)"*
 
-Si Victor accepte → lancer `/map`, attendre le résultat, puis continuer à l'Étape 1. Sinon continuer directement.
+Si {USER_NAME} accepte → lancer `/map`, attendre le résultat, puis continuer à l'Étape 1. Sinon continuer directement.
 
 ---
 
@@ -94,7 +94,7 @@ Exemple de drift : le thème guitare mentionné le 2026-03-10 ("j'ai envie de re
 ```
 
 Si des drifts sont détectés → les présenter dans la section `🌊 Drifts détectés` du récap.
-Pour le traitement complet, proposer à Victor de lancer `/drift` en suivi.
+Pour le traitement complet, proposer à {USER_NAME} de lancer `/drift` en suivi.
 
 ### Patterns émergents — clusters qui forment quelque chose de plus grand
 
@@ -116,7 +116,7 @@ Exemple : notes "HomeLabServeur", "DevOps learning", "Docker en prod" + mentions
 ```
 
 Si des clusters sont détectés → les présenter dans la section `🌱 Patterns émergents` du récap.
-Pour la création complète (note projet ou essay), proposer à Victor de lancer `/emerge` en suivi.
+Pour la création complète (note projet ou essay), proposer à {USER_NAME} de lancer `/emerge` en suivi.
 
 ## Étape 2.5 — Lint pass sur `03 - Knowledge/`
 
@@ -169,9 +169,9 @@ Aucun signal / Signaux détectés et action recommandée :
 
 ## Étape 4 — Inbox review (optionnel si `09 - Inbox/` existe)
 
-Si `09 - Inbox/` existe et contient des notes : proposer à Victor une action pour chaque note.
+Si `09 - Inbox/` existe et contient des notes : proposer à {USER_NAME} une action pour chaque note.
 
-**Laisser Victor choisir parmi :**
+**Laisser {USER_NAME} choisir parmi :**
 1. **Ranger** → destination dans le vault (ex: `01 - Me/`, `02 - Hobbies/`, `03 - Knowledge/`)
 2. **Développer** → idée prometteuse, mérite 200+ mots et linking avant de ranger
 3. **Archiver** → date périmée, contexte passé, ou redondant avec une note existante
@@ -201,17 +201,18 @@ Présenter tout en une fois :
 Valide ce que tu veux traiter.
 ```
 
-**Attendre la validation de Victor pour chaque élément.** Une fois validés :
+**Attendre la validation de {USER_NAME} pour chaque élément.** Une fois validés :
 - Je crée via MCP les notes Knowledge et tickets kanban approuvés
 - Respecter le naming du vault
+- **Convention archivage** : les tickets Done/annulés = notes à **déplacer** dans `Archive/` à la racine du vault — jamais supprimer. Le dossier `Archive/` est intentionnellement non-organisé (pas de sous-dossiers) pour rester greppable par slug ou date.
 
-**Si Victor approuve 2+ notes Knowledge**, proposer : *"Tu veux que je cherche les notes existantes à lier avec les nouvelles ?"* Lancer `/link` en suivi si oui, sinon continuer.
+**Si {USER_NAME} approuve 2+ notes Knowledge**, proposer : *"Tu veux que je cherche les notes existantes à lier avec les nouvelles ?"* Lancer `/link` en suivi si oui, sinon continuer.
 
-**Si Victor refuse tous les drifts/emerge**, passer directement à l'Étape 6 (tracker + session).
+**Si {USER_NAME} refuse tous les drifts/emerge**, passer directement à l'Étape 6 (tracker + session).
 
 ## Étape 6 — Mettre à jour le tracker et la session
 
-Après completion du harvest deep (création + validation de Victor incluse) :
+Après completion du harvest deep (création + validation de {USER_NAME} incluse) :
 
 1. Mettre à jour `99 - Claude Code/command-tracker.md` :
    - Ligne `/harvestdeep` (ou `/harvest-deep`) → remplacer la date par la date du jour au format `YYYY-MM-DD`

@@ -1,46 +1,46 @@
 ---
 name: vault-link
-description: Analyser le vault et créer des liens [[]] entre les notes. Déclenche ce skill quand Victor dit "/link", "fais le linking", "relie mes notes" ou "vault link".
+description: Analyze the vault and create links [[]] between notes. Trigger this skill when the user says "/link", "do the linking", "link my notes" or "vault link".
 ---
-# Skill : Vault Link
+# Skill: Vault Link
 
-Ce skill analyse le vault et propose des liens Obsidian `[[]]` entre les notes qui parlent des mêmes sujets. Il ne modifie jamais une note sans validation explicite de Victor.
+This skill analyzes the vault and proposes Obsidian `[[]]` links between notes discussing the same subjects. It never modifies a note without explicit validation from {USER_NAME}.
 
-Philosophie d'ancrage : le rôle est de rendre le graphe traversable, pas de générer de la compréhension. Claude connecte. Victor pense. Un graphe bien traversable permet à d'autres commandes comme `/emerge`, `/trace` ou `/connect` de fonctionner correctement — c'est l'enjeu réel du linking.
+Anchoring philosophy: the role is to make the graph traversable, not to generate understanding. Claude connects. {USER_NAME} thinks. A well-traversable graph allows other commands like `/emerge`, `/trace` or `/connect` to work correctly — that's the real stake of linking.
 
-## Déclenchement
+## Trigger
 
-- Victor dit "/link", "fais le linking", "relie mes notes"
-- Victor précise un dossier : "/link mes notes Warhammer"
+- the user says "/link", "fais le linking", "relie mes notes"
+- {USER_NAME} précise un dossier : "/link mes notes Warhammer"
 - Sans précision → analyser tout le vault
 
-## Heuristiques apprises — refus de Victor
+## Learned heuristics — {USER_NAME}'s refusals
 
-Ces règles s'appliquent dès la génération des suggestions, pas après.
+These rules apply from the generation of suggestions, not after.
 
-### Préférer le spécifique au général
-Ne pas lier vers une note agrégat/suivi quand une note spécifique au sujet existe. Exemple : une note sur les Drukhari doit pointer vers `[[Drukhari - Schema couleurs Squidmar]]`, pas vers `[[suivi-armees]]` (trop générique).
+### Prefer the specific to the general
+Do not link to an aggregate/tracking note when a note specific to the subject exists. Example: a note on Drukhari should point to `[[Drukhari - Squidmar Color Scheme]]`, not to `[[army-tracking]]` (too generic).
 
-### Ne pas lier deux projets distincts qui partagent un sujet commun
-Warhammer (hobby) et FSTG (projet logiciel) parlent tous les deux de figurines, mais ce sont deux projets indépendants dans le vault. Ne pas créer de liens croisés entre eux — le sujet commun ne suffit pas, il faut que les notes se complètent fonctionnellement.
+### Do not link two separate projects that share a common subject
+[Hobby-project] and [Work-project] may share a topic but are independent projects in the vault. Do not create cross-links between them — the common subject is not enough, the notes must complement each other functionally.
 
-### Ne pas lier l'organisation d'un projet avec les notes personnelles d'un autre domaine
-La note `Event warhammer.md` (organisation Ludisep) ne doit pas pointer vers `suivi-armees.md` (hobby perso). La gestion associative et la collection personnelle sont deux contextes séparés, même si le sujet (Warhammer) est le même.
+### Do not link the organization of a project with personal notes from another domain
+A note from [Organization-project] should not link to personal collection notes. The two contexts are separate even if the topic overlaps.
 
-### Vérifier l'existence du lien avant de le proposer
-Lire le contenu complet de la note source (corps du texte, sections "Voir aussi", "Connexions", liens inline `→ [[...]]`) avant de suggérer un lien. Ne jamais proposer un lien déjà présent, quelle que soit sa forme dans la note.
+### Check the existence of the link before proposing it
+Read the full content of the source note (body text, sections "See also", "Connections", inline links `→ [[...]]`) before suggesting a link. Ne jamais proposer un lien déjà présent, quelle que soit sa forme dans la note.
 
 ### Ne pas lier une ressource technique projet vers son hub vision/écosystème
-Une note qui documente un outil pour un projet précis (ex : UX analytics pour FSTG) doit pointer vers le projet directement, pas vers la note qui agrège la vision ou l'écosystème. La ressource est opérationnelle — le hub est stratégique. Le sujet commun ne suffit pas : il faut une complémentarité fonctionnelle entre les deux notes.
+Une note qui documente un outil pour un projet précis (ex : UX analytics for [project-name]) doit pointer vers le projet directement, pas vers la note qui agrège la vision ou l'écosystème. La ressource est opérationnelle — le hub est stratégique. Le sujet commun ne suffit pas : il faut une complémentarité fonctionnelle entre les deux notes.
 
-### Si Victor refuse l'ensemble du résultat
+### Si {USER_NAME} refuse l'ensemble du résultat
 Ne pas relancer une session similaire sans signal explicite. Noter le contexte du refus (type de notes, périmètre, thème) pour améliorer la détection future.
 
 ## Étape 1 — Périmètre et validation minimale
 
-Si Victor précise un dossier ou une note → se limiter à ce périmètre. Sans précision → scanner tous les dossiers sauf `00 - Daily notes/` (trop de volume, liens éphémères), en incluant obligatoirement `99 - Claude Code/Sessions/`.
+Si {USER_NAME} précise un dossier ou une note → se limiter à ce périmètre. Sans précision → scanner tous les dossiers sauf `00 - Daily notes/` (trop de volume, liens éphémères), en incluant obligatoirement `99 - Claude Code/Sessions/`.
 
-Lister les dossiers qui seront analysés et attendre confirmation de Victor.
+Lister les dossiers qui seront analysés et attendre confirmation de {USER_NAME}.
 
 **Validation minimale avant de continuer :**
 - Si périmètre < 5 notes : proposer élargissement ("Périmètre insuffisant — analyser [dossier] en plus ?")
@@ -67,7 +67,7 @@ Résultat attendu : liste des orphans, deadends, et hubs (notes avec 5+ référe
 
 Utiliser Grep avec le pattern `\[\[([^\]]+)\]\]` sur le périmètre pour extraire tous les liens. Pour chaque lien trouvé (sans le suffixe alias `|...`), utiliser Glob pour vérifier que le fichier `lien-cible.md` existe. Lister les liens qui ne correspondent à aucun fichier.
 
-**Si des liens brisés existent :** présenter à Victor avec raison supposée ("note à créer" vs "lien mal formé"). Attendre instruction avant d'agir.
+**Si des liens brisés existent :** présenter à {USER_NAME} avec raison supposée ("note à créer" vs "lien mal formé"). Attendre instruction avant d'agir.
 
 ## Étape 3 — Analyse des connexions
 
@@ -109,7 +109,7 @@ Score = Force × Impact (max 25).
 - Score 5-15 → présenter si le quota n'est pas atteint
 - Score < 5 → rejeter silencieusement
 
-**Cas "aucun lien pertinent" :** si aucun lien candidat n'atteint score 5, indiquer à Victor "aucun lien proposé pour ce périmètre — notes trop isolées ou déjà bien connectées" et s'arrêter (ne pas continuer à l'Étape 5).
+**Cas "aucun lien pertinent" :** si aucun lien candidat n'atteint score 5, indiquer à {USER_NAME} "aucun lien proposé pour ce périmètre — notes trop isolées ou déjà bien connectées" et s'arrêter (ne pas continuer à l'Étape 5).
 
 **Présenter les liens retenus sous forme de tableau :**
 
@@ -118,19 +118,19 @@ Score = Force × Impact (max 25).
 
 | Note source | Lien à ajouter | Note cible | Raison | Score |
 |-------------|----------------|------------|--------|-------|
-| vault-second-brain.md | [[Victor]] | {USER_NAME}.md | Contexte personnel directement lié | 20 |
+| vault-second-brain.md | [[{USER_NAME}]] | {USER_NAME}.md | Contexte personnel directement lié | 20 |
 | NMM.md | [[Balthasar-Gold]] | Balthasar-Gold.md | Peinture mentionnée dans la technique | 16 |
 ```
 
-**Attendre la validation de Victor avant d'ajouter quoi que ce soit.** Victor peut rejeter des liens individuellement ou l'ensemble des suggestions.
+**Attendre la validation de {USER_NAME} avant d'ajouter quoi que ce soit.** {USER_NAME} peut rejeter des liens individuellement ou l'ensemble des suggestions.
 
 ## Étape 5 — Ajout des liens et nettoyage
 
-Pour chaque lien validé par Victor, utiliser Edit pour ajouter `[[nom-note]]` à l'endroit pertinent dans la note source — en fin de note dans une section `## Voir aussi` si aucun endroit naturel n'existe.
+Pour chaque lien validé par {USER_NAME}, utiliser Edit pour ajouter `[[nom-note]]` à l'endroit pertinent dans la note source — en fin de note dans une section `## Voir aussi` si aucun endroit naturel n'existe.
 
 ```markdown
 ## Voir aussi
-- [[Victor]]
+- [[{USER_NAME}]]
 - [[vault-second-brain]]
 ```
 
@@ -173,7 +173,7 @@ Afficher les dossiers concernés et les nouvelles entrées :
 | [[note-nouvelle]] | ... | ... |
 ```
 
-**Attendre validation de Victor avant d'écrire.** Victor peut valider en bloc ou ajuster des entrées.
+**Attendre validation de {USER_NAME} avant d'écrire.** {USER_NAME} peut valider en bloc ou ajuster des entrées.
 
 ### 6d. Écriture
 
@@ -184,6 +184,6 @@ Afficher les dossiers concernés et les nouvelles entrées :
 
 ## Étape 7 — Capitalisation des refus (optionnel)
 
-À chaque fois que Victor refuse un lien (ou l'ensemble des suggestions) avec une explication, proposer de capitaliser : ajouter l'heuristique dans la section "Heuristiques apprises" avec le pattern général (pas l'exemple spécifique) pour que la règle s'applique aux prochaines sessions.
+À chaque fois que {USER_NAME} refuse un lien (ou l'ensemble des suggestions) avec une explication, proposer de capitaliser : ajouter l'heuristique dans la section "Heuristiques apprises" avec le pattern général (pas l'exemple spécifique) pour que la règle s'applique aux prochaines sessions.
 
-**Si Victor refuse l'ensemble du résultat :** noter le contexte (type de notes, périmètre, thème, raison du refus) — ne pas relancer une session similaire sans signal explicite.
+**Si {USER_NAME} refuse l'ensemble du résultat :** noter le contexte (type de notes, périmètre, thème, raison du refus) — ne pas relancer une session similaire sans signal explicite.
