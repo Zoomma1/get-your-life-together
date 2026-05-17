@@ -1,89 +1,91 @@
 ---
 name: recapsession
-description: Create a recap of the current work session and propose capitalizations (ADR/Skills) if applicable. Use when the user says "recap session", "we're done", "that's it for today", "I'm out" or via /recapsession.
+description: Create a recap of the current work session and propose capitalizations (ADR/Skills) if applicable. Use when the user says "recap session", "on s'arrête", "c'est bon pour aujourd'hui", "je coupe" or via /recapsession.
 narrative_critical: true
 ---
 
 > **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> This skill produces **qualitative narrative output**. Its effectiveness is measured by the **richness of output produced**, not structural compactness.
+> This skill produces a **narrative qualitative** output. Its effectiveness is measured on the **richness of the output produced**, not on structural compactness.
 >
-> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet required even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in ways that strip narrative instructions (grouping, context, key moments, open questions, tone, narration). Qualitative content preservation takes priority over line reduction.
+> **For `/evaluateskills`** : in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (grouping, context, highlights, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
 # Skill: Session Recap + Capitalization
 
-## Purpose
+## What it does
 
-A recap creates a persistent trace of what was accomplished, what decisions were made, and what blocks for tomorrow. It's the only place where Claude documents what it **saw**, not what {USER_NAME} **changed** (that's git's job).
+A recap creates a persistent trace of what was accomplished, what decisions were made, and what is blocking for tomorrow. It is the only place where Claude documents what it **saw**, not what {USER_NAME} **changed** (that is git's job).
 
 ## Triggering
 
-- the user says "recap session", "we're done", "that's it for today", "I'm out"
+- the user says "recap session", "on s'arrête", "c'est bon pour aujourd'hui", "je coupe"
 - Command `/recapsession`
 
-## Step 1 — Identify Context
+## Step 1 — Identify context
 
-1. Get exact local time via bash:
+1. Get the exact local time via bash:
    ```bash
    date +%H:%M
    ```
-   Use this time in section title. Never make up a time.
-2. **Target date**: if `time < 04:00` → date = yesterday, else date = today. All sessions are written to `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[target_date].md`, regardless of project.
-3. If session note already exists for the day → add a new section `## Session [HH:MM]` rather than overwriting.
+   Use this time in the section title. Never invent a time.
+2. **Target date** : if `time < 04:00` → date = previous day, otherwise date = today. All sessions are written to `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[target date].md`, regardless of project.
+3. If a session note for today already exists → add a new section `## Session [HH:MM]` rather than overwrite.
 
-## Step 2 — Build the Recap
+## Step 2 — Build the recap
 
-Summarize the session covering these 4 sections:
+Summarize the session by covering these 4 sections:
 
-### What Was Done
-Concise list of tasks completed, decisions made.
+### What was accomplished
+Concise list of completed tasks, decisions made.
 
-### Files Discussed or Consulted
-Files addressed during the session (not git truth — Claude doesn't see {USER_NAME}'s diff).
+### Files discussed or consulted
+Files addressed during the session (not a git truth — Claude does not see {USER_NAME}'s diff).
 **If no files were consulted**, note "None — discussion/reflection session".
 
-### Technical Decisions or Directional Changes
-If decisions were noted, highlight their characteristics:
-- **Nature**: does it affect multiple projects, a specific project, or a technical domain?
-- **Scope**: does it affect code, infrastructure, daily workflow, skills?
-**If no notable decisions**, note "None — exploratory session".
+### Technical decisions or changes in direction
+If decisions were noted, identify their characteristics:
+- **Nature** : does it span multiple projects, a specific project, or a technical domain?
+- **Scope** : does it affect code, infrastructure, daily workflow, skills?
+**If no notable decision**, note "None — exploratory session".
 
-### State at End
+### State at the end
 What remains, next logical step, resume command if applicable.
 
-### Session Observation
-Note honestly based on what happened during the session, without making things up:
-- **Flow**: {USER_NAME} advanced quickly, few blockers, direct answers
-- **Focused**: progressed well but with effort
-- **Blocked**: technical difficulties, multiple attempts
-- **Frustrated**: frustration signals detected (rephrasing, corrections, "it's not working")
-- **Tired**: short answers, less engagement, frequent pauses
-- **Satisfied**: objective achieved, good progress
+> ⏱ **Time range = effective work only** : if a notable break (meal, absence > 15min) is reported during a ticket, the `⏱ HH:mm→HH:mm` range in the daily note must not encompass it. Close the range before the break, reopen after. Never write a range that silently includes a break.
+
+### Session observation
+Note honestly according to what happened during the session, without inventing:
+- **Flow** : {USER_NAME} was advancing fast, few blockers, direct responses
+- **Focused** : progressing well but with effort
+- **Blocked** : technical difficulties, multiple attempts
+- **Frustrated** : frustration signals detected (reformulations, corrections, "ça marche pas")
+- **Tired** : short responses, less engagement, frequent breaks
+- **Satisfied** : objective reached, good progress
 
 If no clear signal → note "Neutral / no particular signal".
 
-## Step 3 — Write the Note
+## Step 3 — Write the note
 
-Write the recap in `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[target_date].md` by adding a section.
+Write the recap in `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/[target date].md` by adding a section.
 
 Section title based on context:
-- Normal time: `## Session [HH:MM] — [short title]`
-- After midnight: `## Session [HH:MM] 🌙 (after midnight) — [short title]`
+- Normal hours : `## Session [HH:MM] — [short title]`
+- After midnight : `## Session [HH:MM] 🌙 (after midnight) — [short title]`
 
 ```markdown
 ## Session [HH:MM] — [short title]
 
-### ✅ Completed
+### ✅ Accomplished
 - ...
 - ...
 
-### 🔧 Files Discussed / Consulted
+### 🔧 Files discussed / consulted
 - ...
 
-### 🧠 Decisions Made
+### 🧠 Decisions made
 - ...
 
-### ⏭️ Next Step
+### ⏭️ Next step
 ...
 
 ### 🧭 Observation
@@ -92,38 +94,38 @@ Section title based on context:
 
 Use Write or MCP if available, fallback to manual Read + Write if MCP fails.
 
-## Step 3.5 — Postgres Sync
+## Step 3.5 — Sync Postgres
 
-After writing the `.md` file, launch:
+After writing the `.md` file, run:
 
 ```bash
 uv run ~/.claude/ingest_sessions.py
 ```
 
-**Non-blocking**: if command fails (Docker down, script absent, etc.), note `[Postgres sync skipped]` in confirmation and continue without interrupting recap. This step feeds the `recap_md` source in Postgres, complementary to raw JSONL ingested by `/friction-scan`.
+**Non-blocking** : if the command fails (Docker down, script absent, etc.), note `[Postgres sync skipped]` in the confirmation and continue without interrupting the recap. This step feeds the `recap_md` source in Postgres, complementary to raw JSONL ingested by `/friction-scan`.
 
-## Step 4 — Propose Capitalizations (if applicable)
+## Step 4 — Propose capitalizations (if applicable)
 
-**Only if technical decisions or ADR were identified in Step 2**:
+**Only if technical decisions or ADR were identified in Step 2** :
 
 ### ADR Proposal
 - **If transverse decision** (affects multiple projects or technical domain) → propose ADR in `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/ADR/`
 - **If project-specific decision** → propose ADR in `{VAULT_PATH}/{PROJECTS_FOLDER}/[Project]/claude-code/ADR/`
-- **Don't create the ADR** — propose it to {USER_NAME} with title and brief description, wait for validation
+- **Do not create the ADR** — propose it to {USER_NAME} with a title and brief description, wait for validation
 
-### INDEX Update Proposal
-- If ADR created → update INDEX of corresponding ADR directory (with {USER_NAME} validation)
+### Propose INDEX update
+- If ADR created → update the INDEX of the corresponding ADR directory (with {USER_NAME} validation)
 - If skill created/modified → update `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Skills/INDEX.md`
 
 **Wait for validation before executing**.
 
-### Save to Proposals File (always)
+### Save in proposals file (always)
 
-After the interactive proposal (whether {USER_NAME} validates or not), write proposals to `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/proposals-YYYY-MM-DD.md`:
+After interactive proposal ({USER_NAME} validates or not), write proposals to `{VAULT_PATH}/{CLAUDE_CODE_FOLDER}/Sessions/proposals-YYYY-MM-DD.md` :
 
-- If file doesn't exist → create with frontmatter `processed: false`
-- If file exists → append with `---` between sessions
-- Format:
+- If the file does not exist → create with frontmatter `processed: false`
+- If the file exists → append with `---` between sessions
+- Format :
 
 ```markdown
 ---
@@ -133,47 +135,47 @@ processed: false
 
 ## Session [HH:MM]
 
-### ADR to Create
-- **ADR**: [Title] — [Scope: transverse | project X] — [Context in 1 sentence]
+### ADR to create
+- **ADR** : [Title] — [Scope : transverse | project X] — [Context in 1 sentence]
 
-### Skills to Update
-- **Skill**: [name] — [Action: create | update] — [Context in 1 sentence]
+### Skills to update
+- **Skill** : [name] — [Action : create | update] — [Context in 1 sentence]
 ```
 
-Omit ADR or Skills section if none in that category. This save guarantees `/closeday` finds proposals even if session was recapped manually (not via hook).
+Omit the ADR or Skills section if none in that category. This save guarantees that `/closeday` will find proposals even if the session was recapped manually (not via hook).
 
-## Step 4.5 — Propose Knowledge Notes (if applicable)
+## Step 4.5 — Propose Knowledge notes (if applicable)
 
-**Only if substantial synthesis was produced during the session** (analysis, comparison, documented decision in depth, exploration of tool or concept):
+**Only if substantial synthesis was produced during the session** (analysis, comparison, documented decision in depth, exploration of a tool or concept) :
 
-Ask {USER_NAME}: *"Does a synthesis produced in this session deserve a Knowledge note?"*
+Ask {USER_NAME} : *"Does a synthesis produced in this session deserve a Knowledge note ?"*
 
-If yes → propose title + target folder in `03 - Knowledge/`:
+If yes → propose title + target folder in `03 - Knowledge/` :
 ```
-→ [[note-name]] — 03 - Knowledge/[subfolder]/
-   Summary in 1 line of what it would contain
+→ [[note-name]] — 03 - Knowledge/[sub-folder]/
+   One-line summary of what it would contain
 ```
 
-Add proposal to `proposals-YYYY-MM-DD.md` file (same mechanism as ADR proposals, section `### Knowledge Notes to Create`).
+Add the proposal to the `proposals-YYYY-MM-DD.md` file (same mechanism as ADR proposals, section `### Knowledge notes to create`).
 
-**Don't create the note without {USER_NAME} validation.** If {USER_NAME} refuses or doesn't respond → skip silently.
+**Do not create the note without {USER_NAME} validation.** If {USER_NAME} refuses or does not respond → skip silently.
 
-## Absolute Rules
+## Absolute rules
 
-- Never run `/clear` — {USER_NAME} does that after reading recap
-- Don't overwrite existing session from same day — add a section
+- Never type `/clear` — that is {USER_NAME} who does it after reading the recap
+- Do not overwrite an existing session from the same day — add a section
 - Observations must be factual, not flattering
 - **Never autonomously create ADR or modify INDEX without {USER_NAME} validation**
-- If a session note exists and you create a new section, leave previous sections intact
-- If MCP fails → fallback to manual Read + Write without blocking
+- If a session note already exists and you create a new section, leave previous sections intact
+- If MCP fails → fallback to manual Read + Write without blocking the process
 
 ---
 
-## Technical Note — SessionEnd Hook (ADR-055)
+## Technical note — SessionEnd hook (ADR-055)
 
 The `recap-session.js` hook that triggers this skill at session end is protected by two guards:
 
-1. **Guard `entrypoint`**: `entrypoint: sdk-cli` → skip (subagents + `claude --print`). Only `entrypoint: cli` = interactive session.
-2. **Deduplication by `transcript_path`**: marker file in `~/.claude/cache/recap-done/` (mode `wx`, race-condition-safe). Prevents double-fire on compaction + exit.
+1. **Guard `entrypoint`** : `entrypoint: sdk-cli` → skip (subagents + `claude --print`). Only `entrypoint: cli` = interactive session.
+2. **Deduplication by `transcript_path`** : marker file in `~/.claude/cache/recap-done/` (mode `wx`, race-condition-safe). Prevents double-fire on compaction + exit.
 
-Do **not** use `last-prompt` as discriminator — it also appears in sessions resumed after compaction (false positives).
+Do **not** use `last-prompt` as a discriminator — it also appears in sessions resumed after compaction (false positives).

@@ -1,18 +1,11 @@
 ---
 name: digest
-description: Fetch monitoring sources configured in digest-sources.md and write a condensed summary into the daily note. Recommended workflow: launch in the evening with /closeday in a dedicated session — digest writes to tomorrow's daily note (created with template if it doesn't exist yet). Trigger when the user says "/digest", "digest", "digest tech", "give me the news", "today's monitoring", "do the digest". DO NOT launch in same session as /today (9 parallel agents = ~70% of 5h quota).
-narrative_critical: true
+description: "Fetch configured sources from digest-sources.md and write a condensed summary in the daily note. Recommended workflow: run at evening with /closeday in a dedicated session — the digest writes to the next day's daily note (created with template if it doesn't exist yet). Trigger when the user says \"/digest\", \"digest\", \"digest tech\", \"give me the news\", \"daily briefing\", \"run the digest\". DO NOT run in the same session as /today (9 parallel agents = ~70% of 5h quota)."
 ---
-
-> **⚠️ narrative-critical — Skill protected against aggressive optimization**
->
-> This skill produces **qualitative narrative output**. Its effectiveness is measured on the **richness of output produced**, not on structural compactness.
->
-> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips narrative instructions (grouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
 # Skill `/digest`
 
-Generates a monitoring summary (5-8 articles) from configured sources and inserts it into today's daily note, before the plan section.
+Generates a briefing summary (8-10 items max) from configured sources and inserts it in today's daily note, before the plan section.
 
 ## Trigger
 
@@ -21,17 +14,17 @@ Generates a monitoring summary (5-8 articles) from configured sources and insert
 /digest [category]       → single category (ex: /digest Finance, /digest Tech)
 ```
 
-**Explicit invocation only** — no search for "active project context".
+**Explicit invocation only** — no "active project context" search.
 
 ---
 
 ## Step 0 — Load vault parameters
 
 Read `99 - Claude Code/config/vault-settings.md` to extract:
-- `date_format` — daily notes date format (default: `YYYY-MM-DD`)
-- `daily_notes_folder` — daily notes folder (default: `00 - Daily notes`)
+- `date_format` — date format for daily notes (default: `YYYY-MM-DD`)
+- `daily_notes_folder` — folder for daily notes (default: `00 - Daily notes`)
 
-Store in `DATE_FORMAT` and `NOTES_FOLDER`. Use these values wherever a date or daily note path is needed.
+Store in `DATE_FORMAT` and `NOTES_FOLDER`. Use these values everywhere a date or daily note path is needed.
 
 ---
 
@@ -39,46 +32,46 @@ Store in `DATE_FORMAT` and `NOTES_FOLDER`. Use these values wherever a date or d
 
 Read `99 - Claude Code/config/digest-sources.md`.
 
-**If file exists** → extract defined categories and sources. Each section `## [Category] [emoji]` defines a category. Each line ` - [Name] | [URL] | [fetch prompt]` defines a source in that category.
+**If the file exists** → extract defined categories and sources. Each `## [Category] [emoji]` section defines a category. Each line ` - [Name] | [URL] | [fetch prompt]` defines a source in this category.
 
-**If file is absent** → use default sources:
+**If the file is missing** → use default sources:
 
 | Category | Emoji | Name | URL | Fetch prompt |
-|----------|-------|------|-----|---------------|
-| Tech & Dev | 🛠️ | Hacker News | `https://news.ycombinator.com/` | "List the titles of the first 15 stories with their score, the full article URL (not the HN link, external URL) and source domain" |
-| Tech & Dev | 🛠️ | Dev.to | `https://dev.to/` | "List trending articles: title, author, tags, summary in 1 sentence" |
-| AI & Claude | 🤖 | Anthropic news | `https://www.anthropic.com/news` | "List latest publications: title, date, summary in 1 sentence" |
+|----------|-------|------|-----|----------------|
+| Tech & Dev | 🛠️ | Hacker News | `https://news.ycombinator.com/` | "List the titles of the first 15 stories with their score, the complete article URL (not the HN link, the external URL) and the source domain" |
+| Tech & Dev | 🛠️ | Dev.to | `https://dev.to/` | "List trending articles: title, author, tags, one-sentence summary" |
+| AI & Claude | 🤖 | Anthropic news | `https://www.anthropic.com/news` | "List the latest publications: title, date, one-sentence summary" |
 
-Store sources in `SOURCES` (list) and categories in `CATEGORIES` (ordered list, deduplicated).
+Store sources in `SOURCES` (list) and categories in `CATEGORIES` (ordered, deduplicated list).
 
-**If variant called** (`/digest [category]`) → filter `SOURCES` to keep only sources whose category matches (case insensitive).
+**If variant called** (`/digest [category]`) → filter `SOURCES` to keep only sources whose category matches (case-insensitive).
 
 ---
 
 ## Step 2a — Calculate target date and locate daily note
 
 **Target date** (calculate first):
-- If `hour >= 17:00` → `target_date = today + 1 day` (preparation for tomorrow morning)
+- If `time >= 17:00` → `target_date = today + 1 day` (preparation for tomorrow morning)
 - Otherwise → `target_date = today`
 
 Build path according to `DATE_FORMAT` and `NOTES_FOLDER` with `target_date`.
 
-**If note exists** → continue to Step 2b.
+**If note exists** → proceed to Step 2b.
 
 **If note does not exist** → create it with daily note template (`Ressources/Templates/Daily notes template.md`), replacing Templater variables with calculated values for `target_date`:
 - `tp.date.now("YYYY-MM-DD")` → ISO date of `target_date`
 - `tp.date.now("YYYY")` → year
 - `tp.date.now("MMMM")` → month in letters (French)
 - `tp.date.now("WW")` → ISO week number
-- `tp.date.now("dddd DD MMMM YYYY")` → ex: `Saturday 25 April 2026`
+- `tp.date.now("dddd DD MMMM YYYY")` → ex: `samedi 25 avril 2026`
 
-Leave `energy`, `score`, `work_hours`, `personal_hours`, `hobby_hours` empty (frontmatter). Then continue to Step 2b.
+Leave `energy`, `score`, `work_hours`, `personal_hours`, `hobby_hours` empty (frontmatter). Then proceed to Step 2b.
 
-## Step 2b — Verify if digest already exists
+## Step 2b — Check if digest already exists
 
 Open the daily note and check for a `## 📰 Digest` section:
 
-- If not → continue to Step 3
+- If not → proceed to Step 3
 - If yes → **stop and propose in chat**:
   ```
   A digest already exists for YYYY-MM-DD.
@@ -86,13 +79,16 @@ Open the daily note and check for a `## 📰 Digest` section:
   Option A: Replace it
   Option B: Cancel
   ```
-  **Wait for explicit response** (A or B).
+  **Wait for explicit answer** (A or B).
 
 ---
 
 ## Step 3 — Fetch sources
 
-Fetch all sources from `SOURCES` in parallel, each with its defined fetch prompt.
+For each source in `SOURCES`, fetch in parallel with defuddle first:
+1. Build defuddle URL: `https://defuddle.md/<source_url>`
+2. Fetch via WebFetch → if valid response (clean markdown, > 100 chars) → use this content
+3. Otherwise → fallback WebFetch to original URL
 
 ### If a fetch fails
 
@@ -100,97 +96,123 @@ Fetch all sources from `SOURCES` in parallel, each with its defined fetch prompt
 [Source] is inaccessible (timeout/error).
 
 Option A: Continue with available sources
-Option B: Retry digest later
+Option B: Relaunch digest later
 ```
 
-**Wait for explicit response** (A or B):
+**Wait for explicit answer** (A or B):
 - If A → continue, add at bottom of digest: `*[Source] inaccessible today*`
 - If B → stop
 
-### If content is non-exploitable — fallback WebSearch
+### If content is unusable — fallback WebSearch
 
-After each successful fetch, evaluate if content is exploitable:
+After each successful fetch (defuddle or WebFetch), evaluate if content is usable:
 
-- **Non-exploitable**: content mostly CSS/JS (many `{`, `}`, CSS properties, variables `--`), empty page, or model response indicating no articles
-- **Exploitable**: natural text with titles, dates, or identifiable article summaries
+- **Not usable**: mostly CSS/JS content (many `{`, `}`, CSS properties, `--` variables), blank page, or model response indicating no articles
+- **Usable**: natural text with titles, dates, or identifiable article summaries
 
-**If non-exploitable → automatic fallback (silent):**
+**If not usable → automatic silent fallback:**
 1. Extract domain from source URL (ex: `hugodecrypte.kessel.media`)
 2. Launch WebSearch with query `site:[domain]`
 3. Apply original fetch prompt to WebSearch results
 4. If WebSearch also returns zero articles → treat as inaccessible (Option A/B above)
 
-No message to {USER_NAME} during fallback — source is processed normally in digest.
+No message to {USER_NAME} during fallback — the source is handled normally in the digest.
 
 ---
 
-## Step 4 — Select and synthesize
+## Step 4 — Deduplication against last 7 days
 
-From retrieved content, select **5 to 8 items total**:
+Before any selection, exclude what {USER_NAME} has already seen. A digest repeating yesterday's item wastes attention — a briefing's value is the increment, not the reminder.
 
-**Quality criteria (always apply):**
+1. Read `## 📰 Digest` sections from daily notes of the **last 7 days** (`target_date - 1` to `target_date - 7`, files `{NOTES_FOLDER}/<date>.md` per `DATE_FORMAT`). Missing daily note or no digest → ignore that day, non-blocking.
+2. Build `SEEN` = set of already-published items: retain the URL **and** the subject (normalized title / main entity).
+3. Any candidate whose URL is in `SEEN`, **or** which covers the same subject as an item in `SEEN` (same release, same incident, same announcement — not just a common keyword), is excluded before Step 5.
+
+A logical continuation is allowed (ex: "v2.0 RC" yesterday → "v2.0 stable" today = real update, not a duplicate). The criterion is: *Does {USER_NAME} learn something new?*
+
+---
+
+## Step 5 — Select and synthesize
+
+Selection happens in two levels. The point of `/digest` is not to stack links: it's to ensure {USER_NAME}'s daily briefing, and add tech ecosystems **only when it's worth it**.
+
+### Level 1 — Anchor sections (always present)
+
+`Tech & Dev 🛠️`, `News & Hobby 🎲`, `News & Personal 📰` are sections {USER_NAME} reads every day. They are **never evicted** by language sections: aim for **1 to 2 items each**, provided their source is accessible (otherwise inaccessibility note at bottom, see Step 3). If `/digest [category]` filters to a single category, this anchor rule doesn't apply — respect the filter.
+
+### Level 2 — Language / ecosystem sections (strict quality sort)
+
+`Java`, `Rust`, `Spring Boot`, `Angular`, `React`, `TypeScript`, `DevOps`: **0 or 1 item per section**, never filler. Include an item only if it's really worth the detour for someone coding in that stack. A section with no strong signal today is **omitted entirely** (no orphaned title). Better 3 solid language sections than 7 lukewarm ones.
+
+### Quality criteria (apply to both levels)
+
 | Include | Exclude |
-|---------|----------|
+|---------|---------|
 | Major releases (v2.0, model release, breaking change) | Clickbait ("10 tips", "you won't believe") |
-| Learning patterns (architecture, best practice) | Pure marketing, promotional content |
-| Significant debates (score 500+ HN, 100+ comments) | Articles > 7 days old |
-| Major news in source domain | Duplicates (same topic 2x) |
+| Learning patterns (architecture, best practice, post-mortem) | Pure marketing, promotional content |
+| Significant debates (500+ HN score, 100+ comments) | Articles > 7 days old |
+| Major news in the source's domain | Duplicates (already filtered Step 4) |
 
-**Target distribution**: balance between configured categories — if 2 categories → ~50/50, if 3 → ~33/33/33. Adjust based on availability.
+### Volume guardrail
+
+**`CAP_TOTAL` = 8 to 10 items maximum, all levels combined.** Beyond 10, {USER_NAME} won't read — selection becomes counter-productive. If valid candidates exceed 10 after quality sort: keep 1-2 anchor items per section, then fill with strongest language items up to `CAP_TOTAL`. Going below 8 is OK if few items pass the filter; never inflate to reach 8.
 
 ---
 
-## Step 5 — Format digest
+## Step 6 — Format digest
 
-Build one section per category in `CATEGORIES`, in order from `digest-sources.md` (or default order if absent):
+Build one section per category in `CATEGORIES`, in order of `digest-sources.md` (or default order if missing):
 
 ```markdown
 ## 📰 Digest — DD/MM/YYYY
 
 ### [emoji] [Category]
-- **[Title](url)** — [summary 1-2 sentences] — *[source]*
+- **[Title](url)** — [1-2 sentence summary] — *[source]*
 
 ### [emoji] [Category 2]
-- **[Title](url)** — [summary 1-2 sentences] — *[source]*
+- **[Title](url)** — [1-2 sentence summary] — *[source]*
 ```
 
 Rules:
-- Title in bold with clickable link, summary factual (1-2 sentences), source in italic
-- Omit entirely a category if no items retained (no orphaned title)
-- If single filtered category (`/digest [category]`) → single section only
+- Title in bold with clickable link, factual summary (1-2 sentences), source in italics
+- Omit a category entirely if no items retained (no orphaned title)
+- If single filtered category (`/digest [category]`) → single section
 
 ---
 
-## Step 6 — Insert into daily note
+## Step 7 — Insert into daily note
 
 Locate insertion point **in order of preference**:
-1. Just **before** `## 📅 Plan du jour`
+1. Just **before** `## 📅 Daily Plan`
 2. If absent, just **after** first `---`
 3. If no `---`, after YAML frontmatter block
 
 Insert complete digest block. Confirm:
 
 ```
-✅ Digest inserted into daily note for YYYY-MM-DD
+✅ Digest inserted in daily note of YYYY-MM-DD
 → [N] items — [categories used]
 ```
 
 ---
 
-## Step 7 — Research intel (automatic)
+## Step 8 — Research intel (automatic)
 
-After confirming digest insertion, execute `/research-scout` skill:
+After confirming digest insertion, execute skill `/research-scout`:
 read `99 - Claude Code/Skills/research-scout.md` and execute its steps.
 
-Non-blocking: if /research-scout finds nothing or {USER_NAME} skips everything, digest is already complete — no further action.
+Non-blocking: if /research-scout finds nothing or {USER_NAME} skips everything, digest is already done — no further action.
 
 ---
 
 ## Absolute rules
 
-- **Never overwrite** existing content — only insert digest block
-- **Zero autonomous action on blockers** — always propose A/B and wait for explicit response
-- **5-8 items max** — quality > quantity; OK if < 5 valid items
+- **Never overwrite** existing content — only insert the digest block
+- **Zero autonomous action on blockers** — always propose A/B and wait for explicit answer
+- **Anchor sections non-evictable** — Tech & Dev / News & Hobby / News & Personal present at each run if source accessible; language sections never replace them
+- **`CAP_TOTAL` = 8-10 items max**, never beyond — quality > quantity; going below 8 is OK, inflating to reach 8 is not
+- **Mandatory 7-day deduplication** — no item already published (URL or same subject) in digests from last 7 days
+- **Language sections: 0-1 item, omitted if weak signal** — never forced filler
 - **Factual only** — no opinion, no personal interpretation
 - **Mandatory links** — each item in markdown `[Title](url)`
 - **If no valid items** → Option A (insert empty digest with note) / Option B (cancel)

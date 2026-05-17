@@ -1,54 +1,54 @@
 ---
 name: pulse
-description: Weekly setup monitoring × trends — scans GitHub trending + HN, analyzes current setup, identifies gaps and creates missing tickets in Claude Code kanban. Invoke when the user says "setup monitoring", "what's new to integrate", "pulse", "check trends", "/pulse", or at the start of the week.
+description: Weekly tech watch setup × trends — scans GitHub trending + HN, analyzes current setup, identifies gaps and creates missing tickets in the Claude Code kanban. Invoke when the user says "tech watch setup", "what's new to integrate", "pulse", "check trends", "/pulse", or early in the week.
 narrative_critical: true
 ---
 
 > **⚠️ narrative-critical — Skill protected against aggressive optimization**
 >
-> This skill produces **qualitative narrative output**. Its effectiveness is measured by the **richness of output produced**, not structural compactness.
+> This skill produces **qualitative narrative output**. Its effectiveness is measured by the **richness of the output produced**, not by structural compactness.
 >
-> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet required even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in ways that strip narrative instructions (grouping, context, key moments, open questions, tone, narration). Qualitative content preservation takes priority over line reduction.
+> **For `/evaluateskills`**: in case of mutation, **dry-run Sonnet mandatory even if delta < 2**. Do NOT apply `[LEAN]` / `[STRUCTURE]` in a way that strips out narrative instructions (grouping, context, key moments, open questions, tone, narration). Preservation of qualitative content takes priority over line reduction.
 
 # Skill: /pulse
 
-Weekly monitoring that crosses tech trends with current setup. Result: 3-5 tickets created in Claude Code kanban for the most relevant improvements.
+Weekly tech watch that crosses tech trends with current setup. Result: 3-5 tickets created in the Claude Code kanban for the most relevant improvements.
 
-Recommended frequency: once a week (typically Saturday or Monday morning).
+Recommended frequency: once per week (typically Saturday or Monday morning).
 
 ---
 
-## Step 1 — Fetch Trends (parallel)
+## Step 1 — Fetch trends (parallel)
 
 Launch two searches in parallel:
 
 **Search A — GitHub trending (weekly)**
 ```
-WebSearch: "GitHub trending projects this week [month year current]"
-WebSearch: "GitHub trending weekly [month year current]"
+WebSearch: "GitHub trending projects this week [current month year]"
+WebSearch: "GitHub trending weekly [current month year]"
 ```
 Target: [shareuhack.com GitHub trending weekly], [gitstars.substack.com], [trendshift.io].
-Fetch the most recent page found with WebFetch.
+Fetch the most recent page found: defuddle first (`https://defuddle.md/<url>`), fallback WebFetch if invalid (< 100 chars, error).
 
 **Search B — HN + Claude Code ecosystem**
 ```
-WebSearch: "Hacker News trending Claude Code [month year current]"
-WebSearch: "site:reddit.com/r/ClaudeCode trending [month year current]"
+WebSearch: "Hacker News trending Claude Code [current month year]"
+WebSearch: "site:reddit.com/r/ClaudeCode trending [current month year]"
 ```
 
 **Extraction**: for each source, note projects with:
 - Name + short description
-- Star count or HN score
-- Category: [AI/LLM] [Dev Tooling] [Infra] [Vault/PKM] [Productivity]
+- Number of stars or HN score
+- Category: [AI/LLM] [Dev tooling] [Infra] [Vault/PKM] [Productivity]
 
 ---
 
-## Step 2 — Scan Current Setup
+## Step 2 — Scan current setup
 
 Read in parallel:
 
 1. `99 - Claude Code/Skills/INDEX.md` — list of active skills
-2. `~/.claude/settings.json` — activated plugins, hooks
+2. `~/.claude/settings.json` — active plugins, hooks
 3. Claude Code kanban columns **Idea** and **Spec** — what's already in backlog
 
 **Extraction**: build two lists:
@@ -57,7 +57,7 @@ Read in parallel:
 
 ---
 
-## Step 3 — Gap Analysis
+## Step 3 — Gap analysis
 
 Cross trends (Step 1) with setup (Step 2).
 
@@ -68,49 +68,49 @@ For each trending project/pattern:
 
 **Relevance criteria** (at least one):
 - Direct reduction of daily friction
-- Natural extension of existing skill
+- Natural extension of an existing skill
 - Token or session time savings
-- Integration with active project (FSTG, MPA-MLF, Rustlings, Ludisep)
+- Integration with an active project (FSTG, MPA-MLF, Rustlings, Ludisep)
 
-Sort candidates by descending relevance. Select **3 to 5 maximum**.
+Sort candidates by decreasing relevance. Select **3 to 5 maximum**.
 
-If fewer than 3 relevant candidates → signal "few relevant updates this week" and stop without creating tickets.
+If fewer than 3 relevant candidates → report "little relevant news this week" and stop without creating tickets.
 
 ---
 
-## Step 4 — Present Candidates to {USER_NAME}
+## Step 4 — Present candidates to {USER_NAME}
 
-Before creating tickets, present the selected candidates list:
+Before creating tickets, present the list of selected candidates:
 
 ```
 ## Pulse candidates — [date]
 
 | # | Improvement | Inspiration | Relevance |
-|---|-------------|-------------|------------|
+|---|-------------|-------------|-----------|
 | 1 | ... | ... | ... |
 | 2 | ... | ... | ... |
 
-→ Create tickets for all? Or do you want to remove some?
+→ Do I create tickets for all? Or do you want to remove some?
 ```
 
 Wait for {USER_NAME} validation before moving to Step 5.
 
 ---
 
-## Step 5 — Create Tickets
+## Step 5 — Create tickets
 
 For each validated candidate, apply the `create-ticket` skill:
 
 ```
 create-ticket with:
 - title: "[descriptive title]"
-- type: "💡 Idea" (or "⏫ Improvement" if enhancement to existing)
+- type: "💡 Idea" (or "⏫ Improvement" if it's an improvement to existing)
 - project: null (→ "Personal")
 - column: "Idea"
 - context: "[link with source trend in 1 sentence]"
 ```
 
-Create tickets sequentially (kanban is modified each time).
+Create tickets sequentially (the kanban is modified each time).
 
 ---
 
@@ -131,10 +131,10 @@ Display:
 
 ---
 
-## Step 7 — Update Command Tracker
+## Step 7 — Update command-tracker
 
 - Open `{VAULT_PATH}\{CLAUDE_CODE_FOLDER}\command-tracker.md`
-- Line `/pulse` → replace date with today's date in `YYYY-MM-DD` format
+- `/pulse` line → replace date with today's date in format `YYYY-MM-DD`
 
 ---
 
@@ -144,4 +144,4 @@ Display:
 - Never exceed 5 tickets per run — filter rigorously
 - Always present candidates before creating (Step 4) — no silent creation
 - If WebFetch fails on a source → note "source unavailable" and continue with others
-- **Pulse tickets = exploration only** — never direct implementation; the ticket results in a Knowledge note OR an implementation ticket, only if {USER_NAME} explicitly requests
+- **Pulse tickets = exploration only** — never direct implementation; the ticket results in a Knowledge note OR an implementation ticket, only if {USER_NAME} explicitly asks
