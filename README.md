@@ -28,7 +28,7 @@ No coding required.
 
 ### 2. Install Claude Code
 
-[Claude Code](https://claude.ai/code) runs the commands. Available as a CLI and as a VS Code/JetBrains extension. Once installed, open it in the vault folder.
+[Claude Code](https://claude.ai/code) runs the commands. Available as a CLI and as a VS Code/JetBrains extension. Don't have it yet? Download it there and sign in (you'll be prompted on first launch).
 
 ### 3. Clone the vault
 
@@ -42,7 +42,23 @@ Open the `my-vault/` folder in Obsidian: **File > Open Vault > select the folder
 
 New to the terminal? [How to navigate the terminal](https://medium.com/@twkriege/navigating-your-computer-using-the-terminal-the-first-intimidating-lesson-in-learning-to-code-ed81601f5389)
 
-### 4. Run `/setup`
+### 4. Bootstrap the commands
+
+Still in the terminal, from inside the vault folder, run the script for your system. This makes the `/` commands available in Claude Code — it has to run once, before `/setup`.
+
+**macOS / Linux:**
+```bash
+bash install.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+.\install.ps1
+```
+
+It prints something like `Stubs: 54 created, 0 already present`. Safe to re-run if unsure — it never overwrites anything.
+
+### 5. Run `/setup`
 
 In Claude Code, from inside the vault folder:
 
@@ -52,13 +68,19 @@ In Claude Code, from inside the vault folder:
 
 `/setup` configures the vault to your situation: your name, your folders, your habits. Run it once.
 
-### 5. Your first command
+It creates: your profile note, `~/.claude/CLAUDE.md` (how Claude works with you), `~/.claude/vault-config.json` (where your vault lives), the hooks, and the `99 - Claude Code/` structure. At the end it prints a checklist of what was created — that's your confirmation it worked.
+
+### 6. Check it worked
+
+In Claude Code:
 
 ```
 /today
 ```
 
-Loads your day's context: agenda, active projects, pending tasks. Run it every morning.
+If you get a day plan (even an empty one) back, the install is sound. If instead Claude says it can't find the skill, or `/` shows no commands, the bootstrap step didn't run — go back to step 4 and run the script. If `/today` runs but says it can't find your vault config, re-run `/setup` (step 5).
+
+Once it works, run `/today` every morning: it loads your agenda, active projects, and pending tasks.
 
 ---
 

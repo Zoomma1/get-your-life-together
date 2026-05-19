@@ -364,16 +364,35 @@ Display a summary of what was created:
 
 ### 5.1 — Create stubs for all skills
 
-For each `.md` file in `[VAULT_PATH]/99 - Claude Code/Skills/` (except `setup.md` itself and `INDEX.md`):
+> The `setup` stub itself is created by the bootstrap script (`install.sh` /
+> `install.ps1`) **before** `/setup` can run — that is what makes `/setup`
+> invocable on a fresh clone. This step regenerates every stub idempotently.
+> **The stub format below must stay byte-for-byte identical to the one the
+> bootstrap script writes** — any divergence makes a `/setup` re-run rewrite
+> the bootstrap's stubs and reintroduces drift.
 
-Create `[CLAUDE_HOME]/commands/[skill-name].md` with this content:
+For each `.md` file in `[VAULT_PATH]/99 - Claude Code/Skills/` (except `INDEX.md`):
+
+Read the skill's `description:` value from its YAML frontmatter, then create
+`[CLAUDE_HOME]/commands/[skill-name].md` with this content:
+
 ```
+---
+description: [skill's description value, verbatim from its frontmatter]
+---
 Read the [name] skill from `[VAULT_PATH]/99 - Claude Code/Skills/[name].md` and execute it.
 ```
 
-Examples generated:
-- `~/.claude/commands/today.md` → `Read the today skill from `[VAULT_PATH]/99 - Claude Code/Skills/today.md` and execute it.`
-- `~/.claude/commands/harvest.md` → `Read the vault-harvest skill from `[VAULT_PATH]/99 - Claude Code/Skills/vault-harvest.md` and execute it.`
+If a skill has no `description:` in its frontmatter, omit the frontmatter
+block and write only the `Read the … execute it.` line.
+
+Example (`~/.claude/commands/today.md`):
+```
+---
+description: Generate a day plan adapted to your energy, work/personal/hobby hours and recent feedback
+---
+Read the today skill from `[VAULT_PATH]/99 - Claude Code/Skills/today.md` and execute it.
+```
 
 **Note**: if a stub already exists for a skill, do not overwrite it — move to the next.
 
