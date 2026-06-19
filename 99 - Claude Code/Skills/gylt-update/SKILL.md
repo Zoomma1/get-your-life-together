@@ -1,11 +1,13 @@
 ---
 name: gylt-update
-description: Update GYLT vault from official GitHub repo. Compare local version with latest GitHub version, summarize what each change brings, and let the user choose what to apply. Recommended weekly. Invoke with `/gylt-update` or when manual update is desired.
+description: Update GYLT vault from the official GitHub repo, driven by versioned patchnotes. Reads the upstream VERSION and CHANGELOG.md, lists every release newer than your installed version, and applies each change exactly as its `_apply:_` action prescribes (new skill, overwrite, protected line-by-line merge, manual hook, or one-time migration). Recommended weekly. Invoke with `/gylt-update`.
 ---
 
 # Skill: GYLT Update
 
-Update your vault from the official GitHub repo — transparently and at your pace.
+Update your vault from the official GitHub repo — transparently, at your pace, **driven by
+patchnotes**. The upstream `CHANGELOG.md` is the source of truth for *what* changed and *how* to
+apply it; git is only the transport that carries the file content.
 
 **Recommended frequency:** weekly (tracked in `command-tracker.md`).
 
@@ -20,317 +22,218 @@ Update your vault from the official GitHub repo — transparently and at your pa
 
 ## Step 0 — Read LANGUE
 
-Read `99 - Claude Code/config/vault-settings.md` and extract the `langue:` field value. Store as `LANGUE`.
+Read `99 - Claude Code/config/vault-settings.md`, extract the `langue:` field. Store as `LANGUE`.
 
-- If field is missing or empty → `LANGUE = EN`
-- If `LANGUE = EN` → all steps proceed as before (no translation)
-- If `LANGUE ≠ EN` → translation will be applied in Step 5
+- Missing/empty → `LANGUE = EN`
+- `LANGUE = EN` → no translation
+- `LANGUE ≠ EN` → translation applied when writing files (Step 4)
 
 ---
 
-## Step 0.5 — Protected files & last-synced reference
+## Step 0.5 — Installed version, protected files & last-synced reference
 
-Some files in a GYLT vault belong to **you**, not to the upstream repo. They live inside synced
-folders, but their content is your own configuration, your customizations, or your local tracking
-state. Blindly overwriting them with `git checkout` destroys your data silently — exactly the kind
-of trust-breaking bug we refuse to ship.
+**Installed version.** Read `99 - Claude Code/config/.gylt-version` (single line, e.g. `1.0.0`).
+Store as `INSTALLED`. If missing or empty → `INSTALLED = 0.0.0` (first patchnote-driven run).
 
-**`PROTECTED` — the user-owned file list:**
+**`PROTECTED` — the user-owned file list** (never `git checkout`-ed):
 
 | File / glob | Why it's yours |
 |-------------|----------------|
 | `99 - Claude Code/config/vault-settings.md` | Your local config: folder names, paths, `langue:`, preferences |
-| `Ressources/Templates/**` | Templates you may have personalized (daily note, etc.) |
+| `Ressources/Templates/**` | Templates you may have personalized |
 | `99 - Claude Code/command-tracker.md` | Your personal command cadence |
+| `99 - Claude Code/config/.gylt-version`, `99 - Claude Code/config/.gylt-sync-state` | Local state |
 
-These files are **never** applied via `git checkout`. When they change upstream you get notified
-and offered a **line-by-line merge** where you decide what to keep (Step 5, protected branch).
-
-**Last-synced reference (protected files only):**
-
-Read the local state file `99 - Claude Code/config/.gylt-sync-state`. It contains a single line:
-the `origin/master` commit SHA recorded the last time `/gylt-update` ran to completion. Store as
-`LAST_SYNCED_SHA`.
-
-- If the file is missing or empty → `LAST_SYNCED_SHA` is unset (first run, or pre-fix vault).
-- This SHA is the reference point for "what changed in *your* protected files since you last
-  updated" — so the notification shows only genuinely new upstream changes, not the entire history.
-- Non-protected files keep using the simpler `HEAD..origin/master` range (Step 1). The known
-  caveat — already-applied non-protected changes may be re-listed — is cosmetic and non-destructive,
-  and intentionally left out of scope here.
+**Last-synced reference (for protected merges).** Read `99 - Claude Code/config/.gylt-sync-state`
+(single line: the `origin/master` SHA recorded last completed run). Store as `LAST_SYNCED_SHA`.
+Missing/empty → unset (first run). This is the baseline for the line-by-line protected merge (Step 4,
+`protected-merge`).
 
 ---
 
-## Step 1 — Check for available updates
+## Step 1 — Fetch and compare versions
 
 ```bash
 git fetch origin
-git log HEAD..origin/master --oneline
+git show origin/master:VERSION
 ```
 
-**If no commits ahead** → display:
-> "Your vault is up to date. No updates available."
-Update `command-tracker.md` and stop.
+Store the upstream value as `LATEST`.
 
-**If commits exist** → continue.
+- **If `LATEST == INSTALLED`** → display *"Your vault is up to date (vX.Y.Z)."*, update `command-tracker.md`, stop.
+- **If `LATEST < INSTALLED`** (local ahead — unusual) → tell the user and stop; don't downgrade.
+- **If `LATEST > INSTALLED`** → continue.
+
+Compare versions as SemVer: split on `.`, compare MAJOR then MINOR then PATCH numerically.
 
 ---
 
-## Step 2 — List modified files
+## Step 2 — Read the patchnotes since INSTALLED
 
 ```bash
-git diff HEAD..origin/master --name-only
+git show origin/master:CHANGELOG.md
 ```
 
-Categorize files. **Check `PROTECTED` (Step 0.5) first** — a file matching `PROTECTED` always
-goes to the Protected category regardless of which folder it sits in:
+Collect every `## [version] — date` release section whose **version > INSTALLED** (SemVer compare).
+These are the releases to apply, oldest first.
 
-| Category | Pattern |
-|----------|---------|
-| 🔒 Protected (user-owned) | Any file matching `PROTECTED` (Step 0.5) |
-| New skills | `99 - Claude Code/Skills/*.md` absent locally |
-| Updated skills | `99 - Claude Code/Skills/*.md` present locally but different |
-| Config | `99 - Claude Code/config/*.md` **not** in `PROTECTED` |
-| Templates | `Ressources/Templates/*.md` **not** in `PROTECTED` |
-| Hooks | `99 - Claude Code/hooks/*.js` |
-| Other | README.md, LICENSE, etc. |
+Within those sections, parse every entry of the form:
 
-For the Protected category, the relevant changes are those between `LAST_SYNCED_SHA` and
-`origin/master` (not `HEAD..origin/master`):
-
-```bash
-# only if LAST_SYNCED_SHA is set; otherwise compare against HEAD
-git diff ${LAST_SYNCED_SHA:-HEAD}..origin/master --name-only -- \
-  "99 - Claude Code/config/vault-settings.md" \
-  "Ressources/Templates/" \
-  "99 - Claude Code/command-tracker.md"
+```
+**<id>** — <summary>. _apply: <action>_   [optional: — steps: <migration steps>]
 ```
 
-If a protected file has no changes in that range → it's untouched upstream, don't list it.
+Resolve each **id** to a path:
+
+| id | path |
+|----|------|
+| `skill:<name>` | `99 - Claude Code/Skills/<name>/SKILL.md` |
+| `hook:<name>` | `99 - Claude Code/hooks/<name>` (name includes extension) |
+| `config:<name>` | `99 - Claude Code/config/<name>.md` |
+| `template:<name>` | `Ressources/Templates/<name>.md` |
+| `file:<path>` | the literal path |
+
+Group entries by **action**: `new-skill`, `overwrite`, `protected-merge`, `manual-hook`, `migration`.
+
+> Sanity check: if a `_apply: overwrite_` or `new-skill` entry resolves to a `PROTECTED` path, treat it
+> as `protected-merge` instead — patchnotes never override the protected guarantee.
 
 ---
 
-## Step 3 — Summarize each change
+## Step 3 — Present the selection menu
 
-For each modified file, produce summary in **1-2 sentences**:
-
-**New skill** → read frontmatter `description` from GitHub version:
-```bash
-git show origin/master:"99 - Claude Code/Skills/[name].md" | head -20
-```
-→ Display: `🆕 /[name] — [frontmatter description]`
-
-**Updated skill** → read diff and produce human summary:
-```bash
-git diff HEAD..origin/master -- "99 - Claude Code/Skills/[name].md"
-```
-→ Read added/removed lines, summarize in 1-2 sentences what functionally changed (not technical details). Examples:
-- *"Improves daily task selection: deterministic order and inactive project detection."*
-- *"Adds automatic `/refine` invocation when refining ideas."*
-
-**Config** (non-protected) → briefly describe change (ex: *"Adds `claude_code_folder` field for more flexibility."*)
-
-**Template** (non-protected) → describe template update.
-
-**🔒 Protected (user-owned)** → this file holds *your* data, so the framing is a **notification**,
-not an offer to apply. Read the upstream change to explain what the project changed and why it
-might matter to the user — but make clear nothing will be overwritten:
-```bash
-git diff ${LAST_SYNCED_SHA:-HEAD}..origin/master -- "[protected/file/path]"
-```
-→ Display: `🔒 [file] — changed upstream: [1-2 sentence summary]. Your version is safe; you'll
-review and merge line by line (Step 5).`
-
-Example: *"🔒 vault-settings.md — upstream added a `claude_code_folder` field and renamed
-`hobbies_dir` → `hobbies_folder`. Your values are kept; you'll choose per line what to adopt."*
-
-**Hooks** → signal hooks changed and recommend reinstalling manually (see Step 5).
-
----
-
-## Step 4 — Present selection menu
-
-Display complete summary before asking what to apply:
+Show everything before asking, using the patchnote summaries verbatim:
 
 ```
 ## GYLT updates available — [date]
-[N commits since your last version]
+vINSTALLED → vLATEST   ([N] releases)
 
-### 🆕 New skills
-- [ ] /dump — Mental dump → follow-up questions → dated note in daily journal
-- [ ] /essay — Guided essay writing with questions (outline + Q&A + formatting)
-... (complete list)
+### 🆕 New skills            (_apply: new-skill_)
+- [ ] /gylt-new-addon — Scaffold a new GYLT addon from templates
 
-### 🔄 Updated skills
-- [ ] /today — Deterministic task selection + inactive project detection + /refine invocation on refinement
-- [ ] /workon — Semantic search in past sessions to load topic history
-... (complete list)
+### 🔄 Updated               (_apply: overwrite_)
+- [ ] install.sh — Bootstrap globs Skills/*/SKILL.md
 
-### ⚙️ Config
-- [ ] vault-settings.md — Adds claude_code_folder field
+### 🧭 Migrations            (_apply: migration_ — one-time steps)
+- [ ] Skills flat → folder — reorganize Skills/<name>.md into <name>/SKILL.md
 
-### 📄 Templates
-- [ ] Daily notes template.md — Daily journal template (new)
+### ⚠️ Hooks (manual)        (_apply: manual-hook_)
+- [ ] recap-session.js — [summary]  → you'll copy it manually
 
-### ⚠️ Hooks (manual action recommended)
-- [ ] recap-session.js — [change summary]
-     → To apply: copy manually to ~/.claude/hooks/
-
-### 🔒 Protected — your files changed upstream (review & merge, never auto-applied)
-- 🔒 vault-settings.md — upstream added `claude_code_folder`, renamed `hobbies_dir`
-     → You'll go through the diff line by line and choose what to adopt (Step 5)
+### 🔒 Protected — your files changed upstream (_apply: protected-merge_, never auto-applied)
+- 🔒 vault-settings.md — [summary]  → reviewed line by line, you decide each line
 
 ---
-Which elements do you want to apply? (all / selection / none)
+Which do you want to apply? (all / selection / none)
 ```
 
-**Protected files are never an "apply" checkbox.** They are listed only so the user knows their
-files moved upstream. `all` applies all non-hook **non-protected** elements — it never touches a
-protected file. After the apply phase, if any protected file changed upstream, ask separately:
-> "Your protected files [list] changed upstream. Want to review and merge them now, line by line? (yes / later)"
-
-**If user replies "all"** → apply all non-hook, non-protected elements.
-**If selection** → apply only checked elements (protected files cannot be checked).
-**If "none"** → skip applies, but still offer the protected review, then update tracker.
+**Rules for the menu:**
+- `all` applies every `new-skill`, `overwrite` and `migration` item. It **never** touches a
+  protected file and **never** auto-copies a hook.
+- Protected (`protected-merge`) items are notifications, not checkboxes. After the apply phase, ask
+  separately: *"Your protected files [list] changed upstream. Review & merge now, line by line? (yes / later)"*
+- Migrations are checkboxes but, being one-time and potentially structural, always show their `steps`
+  and ask for explicit confirmation before running (Step 4).
 
 ---
 
-## Step 5 — Apply selected updates
+## Step 4 — Apply
 
-⚠️ **Never run `git checkout` on a file matching `PROTECTED` (Step 0.5)** — even if it somehow got
-selected. Protected files only ever go through the line-by-line merge below.
+Process selected items by action.
 
-For each selected **non-protected** file (excluding hooks):
+### `new-skill` / `overwrite`
 
-**If `LANGUE = EN`** → apply directly:
+⚠️ Never on a `PROTECTED` path.
+
+**If `LANGUE = EN`:**
 ```bash
-git checkout origin/master -- "[file/path]"
+git checkout origin/master -- "<resolved/path>"
 ```
 
-**If `LANGUE ≠ EN`** → translate then write:
+**If `LANGUE ≠ EN`:**
+1. `git show origin/master:"<resolved/path>"`
+2. Translate EN→LANGUE: *"Translate this file from English to [LANGUE]. (1) preserve code blocks exactly, (2) preserve `{VARIABLE}` patterns, (3) translate the `description:` value but never `name:`, (4) preserve markdown structure and `[[…]]` links, (5) return only the translated file."*
+3. Write the translated content directly to disk (not via `git checkout`).
 
-1. Read EN content from GitHub:
+### `migration`
+
+Show the entry's `steps`. Confirm with the user. Then perform them — prefer doing them yourself
+(file moves, etc.) over asking the user to run shell, but show exactly what you did. A migration is
+idempotent-friendly: skip a step whose end-state already holds (e.g. a skill already in folder form).
+
+### `manual-hook`
+
+Never auto-copy. First fetch the upstream version into the repo so the copy source is current
+(hooks live in the repo, not in `PROTECTED`):
 ```bash
-git show origin/master:"[file/path]"
+git checkout origin/master -- "99 - Claude Code/hooks/<hook>"
+```
+Then display:
+```
+To update <hook>:
+cp "99 - Claude Code/hooks/<hook>" ~/.claude/hooks/
 ```
 
-2. Translate EN→LANGUE using Claude with this prompt:
-> *"Translate the following file from English to [LANGUE]. Rules: (1) preserve all code blocks (bash, python, yaml, js…) exactly as-is, (2) preserve all `{VARIABLE}` patterns unchanged, (3) in YAML frontmatter, translate the `description:` value but never the `name:` value, (4) preserve all markdown structure and Obsidian links `[[…]]`, (5) do not add explanations — return only the translated file."*
+### `protected-merge` — line-by-line
 
-3. Write the translated content directly to disk (do not use `git checkout`).
+Run only if the user accepted the protected review (Step 3). For each `protected-merge` entry whose
+file changed between `LAST_SYNCED_SHA` and `origin/master`:
 
-For **selected hooks**: don't apply automatically. Display instead:
-```
-To update recap-session.js:
-cp "99 - Claude Code/hooks/recap-session.js" ~/.claude/hooks/
-```
-(or equivalent path for OS)
+1. Upstream content: `git show origin/master:"<path>"`. Local content: the file on disk.
+2. Compute line-level differences (new upstream lines + lines whose value differs from yours).
+3. Walk divergent lines in order:
+   ```
+   <file> — line N
+     Your version : hobbies_dir: 02 - Loisirs
+     Upstream     : hobbies_folder: 02 - Hobbies
+   Keep yours / take upstream / skip? (k / u / s)
+   ```
+   A purely new upstream line → `Add this new line? (y / n)` (suggest `y`). Batch obviously-cohesive
+   new blocks as one unit.
+4. Write the merged content directly to disk (**never** `git checkout`). For `LANGUE ≠ EN`, translate
+   only the lines adopted from upstream.
+5. Confirm: `🔒 <file> merged — X adopted, Y kept.`
 
-### Step 5b — Protected files: line-by-line merge
-
-Run this only if the user accepted the protected review (Step 4) and there are protected files
-changed upstream. The goal: let the upstream improvements reach the user **without ever silently
-losing their local values**. The user is in control of every divergent line.
-
-For each protected file changed between `LAST_SYNCED_SHA` and `origin/master`:
-
-1. Get the local content (what the user has now) and the upstream content:
-```bash
-git show origin/master:"[protected/file/path]"   # upstream version
-# local version = the file on disk as-is
-```
-
-2. Compute the line-level differences. A line is **divergent** if it differs between local and
-   upstream — this covers both *new lines added upstream* and *lines whose value upstream differs
-   from the user's local value*.
-
-3. Walk through divergent lines **in order**. For each one, show the user clearly:
-```
-[file] — line N
-  Your version  : hobbies_dir: 02 - Loisirs
-  Upstream      : hobbies_folder: 02 - Hobbies
-Keep yours / take upstream / skip? (k / u / s)
-```
-   - `k` keep yours → local line unchanged
-   - `u` take upstream → adopt the upstream line as-is
-   - `s` skip → same as keep, move on
-   - For a **purely new** upstream line (no local counterpart, e.g. a brand-new config field):
-     present it as `Add this new line? (y / n)` — default suggestion `y`, since new fields are
-     usually the whole point of updating, but never assume.
-
-   Batch sensibly: if many contiguous lines are an obviously cohesive new block (e.g. a new
-   documented section in a template), present the block as one unit rather than line by line.
-
-4. Apply the user's choices to produce the merged content and write it directly to disk
-   (**never** `git checkout`). For `LANGUE ≠ EN`, translate only the lines the user chose to
-   adopt from upstream, following the same translation rules as the non-protected path; lines the
-   user kept are left exactly as they are.
-
-5. Confirm: `🔒 [file] merged — [X] lines adopted, [Y] kept.`
-
-If `LAST_SYNCED_SHA` was unset (first run post-fix), there's no reliable "since last update"
-reference — tell the user plainly: *"First protected sync on this vault — I'll show the full
-current difference vs upstream so you can establish your baseline."* and run the same line-by-line
-flow against `HEAD` (or the repo's initial commit) instead.
+If `LAST_SYNCED_SHA` is unset: tell the user it's the first protected sync, show the full current
+diff vs upstream as the baseline, run the same flow.
 
 ---
 
-## Step 6 — Final report
+## Step 5 — Final report & state
 
-Display:
 ```
-✅ [N] files updated
-⏭️  [N] files skipped
-
+✅ [N] items applied   ⏭️ [N] skipped   🔒 [N] protected merged/deferred
+Now on vLATEST.
 Next update recommended in 7 days.
 ```
 
-Update `99 - Claude Code/command-tracker.md` — add or update `/gylt-update` line with today's date.
+Update `99 - Claude Code/command-tracker.md` — set/add the `/gylt-update` line with today's date.
 
-If `/gylt-update` line missing from command-tracker → add it:
-```
-| /gylt-update | [date] | 7 days |
-```
+**Version state.** Write `LATEST` into `99 - Claude Code/config/.gylt-version` (overwrite, single line)
+— **but only if every selected non-deferred item was applied**. If the user deferred protected files
+or skipped migrations that carry required changes, keep `.gylt-version` at the highest fully-applied
+version and say so, so the next run re-offers what's left.
 
-**Record the synced SHA** so the next run knows what your protected files looked like at this
-point. Write the current `origin/master` SHA into `99 - Claude Code/config/.gylt-sync-state`
-(overwrite, single line):
+**Protected SHA.** Write the current `origin/master` SHA into `.gylt-sync-state`:
 ```bash
 git rev-parse origin/master > "99 - Claude Code/config/.gylt-sync-state"
 ```
-This file is local state, not repo content — it is itself protected (never `git checkout`-ed) and
-should not be committed back to the GYLT repo.
-
-**When to advance the SHA** — the SHA is the "I've seen my protected files up to here" marker, so
-only advance it if every protected change has actually been put in front of the user:
-
-- No protected files changed this run, **or** the user went through the line-by-line merge for
-  all of them (adopting or declining each line is a decision — that counts as handled) → write the
-  new SHA.
-- The user chose **"later"** (deferred the protected review) → **do not** write the new SHA. Leave
-  `.gylt-sync-state` unchanged so next week re-notifies about the same pending protected changes.
-  The user explicitly hasn't seen them yet; suppressing that would be the exact silent-loss bug in
-  a slower form.
-
-Skip the write entirely if the run aborted on an error.
+Advance it **only** if no protected file changed this run, or the user merged all of them. If the user
+chose "later", leave `.gylt-sync-state` unchanged so next run re-notifies. Skip both writes if the run
+aborted on error.
 
 ---
 
 ## Absolute rules
 
-- **Never run `git pull`** — apply file by file so user keeps control
-- **Protected files are never `git checkout`-ed.** `PROTECTED` (Step 0.5) =
-  `99 - Claude Code/config/vault-settings.md`, `Ressources/Templates/**`,
-  `99 - Claude Code/command-tracker.md`, plus the local state file
-  `99 - Claude Code/config/.gylt-sync-state`. These hold the user's own data and only ever change
-  through the Step 5b line-by-line merge where the user decides each line. Overwriting them
-  silently is the trust-breaking bug this skill exists to prevent.
-- **Only these are safe to `git checkout`**: `99 - Claude Code/` *minus* protected paths,
-  `Ressources/Templates/` *minus* protected paths, `README.md`, `LICENSE`. Never any personal
-  note, daily note, or ticket.
-- **Hooks = mandatory manual** — never copy hook to `~/.claude/` without explicit confirmation
-- **If conflict detected** (non-protected local file modified by user) → signal and skip, don't
-  overwrite. (Protected files don't need this rule — the merge already hands every divergent line
-  to the user.)
-- **A deferred protected review must survive to the next run** — never advance
-  `.gylt-sync-state` when the user said "later" (Step 6).
+- **Patchnote-driven.** Never guess from git diffs — read `CHANGELOG.md`. If `CHANGELOG.md` or
+  `VERSION` is missing upstream, tell the user the repo predates patchnotes and stop (don't fall back
+  to blind diffing).
+- **Never `git pull`** — apply item by item so the user keeps control.
+- **Protected files are never `git checkout`-ed** — only the Step 4 `protected-merge` line-by-line flow
+  touches them, with the user deciding each line.
+- **Only safe to `git checkout`**: non-protected paths under `99 - Claude Code/`, `Ressources/Templates/`
+  (non-protected), `README.md`, `LICENSE`, `VERSION`, `CHANGELOG.md`.
+- **Hooks = mandatory manual** — never copy a hook to `~/.claude/` without explicit confirmation.
+- **A deferred protected review must survive to the next run** — never advance `.gylt-sync-state` when
+  the user said "later".
