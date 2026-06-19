@@ -1,0 +1,7 @@
+{
+  "name": "{{NAME}}",
+  "description": "{{DESCRIPTION}}",
+  "gylt_addon_version": "1",
+  "skills": {{SKILLS}},
+  "hooks": {{HOOKS}}
+}

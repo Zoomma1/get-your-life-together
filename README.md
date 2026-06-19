@@ -105,6 +105,18 @@ A **daily note template** is included in `Ressources/Templates/` — compatible 
 
 ---
 
+## Addons
+
+GYLT is the base. **Addons** extend it — standalone repos of skills and hooks that plug on top, installed with one script. Use what you need, ignore the rest.
+
+| Addon | What it adds |
+|-------|--------------|
+| [GYLT-DEV-CONTEXT-ADDON](https://github.com/<you>/GYLT-DEV-CONTEXT-ADDON) | Prepares a reusable, codebase-clean context for any repo (`graphify` map + curated README + ADRs), auto-loaded at session start, with a socket to plug deeper analyzers. For developers. |
+
+Want to package your own set of skills as an addon? Run `/gylt-new-addon` — it scaffolds a ready-to-share addon repo (manifest, installer, README) from templates.
+
+---
+
 ## Philosophy
 
 Most productivity systems assume a certain kind of brain. GTD, time-blocking, todo apps: designed for people who don't forget things mid-sentence, who don't stall from cognitive overload, who can hold a plan together for more than twenty minutes.
