@@ -47,15 +47,17 @@ $richTpl = @'
 ---
 description: {0}
 ---
-Read the {1} skill from `{2}\99 - Claude Code\Skills\{1}.md` and execute it.
+Read the {1} skill from `{2}\99 - Claude Code\Skills\{1}\SKILL.md` and execute it.
 '@
 
 $minTpl = @'
-Read the {0} skill from `{1}\99 - Claude Code\Skills\{0}.md` and execute it.
+Read the {0} skill from `{1}\99 - Claude Code\Skills\{0}\SKILL.md` and execute it.
 '@
 
-foreach ($skill in Get-ChildItem -LiteralPath $SkillsDir -Filter '*.md') {
-    $name = $skill.BaseName
+foreach ($dir in Get-ChildItem -LiteralPath $SkillsDir -Directory) {
+    $skillFile = Join-Path $dir.FullName 'SKILL.md'
+    if (-not (Test-Path -LiteralPath $skillFile)) { continue }
+    $name = $dir.Name
     $stub = Join-Path $CommandsDir "$name.md"
 
     if (Test-Path -LiteralPath $stub) {
@@ -64,7 +66,7 @@ foreach ($skill in Get-ChildItem -LiteralPath $SkillsDir -Filter '*.md') {
     }
 
     # First `description:` line of the skill's YAML frontmatter.
-    $descLine = Select-String -LiteralPath $skill.FullName -Pattern '^description:' |
+    $descLine = Select-String -LiteralPath $skillFile -Pattern '^description:' |
                 Select-Object -First 1
     $desc = $null
     if ($descLine) {

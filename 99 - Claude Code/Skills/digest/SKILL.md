@@ -199,7 +199,7 @@ Insert complete digest block. Confirm:
 ## Step 8 — Research intel (automatic)
 
 After confirming digest insertion, execute skill `/research-scout`:
-read `99 - Claude Code/Skills/research-scout.md` and execute its steps.
+read `99 - Claude Code/Skills/research-scout/SKILL.md` and execute its steps.
 
 Non-blocking: if /research-scout finds nothing or {USER_NAME} skips everything, digest is already done — no further action.
 

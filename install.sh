@@ -39,9 +39,9 @@ mkdir -p "$COMMANDS_DIR"
 created=0
 skipped=0
 
-for skill in "$SKILLS_DIR"/*.md; do
+for skill in "$SKILLS_DIR"/*/SKILL.md; do
   [ -e "$skill" ] || continue          # no matches → skip cleanly
-  name="$(basename "$skill" .md)"
+  name="$(basename "$(dirname "$skill")")"
   stub="$COMMANDS_DIR/$name.md"
 
   if [ -e "$stub" ]; then
@@ -57,11 +57,11 @@ for skill in "$SKILLS_DIR"/*.md; do
       printf -- '---\n'
       printf 'description: %s\n' "$desc"
       printf -- '---\n'
-      printf 'Read the %s skill from `%s/99 - Claude Code/Skills/%s.md` and execute it.\n' \
+      printf 'Read the %s skill from `%s/99 - Claude Code/Skills/%s/SKILL.md` and execute it.\n' \
         "$name" "$VAULT_PATH" "$name"
     } > "$stub"
   else
-    printf 'Read the %s skill from `%s/99 - Claude Code/Skills/%s.md` and execute it.\n' \
+    printf 'Read the %s skill from `%s/99 - Claude Code/Skills/%s/SKILL.md` and execute it.\n' \
       "$name" "$VAULT_PATH" "$name" > "$stub"
   fi
 

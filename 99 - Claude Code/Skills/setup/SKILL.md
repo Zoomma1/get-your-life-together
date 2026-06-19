@@ -371,7 +371,8 @@ Display a summary of what was created:
 > bootstrap script writes** — any divergence makes a `/setup` re-run rewrite
 > the bootstrap's stubs and reintroduces drift.
 
-For each `.md` file in `[VAULT_PATH]/99 - Claude Code/Skills/` (except `INDEX.md`):
+For each `[name]/SKILL.md` file in `[VAULT_PATH]/99 - Claude Code/Skills/` (the
+skill name is the parent folder name; skip any loose `INDEX.md`):
 
 Read the skill's `description:` value from its YAML frontmatter, then create
 `[CLAUDE_HOME]/commands/[skill-name].md` with this content:
@@ -380,7 +381,7 @@ Read the skill's `description:` value from its YAML frontmatter, then create
 ---
 description: [skill's description value, verbatim from its frontmatter]
 ---
-Read the [name] skill from `[VAULT_PATH]/99 - Claude Code/Skills/[name].md` and execute it.
+Read the [name] skill from `[VAULT_PATH]/99 - Claude Code/Skills/[name]/SKILL.md` and execute it.
 ```
 
 If a skill has no `description:` in its frontmatter, omit the frontmatter
@@ -391,7 +392,7 @@ Example (`~/.claude/commands/today.md`):
 ---
 description: Generate a day plan adapted to your energy, work/personal/hobby hours and recent feedback
 ---
-Read the today skill from `[VAULT_PATH]/99 - Claude Code/Skills/today.md` and execute it.
+Read the today skill from `[VAULT_PATH]/99 - Claude Code/Skills/today/SKILL.md` and execute it.
 ```
 
 **Note**: if a stub already exists for a skill, do not overwrite it — move to the next.
