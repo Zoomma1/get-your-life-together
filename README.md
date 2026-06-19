@@ -111,7 +111,7 @@ GYLT is the base. **Addons** extend it — standalone repos of skills and hooks 
 
 | Addon | What it adds |
 |-------|--------------|
-| [GYLT-DEV-CONTEXT-ADDON](https://github.com/<you>/GYLT-DEV-CONTEXT-ADDON) | Prepares a reusable, codebase-clean context for any repo (`graphify` map + curated README + ADRs), auto-loaded at session start, with a socket to plug deeper analyzers. For developers. |
+| [GYLT-DEV-CONTEXT-ADDON](https://github.com/Zoomma1/GYLT-DEV-CONTEXT-ADDON) | Prepares a reusable, codebase-clean context for any repo (`graphify` map + curated README + ADRs), auto-loaded at session start, with a socket to plug deeper analyzers. For developers. |
 
 Want to package your own set of skills as an addon? Run `/gylt-new-addon` — it scaffolds a ready-to-share addon repo (manifest, installer, README) from templates.
 
