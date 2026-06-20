@@ -12,6 +12,16 @@ const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
 
+// --- Debug log ---
+const DEBUG_LOG = path.join(os.homedir(), '.claude', 'logs', 'recap-session.log');
+function dlog(msg) {
+  try {
+    fs.mkdirSync(path.dirname(DEBUG_LOG), { recursive: true });
+    fs.appendFileSync(DEBUG_LOG, `[${new Date().toISOString()}] [${process.pid}] ${msg}\n`, 'utf8');
+  } catch (_) {}
+}
+dlog('--- hook fired ---');
+
 // --- Config ---
 
 let VAULT_SESSIONS;
@@ -216,16 +226,35 @@ process.stdin.on('data', chunk => raw += chunk);
 process.stdin.on('end', () => {
   clearTimeout(stdinTimeout);
   try {
-    const { transcript_path } = JSON.parse(raw);
-    if (!transcript_path || !fs.existsSync(transcript_path)) return process.exit(0);
+    const parsed = JSON.parse(raw);
+    const { transcript_path, reason } = parsed;
+    dlog(`stdin: reason=${reason || 'n/a'} transcript=${transcript_path || 'MISSING'}`);
+    if (!transcript_path || !fs.existsSync(transcript_path)) { dlog('EXIT: transcript_path missing or file does not exist'); return process.exit(0); }
+
+    // B1 fix: only recap on a genuine session-end reason (clear / logout / prompt_input_exit / other).
+    // Spurious or duplicate fires arrive WITHOUT a reason (logged as n/a). Acting on them creates the
+    // dedup marker prematurely — so when a long or resumed session later ends with reason=clear, the
+    // stale marker makes the real recap EXIT on dedup. Ignoring reason-less fires keeps the marker slot
+    // free for the actual session end.
+    if (!reason) { dlog('EXIT: no reason (spurious/duplicate fire, not a genuine session end)'); return process.exit(0); }
 
     const jsonlContent = fs.readFileSync(transcript_path, 'utf8');
+    dlog(`transcript size: ${jsonlContent.length}B, ${jsonlContent.split('\n').length} lines`);
 
     // Skip child sessions spawned by this hook (entrypoint = sdk-cli)
-    if (jsonlContent.split('\n').slice(0, 10).some(l => { try { return JSON.parse(l).entrypoint === 'sdk-cli'; } catch (_) { return false; } })) return process.exit(0);
+    if (jsonlContent.split('\n').slice(0, 10).some(l => { try { return JSON.parse(l).entrypoint === 'sdk-cli'; } catch (_) { return false; } })) { dlog('EXIT: sdk-cli child session'); return process.exit(0); }
+
+    const messages = extractMessages(jsonlContent);
+    dlog(`extracted ${messages.length} messages`);
+    if (messages.length < MIN_MESSAGES) { dlog(`EXIT: < ${MIN_MESSAGES} messages`); return process.exit(0); }
+    if (isUtilitySession(messages, jsonlContent)) { dlog('EXIT: utility session (skip pattern matched, no edits)'); return process.exit(0); }
 
     // Deduplication: prevent the same transcript from being processed twice
-    // (SessionEnd fires once on /clear AND once on process exit for the same session)
+    // (SessionEnd fires once on /clear AND once on process exit for the same session).
+    // IMPORTANT: the marker is created only AFTER the content checks above. An early /clear
+    // fire on a transcript not yet fully flushed (e.g. 5 lines / 1 message while several
+    // sessions run concurrently) must NOT burn the marker slot — otherwise the later genuine
+    // end, once the transcript is complete, hits dedup and the recap is lost for good.
     const RECAP_DONE_DIR = path.join(os.homedir(), '.claude', 'cache', 'recap-done');
     const transcriptId = path.basename(transcript_path).replace(/\.jsonl.*$/, '');
     const doneMarker = path.join(RECAP_DONE_DIR, transcriptId);
@@ -240,18 +269,16 @@ process.stdin.on('end', () => {
       } catch (_) {}
       // Exclusive create — fails with EEXIST if already processed
       fs.closeSync(fs.openSync(doneMarker, 'wx'));
+      dlog(`marker created: ${transcriptId}`);
     } catch (e) {
-      if (e.code === 'EEXIST') return process.exit(0);
+      if (e.code === 'EEXIST') { dlog(`EXIT: marker already exists (dedup) for ${transcriptId}`); return process.exit(0); }
     }
-
-    const messages = extractMessages(jsonlContent);
-    if (messages.length < MIN_MESSAGES) return process.exit(0);
-    if (isUtilitySession(messages, jsonlContent)) return process.exit(0);
 
     const time = getTime();
     const date = getDate();
     const sessionFile = path.join(VAULT_SESSIONS, `${date}.md`).replace(/\\/g, '/');
     const prompt = buildPrompt(messages, time);
+    dlog(`calling claude --print (model sonnet-4-6), prompt size: ${prompt.length}B, target: ${sessionFile}`);
 
     // Spawn claude with stdin pipe — avoids shell redirection and argument length limits
     // Pin to Sonnet 4.6 explicitly to prevent inheriting Sonnet 1M / Opus from the parent session
@@ -264,6 +291,7 @@ process.stdin.on('end', () => {
     // Hard kill after 90s — timeout option in spawn is not reliable in Bun on Windows,
     // causing zombie processes that accumulate memory indefinitely.
     const hardKill = setTimeout(() => {
+      dlog('EXIT: hard kill after 90s timeout');
       try { child.kill(); } catch (_) {}
       process.exit(0);
     }, 90000);
@@ -274,10 +302,11 @@ process.stdin.on('end', () => {
     child.stdin.write(prompt, 'utf8');
     child.stdin.end();
 
-    child.on('close', () => {
+    child.on('close', (code) => {
       clearTimeout(hardKill);
       const output = stdout.trim();
-      if (!output) return process.exit(0);
+      dlog(`claude exited code=${code}, output size: ${output.length}B`);
+      if (!output) { dlog('EXIT: empty claude output'); return process.exit(0); }
 
       // Split on separator — everything before is recap, everything after is proposals
       const SEPARATOR = '<<<PROPOSALS_SECTION>>>';
@@ -285,7 +314,8 @@ process.stdin.on('end', () => {
       const recap = (sepIdx >= 0 ? output.slice(0, sepIdx) : output).trim();
       const proposals = (sepIdx >= 0 ? output.slice(sepIdx + SEPARATOR.length) : '').trim();
 
-      if (!recap || recap.toUpperCase() === 'SKIP') return process.exit(0);
+      if (!recap || recap.toUpperCase() === 'SKIP') { dlog('EXIT: recap is SKIP or empty'); return process.exit(0); }
+      dlog(`writing recap (${recap.length}B) to ${sessionFile}`);
 
       // Write recap to session file
       if (fs.existsSync(sessionFile)) {
@@ -331,9 +361,10 @@ process.stdin.on('end', () => {
       process.exit(0);
     });
 
-    child.on('error', () => { clearTimeout(hardKill); process.exit(0); });
+    child.on('error', (err) => { dlog(`EXIT: claude spawn error: ${err.message}`); clearTimeout(hardKill); process.exit(0); });
 
-  } catch (_) {
+  } catch (e) {
+    dlog(`EXIT: outer try/catch error: ${e.message}`);
     process.exit(0);
   }
 });

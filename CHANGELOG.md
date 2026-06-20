@@ -23,6 +23,24 @@ Each entry is `**<id>** — <summary>. _apply: <action>_`
 
 ---
 
+## [1.1.0] — 2026-06-20
+
+Three new skills (`/lessons-distill`, `/link`, `/teach`), refreshed `closeweek` / `create-adr` / `today` / `resumelastsession`, and a `recap-session` hook fix.
+
+### Added
+- **skill:lessons-distill** — Distills and routes a bloated `lessons.md` to each lesson's true home (SKILL.md, CLAUDE.md, ADR, README, Knowledge note, ticket-hook, or prune). Dry-run by default; real routing only after explicit validation, in batches. _apply: new-skill_
+- **skill:link** — Analyzes the vault and creates `[[]]` links between related notes. Trigger with "/link", "do the linking", "link my notes". _apply: new-skill_
+- **skill:teach** — Teaches you a new skill or concept within the workspace, step by step. _apply: new-skill_
+
+### Changed
+- **skill:create-adr** — Scope clarified to project/transverse vault ADRs, distinct from the dev-addon's `create-context-adr`; resolves scope + target-folder naming convention and updates the right INDEX.md. _apply: overwrite_
+- **skill:closeweek** — Refreshed weekly-summary flow (accomplishments, insight-oriented learnings, recurring-pattern capitalization, watchlist revisit, next-week projection). _apply: overwrite_
+- **skill:today** — Refreshed day-planning flow: energy-adapted agenda from daily notes, sessions, project kanbans, mood tracker and calendar; adapts to the time of day. _apply: overwrite_
+- **skill:resumelastsession** — Refreshed "resume last work session" flow: reloads the previous session, project context, and what changed since. _apply: overwrite_
+
+### Manual
+- **hook:recap-session.js** — Fix: only recap on a genuine session-end reason; reason-less spurious/duplicate fires no longer burn the dedup marker. _apply: manual-hook_
+
 ## [1.0.0] — 2026-06-19
 
 First versioned release. GYLT now ships a `VERSION` file and these patchnotes; `/gylt-update`
