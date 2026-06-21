@@ -23,6 +23,27 @@ Each entry is `**<id>** — <summary>. _apply: <action>_`
 
 ---
 
+## [1.2.0] — 2026-06-21
+
+Eleven new skills — a git/dev toolbelt (`commit`, `git-guardrails-claude-code`, `setup-pre-commit`), plan-stressing (`grill-me`, `grill-with-docs`, `spec-challenger`), codebase work (`improve-codebase-architecture`), skill tooling (`author-eval`), and vault flows (`harvest`, `harvestdeep`, `triage-explo`) — plus a `closeday` refresh. `harvest`/`harvestdeep` replace the old `vault-harvest`/`vault-harvest-deep` names.
+
+### Added
+- **skill:author-eval** — Generates a complete eval.json for a Claude Code skill via 2-pass pipeline — local draft with Ollama then Sonnet refinement, with a final verify-eval. Use to cover a skill that has no eval.json yet, solo or in batch. _apply: new-skill_
+- **skill:commit** — Guided commit on explicit /commit — breaks changes into atomic commits ordered by layer, two validations (files, then message), handles branch creation/switch with stash, then git add + commit. Never pushes, merges, rebases or resets. _apply: new-skill_
+- **skill:git-guardrails-claude-code** — Sets up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. _apply: new-skill_
+- **skill:grill-me** — Interviews the user relentlessly about a plan or design until shared understanding, resolving each branch of the decision tree. Use to stress-test a plan. _apply: new-skill_
+- **skill:grill-with-docs** — Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates docs (CONTEXT.md, ADRs) inline as decisions crystallise. _apply: new-skill_
+- **skill:harvest** — Scans daily notes to extract ideas to capitalize on and links to process. (Replaces `vault-harvest`.) _apply: new-skill_
+- **skill:harvestdeep** — Complete vault scan over an extended period to detect emerging patterns, cross-context recurring ideas, and deep connections. Use monthly. (Replaces `vault-harvest-deep`.) _apply: new-skill_
+- **skill:improve-codebase-architecture** — Finds deepening opportunities in a codebase, informed by the project's CONTEXT.md domain language and ADRs. Use to improve architecture, find refactors, make a codebase more testable and AI-navigable. _apply: new-skill_
+- **skill:setup-pre-commit** — Sets up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. _apply: new-skill_
+- **skill:spec-challenger** — Critical audit of a specs or architectural decision document by a jaded but constructive staff engineer — challenges everything, identifies blind spots, proposes alternatives. Invoke before implementation. _apply: new-skill_
+- **skill:triage-explo** — Sorts exploration tickets in the Ready column via read-only agents, classifying each as Knowledge note, implementation ticket, or keep-as-exploration. Stops at a verdict table for user validation. _apply: new-skill_
+### Changed
+- **skill:closeday** — End-of-day wrap-up refreshed: generalized hobby WIP detection and minor wording. _apply: overwrite_
+### Migration
+- **Renamed skills** — `vault-harvest`→`harvest`, `vault-harvest-deep`→`harvestdeep`; `vault-link` dropped (already superseded by `link`). _apply: migration_ — steps: delete folders `99 - Claude Code/Skills/vault-harvest`, `99 - Claude Code/Skills/vault-harvest-deep`, and `99 - Claude Code/Skills/vault-link` if present — they are replaced by `harvest`, `harvestdeep`, and `link` respectively.
+
 ## [1.1.0] — 2026-06-20
 
 Three new skills (`/lessons-distill`, `/link`, `/teach`), refreshed `closeweek` / `create-adr` / `today` / `resumelastsession`, and a `recap-session` hook fix.
