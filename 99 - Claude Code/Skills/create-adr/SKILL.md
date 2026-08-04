@@ -1,13 +1,13 @@
 ---
 name: create-adr
-description: Single entry point to create an ADR (Architecture Decision Record) for a project or transversal scope. Invoke whenever a structural decision is made — architecture choice, transverse convention, technical arbitration, pivot. Resolves scope, detects target folder naming convention, generates a complete ADR from the decision context at a fixed format, updates INDEX.md. Guarantees homogeneous ADRs without manually copying an existing ADR to match format. Invoked directly by {USER_NAME} ("create an ADR for X", "document this decision") or by /recapsession at end of session when a structural decision has been made.
+description: Single entry point for creating an ADR (Architecture Decision Record) for a project or transversely. To be invoked as soon as a structural decision is made — architecture choice, transverse convention, technical arbitration, pivot. Resolves the scope, detects the naming convention of the target folder, generates a complete ADR from the decision context in a fixed format, updates the INDEX.md. Ensures homogeneous ADRs without manually copying an existing ADR as a template. Invoked directly by {USER_NAME} ("create an ADR for X", "document this decision") or by /recapsession at the end of a session when a structural decision has been made.
 ---
 
 # Skill: Create ADR
 
-Centralizes ADR creation to guarantee a consistent format. Invoked **when a decision is made**: the skill captures the decision from the session context, generates a complete ADR (not an empty skeleton), numbers it per the target folder's convention, and indexes it.
+Centralizes ADR creation to ensure a homogeneous format. Invoked **when a decision is made**: the skill captures the decision from the session context, generates a complete ADR (not an empty skeleton), numbers it according to the convention of the target folder, and indexes it.
 
-Goal: never manually copy an existing ADR to match the format again. The skill is the format.
+The goal: never manually copy an existing ADR to match the format again. The skill is the format.
 
 ## When to invoke
 
@@ -18,33 +18,46 @@ Goal: never manually copy an existing ADR to match the format again. The skill i
 
 Do not invoke for: a simple note, a ticket, a reversible choice without lasting consequence.
 
-## Step 1 — Resolve scope (target folder)
+## Step 1 — Resolve the scope (target folder)
 
-The argument passed is: `$ARGUMENTS` — may contain an explicit scope at the head (`transverse`, or a project name/slug) followed by a title, or just a title, or nothing.
+The argument passed is: `$ARGUMENTS` — can contain an explicit scope at the head (`transverse`, or a project name/slug) followed by a title, or just a title, or nothing.
 
-1. **Explicit scope in argument**:
+1. **Explicit scope in the argument**:
    - `transverse` → `TARGET = 99 - Claude Code/ADR/`, `SCOPE_NAME = transverse`, `INDEX_HEADER = GLOBAL`
-   - Project name or slug → read `04 - Projects/INDEX.md`, "Active Projects" table, case-insensitive match on displayed name **or** slug. Deduce the **project folder name** from the Tickets/Kanban column path (segment after `04 - Projects/`).
-     - `FOLDER = <folder segment>` (ex: `From sprue to glory`, `Waddle` — the literal folder value, not the INDEX displayed name which may differ like `CryptoBot (Waddle)`)
-     - `TARGET = 04 - Projects/<FOLDER>/claude-code/ADR/`
-     - `SCOPE_NAME = <FOLDER>` — project folder name, stable and aligned with the path. Never the INDEX displayed name nor the slug.
-     - `INDEX_HEADER = <name displayed in the target ADR folder's INDEX>` (detected at Step 8 — may differ from FOLDER, do not deduce here)
+   - Project name or slug → resolve via the **two sources** below, in that order.
+
+   **Source A — `04 - Projects/INDEX.md`** (table "Active Projects"). Case-insensitive match on the displayed name **or** the slug.
+   - Deduce the **project folder path** from the Tickets or Kanban column: take the path as written and **remove its last segment** (`Tickets`, `Features`, `Project management`…). ⚠️ **Never presuppose the `04 - Projects/` prefix** — several active projects live elsewhere (`06 - Work/Theodo Extend/jira-run-watcher`, `06 - Work/Theodo Extend/LORE`) and deriving by prefix fabricates a target path that does not exist.
+   - `PROJECT_DIR = <deduced path>` (ex: `04 - Projects/Waddle`, `06 - Work/Theodo Extend/jira-run-watcher`)
+   - `FOLDER = basename(PROJECT_DIR)` (ex: `Waddle`, `jira-run-watcher` — literal value of the folder, not the INDEX display name which may differ like `CryptoBot (Waddle)`)
+
+   **Source B — filesystem discovery** (if not found in A). Theodo run clients (Minlay, Theoboost, Advancy, minlink…) are not in any project index — their home is `06 - Work/Theodo Extend/Projects/<Client>/`. Search for an existing ADR folder:
+   ```bash
+   find "06 - Work" "04 - Projects" -type d -path '*claude-code/ADR' 2>/dev/null
+   ```
+   Match the requested scope against the parent segment of `claude-code/` (case-insensitive). A `claude-code/ADR/` folder **that already exists is proof** that the project has an ADR convention — no need for a declaration elsewhere.
+   - `PROJECT_DIR = <folder parent to claude-code/>`, `FOLDER = basename(PROJECT_DIR)`
+
+   **In both cases**:
+   - `TARGET = <PROJECT_DIR>/claude-code/ADR/`
+   - `SCOPE_NAME = <FOLDER>` — name of the project folder, stable and aligned with the path. Never the INDEX display name nor the slug.
+   - `INDEX_HEADER = <name displayed in the INDEX of the target ADR folder>` (detected Step 8 — can differ from FOLDER, do not deduce it here)
 
 2. **No explicit scope** → present an interactive list:
    ```
    ADR scope?
    1. Transverse (99 - Claude Code/ADR/)
    2. <Project 1 from INDEX.md>
-   3. <Project 2 from INDEX.md>
    ...
+   N. <Client Run discovered by find>
    ```
-   List all active projects from `04 - Projects/INDEX.md`. **Wait for {USER_NAME}'s choice.** No inference from working directory (in vault sessions cwd is `/home/vico`, non-discriminant).
+   List active projects from `04 - Projects/INDEX.md` **then** ADR folders discovered by source B that are not listed there (flag them as *Run client*). **Await {USER_NAME}'s choice.** No inference from the working directory (in vault session the cwd is the user's home, non-discriminant).
 
-3. **Project provided but absent from INDEX.md** → signal: "Project `<name>` absent from INDEX.md — transverse instead, or you create the project entry first?" and wait.
+3. **Project provided not found in either source** (neither INDEX.md, nor existing `claude-code/ADR/` folder) → report: "Project `<name>` not found — neither in `04 - Projects/INDEX.md`, nor as an existing ADR folder. Transverse instead, or create the project entry first?" and wait. Never fabricate a target path by convention.
 
-## Step 2 — Detect target folder naming convention
+## Step 2 — Detect the convention of the target folder
 
-Scan `TARGET` (all `*.md` except `INDEX.md`). Deduce the pattern from existing filenames:
+Scan `TARGET` (all `*.md` except `INDEX.md`). Deduce the pattern from existing file names:
 
 | Existing files match | `FILE_PREFIX` | `PAD` | `ID_FORM` |
 | -------------------- | ------------- | ----- | --------- |
@@ -54,64 +67,64 @@ Scan `TARGET` (all `*.md` except `INDEX.md`). Deduce the pattern from existing f
 | empty folder (1st ADR) | `ADR-` | 3 | `ADR-NNN` |
 
 **Notes**:
-- The frontmatter `id` and H1 title use `ID_FORM` (ex: Waddle has a file `012-...md` but `id: ADR-012` in frontmatter — `ID_FORM` remains `ADR-NNN`).
-- If multiple patterns coexist in the folder (historical inconsistency) → take the **majority** pattern and signal it to {USER_NAME} at the end (non-blocking note).
+- The frontmatter `id` and H1 title use `ID_FORM` (ex: Waddle has a file `012-...md` but `id: ADR-012` in the frontmatter — `ID_FORM` remains `ADR-NNN`).
+- If multiple patterns coexist in the folder (historical inconsistency) → take the **majority** pattern and flag it to {USER_NAME} at the end of execution (non-blocking note).
 
-## Step 2bis — Detect local content format
+## Step 2bis — Detect the content format locally
 
-The *naming* convention (Step 2) says nothing about *content format*. Before using the default template (Step 7), open **1-2 sibling ADRs** from the `TARGET` folder (the most recent ones) and note their **actual structure**: section headings and frontmatter. The `## Context`/`## Decision`/`## Reasons`/`## Consequences`/`## Sources` sections are only a default — a project may use `## Reason`, `## See also`, a summary table, omit `## Sources`, order differently, etc.
+The *naming* convention (Step 2) says nothing about *content format*. Before using the default template (Step 7), open **1-2 sibling ADRs** from the `TARGET` folder (the most recent) and note their **actual structure**: section titles and frontmatter. The `## Context`/`## Decision`/`## Reasons`/`## Consequences`/`## Sources` sections are just a default — a project may use `## Rationale`, `## See also`, a summary table, omit `## Sources`, order differently, etc.
 
-- **If siblings follow a coherent structure different from the default template** → adopt **their** structure (sections, order, frontmatter aligned with sibling ADRs) for the new ADR, and store it as `LOCAL_FORMAT` for Step 7.
+- **If siblings follow a coherent structure different from the default template** → adopt **their** structure (sections, order, frontmatter copied from sibling ADRs) for the new ADR, and store it as `LOCAL_FORMAT` for Step 7.
 - **If folder is empty or siblings are inconsistent** → `LOCAL_FORMAT` remains empty, the default template applies.
 
-Why: the skill's goal is homogeneity **within the folder**, not imposing a global format. An ADR that stands out from its siblings recreates the exact friction this skill aims to eliminate (manually copying an existing ADR to match the format). When a local format exists, it is authoritative.
+Why: the skill's goal is homogeneity **within the folder**, not imposition of a global format. An ADR that stands out from its siblings recreates exactly the friction this skill wants to eliminate (manually copying an existing ADR to match the format). When a local format exists, it is authoritative.
 
 ## Step 3 — Number
 
-- Extract the number from each file per the detected pattern.
-- `NEXT = max(numbers) + 1`, zero-padded to `PAD` (ex: `073`, `008`).
+- Extract the number from each file according to the detected pattern.
+- `NEXT = max(numbers) + 1`, zero-padded to `PAD` width (ex: `073`, `008`).
 - Empty folder → `NEXT = 001`.
 
 ## Step 4 — Build identifiers
 
 - `ID = ID_FORM` with `NNN = NEXT` (ex: `ADR-073`, `FSTG-ADR-022`).
-- Slugify the title: lowercase, accents removed, spaces → hyphens, special chars removed (same rule as `/create-ticket`).
+- Slugify the title: lowercase, accents removed, spaces → hyphens, special characters removed (same rule as `/create-ticket`).
 - `FILENAME = <FILE_PREFIX><NEXT>-<slug-title>.md`
   - `ADR-` → `ADR-073-my-title.md`
   - empty (Waddle) → `073-my-title.md`
   - `FSTG-ADR-` → `FSTG-ADR-022-my-title.md`
 - `FILESTEM` = `FILENAME` without `.md`.
 
-## Step 5 — Detect overlap with existing ADR
+## Step 5 — Detect overlap with an existing ADR
 
-Before drafting, check if the decision overlaps with an **already active** ADR in the target folder (not just supersedes).
+Before writing, check whether the decision overlaps with an already **active** ADR in the target folder (not just supersedes).
 
-1. Extract 3-5 keywords from the decision (tech, convention, subject).
-2. Scan the target INDEX lines + folder filenames. Spot an active ADR on a similar subject.
+1. Extract 3-5 keywords from the decision (technology, convention, subject).
+2. Scan the lines of the target INDEX + folder file titles. Identify an active ADR on a similar subject.
 3. **If plausible overlap** → stop and present to {USER_NAME}:
    ```
-   ⚠ Possible overlap with <ID> — <decision from INDEX>.
-   You want to: (a) supersede (new invalidates old)
-               (b) extend (new distinct ADR, cross-link, old remains active)
-               (c) abandon (old is sufficient, no new ADR)
+   ⚠ Possible overlap with <ID> — <INDEX decision>.
+   Do you want: (a) supersede (the new invalidates the old)
+                (b) extension (new distinct ADR, cross-link, old remains active)
+                (c) abandon (the old is enough, no new ADR)
    ```
-   **Wait for the response.** Never silently write a redundant ADR.
+   **Await the response.** Never silently write a redundant ADR.
 4. No overlap → continue.
 
-## Step 6 — Draft content (lean)
+## Step 6 — Write the content (lean)
 
-**The skill drafts the ADR itself** from the session context. This is the skill's core: a complete, coherent, **dense** ADR.
+**The skill writes the ADR itself** from the session context. This is the skill's core: a complete, homogeneous, **dense** ADR.
 
 1. Identify the decision: what is settled, why, rejected alternatives, consequences.
-2. Insufficient context → **one grouped question** to {USER_NAME} (all gaps), then draft. Never empty sections nor `<!-- TODO -->`.
-3. Draft each section, **lean** style (see `/lean` skill) — an ADR is read by an agent AND by {USER_NAME}, density wins:
-   - **Context**: the problem forcing the decision. Factual, dated if relevant. ≤ 4 dense lines.
-   - **Decision**: what is settled. Affirmed, one sentence if possible + code block/command if it clarifies. No justification here.
-   - **Reasons**: rejected alternatives + motive, as list. One line per alternative. No prose.
-   - **Consequences**: what concretely changes (to do, side effects, accepted debt), as list. ≤ 5 bullets.
+2. Insufficient context → **a single grouped question** to {USER_NAME} (all gaps), then write. Never empty sections or `<!-- TODO -->`.
+3. Write each section in **lean** style (cf. `/lean` skill) — an ADR is read by an agent AND by {USER_NAME}, density takes priority:
+   - **Context**: the problem that forces the decision. Factual, dated if relevant. ≤ 4 dense lines.
+   - **Decision**: what is settled. Affirmative, one sentence if possible + code block/command if it clarifies. No justification here.
+   - **Reasons**: rejected alternatives + motivation, as a list. One line per alternative. No prose.
+   - **Consequences**: what concretely changes (to do, side effects, accepted debt), as a list. ≤ 5 bullets.
    - **Sources**: `Session HH:MM YYYY-MM-DD — <subject>`, `[[ADR-XXX]]` links, original ticket. Raw list.
 
-**Anti-verbosity**: drop unnecessary articles, filler (just/really/basically), rhetorical scaffolding ("It is important to note that…", "One can observe that…"). Fragments OK. Exact technical substance intact. Target: a tightened existing ADR (ex: `ADR-072`, `ADR-057`) — never longer without reason. Clear decision > dissertation.
+**Anti-verbosity**: drop superfluous articles, filler (just/really/basically), rhetorical scaffolding ("It is important to note that…", "One can observe that…"). Fragments OK. Exact technical substance intact. Target: an existing tightened ADR (ex: `ADR-072`, `ADR-057`) — never longer without reason. Clear decision > dissertation.
 
 ## Step 6bis — Supersede (if Step 5 = supersede)
 
@@ -119,9 +132,9 @@ Before drafting, check if the decision overlaps with an **already active** ADR i
 - Old ADR: `status: superseded` + `superseded-by: <new ID>`.
 - Old INDEX line: prefix with `⛔ *Superseded by <new ID>* — ` (convention ADR-065, ADR-068).
 
-## Step 7 — Write ADR file
+## Step 7 — Write the ADR file
 
-Write `TARGET/FILENAME`. **If `LOCAL_FORMAT` was detected (Step 2bis), follow that structure** (sections, order, frontmatter aligned with sibling ADRs) — the template below is only the **default**, applied when the folder is empty or siblings are inconsistent:
+Write `TARGET/FILENAME`. **If `LOCAL_FORMAT` was detected (Step 2bis), follow that structure** (sections, order, frontmatter copied from sibling ADRs) — the template below is only the **default**, applied when the folder is empty or inconsistent:
 
 ````markdown
 ---
@@ -135,45 +148,45 @@ status: active
 
 ## Context
 
-<drafted>
+<written>
 
 ## Decision
 
-<drafted>
+<written>
 
 ## Reasons
 
-<drafted>
+<written>
 
 ## Consequences
 
-<drafted>
+<written>
 
 ## Sources
 
-<drafted>
+<written>
 ````
 
 For a supersede, add `supersedes: <ID>` (or `superseded-by:` on the old side) under `status:`.
 
-Create the `TARGET` folder if it doesn't exist (project's first ADR).
+Create the `TARGET` folder if it does not exist (first ADR of the project).
 
 ## Step 8 — Update INDEX.md
 
 Target: `TARGET/INDEX.md`.
 
 1. **Detect link format** from existing `[[...]]` in the table:
-   - Standard: `[[<FILESTEM>]]` (ex: `[[ADR-072-prompt-injection-third-party-clone-repos]]`)
+   - Standard: `[[<FILESTEM>]]` (ex: `[[ADR-072-prompt-injection-third-party-repos]]`)
    - Waddle: `[[ADR/<FILESTEM>]]` (subfolder prefix observed)
-   - Reuse the exact prefix from an existing entry. Empty folder/INDEX → `[[<FILESTEM>]]`.
-2. **Determine `INDEX_HEADER`**: if the target INDEX exists and already contains a `## <…>`, **reuse that header exactly** (transverse = `GLOBAL`; project = already-in-place header, ex: `CryptoBot (Waddle)`). Don't replace it with `FOLDER`. Locate the table under this header.
-3. Add at **table end**:
+   - Reuse exactly the prefix from an existing entry. Empty folder/INDEX → `[[<FILESTEM>]]`.
+2. **Determine `INDEX_HEADER`**: if the target INDEX exists and already contains a `## <…>`, **reuse that header as-is** (transverse = `GLOBAL`; project = the existing header, ex: `CryptoBot (Waddle)`). Do not replace it with `FOLDER`. Locate the table under that header.
+3. Add at the **end of the table**:
    ```
-   | [[<link>]] | <decision summary in 1 line, ≤ 120 chars> |
+   | [[<link>]] | <1-line decision summary, ≤ 120 chars> |
    ```
-   Summary = the essence of the decision, styled like existing lines (dense, no "The", starts with the what).
+   The summary = the essence of the decision, styled like existing lines (dense, without "The", starts with the what).
 
-**If INDEX.md absent** → create it (`INDEX_HEADER` = `GLOBAL` if transverse, else `FOLDER`):
+**If INDEX.md is missing** → create it (`INDEX_HEADER` = `GLOBAL` if transverse, else `FOLDER`):
 ```markdown
 # Index — ADR
 
@@ -184,7 +197,7 @@ Target: `TARGET/INDEX.md`.
 | [[<link>]] | <summary> |
 ```
 
-**If section `## <INDEX_HEADER>` absent** from an existing INDEX → add it with its table before inserting.
+**If the section `## <INDEX_HEADER>` is missing** from an existing INDEX → add it with its table before inserting.
 
 ## Expected return
 
@@ -198,22 +211,22 @@ Indexed: <TARGET>/INDEX.md (section <INDEX_HEADER>)
 
 ## Absolute rules
 
-1. **The skill drafts the ADR, in lean style** — never empty sections nor `TODO`, never verbose prose. Homogeneity AND density: an ADR is read by an agent and by {USER_NAME}.
-2. **Frontmatter format fixed**: `id / date / scope / status` — always `status: active` on creation (ADR created = accepted/active). No other keys except `supersedes`/`superseded-by`.
-3. **Naming convention detected, never imposed** — respect the target folder's pattern (`ADR-` / empty / `<PREFIX>-ADR-`). No retroactive uniformization of existing files.
-4. **Scope resolution via INDEX.md** — never hardcode project path. Interactive list if scope not provided.
-5. **`scope` = project folder name** (ex: `Waddle`, `From sprue to glory` — the literal folder value under `04 - Projects/`, never the INDEX displayed name nor the slug), `transverse` for transverse ADRs.
+1. **The skill writes the ADR, in lean** — never empty sections or `TODO`, never verbose prose. Homogeneity AND density: an ADR is read by an agent and by {USER_NAME}.
+2. **Fixed frontmatter format**: `id / date / scope / status` — always `status: active` on creation (ADR created = accepted/active). No other key except `supersedes`/`superseded-by`.
+3. **Detected naming convention, never imposed** — respect the pattern of the target folder (`ADR-` / empty / `<PREFIX>-ADR-`). No retroactive normalization of existing files.
+4. **Scope resolution by discovery, never by convention** — two sources: `04 - Projects/INDEX.md` (path derived from Tickets/Kanban column, **without presupposing the `04 - Projects/` prefix**), then a `find` of existing `claude-code/ADR/` folders for Run clients absent from any index. Never hardcoding or fabricated paths. Interactive list if scope not provided.
+5. **`scope` = name of the project folder** (ex: `Waddle`, `From sprue to glory`, `Minlay`, `jira-run-watcher` — the literal `basename` of the project folder, wherever it lives in the vault; never the INDEX display name nor the slug), `transverse` for transverse ADRs.
 6. **Atomic numbering by scan** — max + 1, no external counter.
-7. **Always create the file AND update INDEX** — an unindexed ADR is invisible to Claude navigation.
-8. **Supersede signaled** — any invalidation of an existing ADR is announced to {USER_NAME} before writing.
-9. **Overlap detected before writing** (Step 5) — if the decision overlaps an active ADR, stop and propose supersede/extend/abandon. Never silently write a redundant ADR.
+7. **Always create the file AND update the INDEX** — an unindexed ADR is invisible to Claude navigation.
+8. **Supersede flagged** — any invalidation of an existing ADR is announced to {USER_NAME} before writing.
+9. **Overlap detected before writing** (Step 5) — if the decision overlaps an active ADR, stop and offer supersede/extension/abandon. Never redundant ADR in silence.
 
-## Usage by other skills
+## Use by other skills
 
-`/recapsession` (end-of-session capitalization):
+`/recapsession` (session-end capitalization):
 ```
 If structural decision made → apply create-adr with:
 - scope: "<transverse | project name>"
-- title: "<short decision title>"
-Session context provides content — skill drafts.
+- title: "<short title of the decision>"
+Session context provides the content — the skill writes.
 ```
