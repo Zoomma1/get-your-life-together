@@ -23,6 +23,13 @@ Each entry is `**<id>** — <summary>. _apply: <action>_`
 
 ---
 
+## [1.3.1] — 2026-08-12
+
+One fix, and it was destroying data silently. The `retention-purge` hook deleted **every** file older than its cutoff, with no exception for Claude Code's memory files — so memory you wrote and never re-edited aged out and vanished. If you use the memory feature, apply this one, then check what you already lost (see below).
+
+### Manual
+- **hook:retention-purge.js** — The purge walks `projects/`, `file-history/` and `paste-cache/` and deletes anything past the cutoff, whatever its type. That is intentional and is what bounds the footprint — but it had no exception, so durable agent memory under `~/.claude/projects/**/memory/` was treated as session scratch: any memory file left untouched for 30 days was deleted, silently. `MEMORY.md` itself usually survived, because it is rewritten on every new entry, which left an index pointing at files that no longer existed. Confirmed on two machines. Any directory named `memory/` is now skipped outright, at any depth and for every rule; nothing else about the purge changes. **After applying, check your index**: open each `~/.claude/projects/*/memory/MEMORY.md` and confirm every file it links to still exists — entries whose target is gone are the ones you lost, and only the index remembers them. _apply: manual-hook_
+
 ## [1.3.0] — 2026-08-04
 
 Two new skills for backlog and session control — `exec-ready` (what to execute now, under a time constraint) and `handoff` (switch sessions mid-task without losing context) — plus a broad refresh of 29 skills. Three skills that shipped broken since 1.2.0 (`teach`, `improve-codebase-architecture`, `grill-with-docs` referenced companion files that were never published) are now complete. Recurring themes across the refresh: hardcoded IPs replaced by resolvable hostnames, `vault-config.json` used to resolve paths instead of hardcoding them, `command-tracker.md` read to date work instead of assuming a fixed cadence, and essays moved to their own kanban column.
