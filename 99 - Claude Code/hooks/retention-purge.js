@@ -5,10 +5,23 @@
 // across 50 files + unbounded growth of transcripts.
 //
 // Rules:
-//   projects/**/*.jsonl   > 30 days → deleted
-//   projects/**/subagents directories and tool-results files > 30 days → deleted
-//   file-history/         > 14 days → deleted
-//   paste-cache/          >  7 days → deleted
+//   projects/       > 30 days → deleted
+//   file-history/   > 14 days → deleted
+//   paste-cache/    >  7 days → deleted
+//
+// The purge is deliberately INDISCRIMINATE about file type: anything old enough
+// under those roots goes. That is what keeps the footprint bounded — an allowlist
+// of "deletable" types silently exempts every new kind of file (rotated
+// transcripts, workflow scratch, …) and the directory grows without limit.
+//
+// The one exception is SKIP_DIRS below. It is not a convenience: it is the ONLY
+// thing standing between durable agent memory and deletion. A new class of
+// durable data under these roots MUST be added there, or it WILL be deleted.
+//
+// 2026-08-12 — fixed: there was no such exception, so `~/.claude/projects/**/
+// memory/*.md` aged past 30 days and was deleted silently, while MEMORY.md
+// survived (rewritten on every new entry) and kept pointing at files that no
+// longer existed. Confirmed on two machines.
 //
 // Runs silently. Appends one summary line per run to ~/.claude/cache/last-purge.log.
 // Never blocks the session — all errors are swallowed, exit 0 unconditionally.
@@ -28,6 +41,10 @@ const MS_DAY = 24 * 60 * 60 * 1000;
 const MS_HOUR = 60 * 60 * 1000;
 const THROTTLE_HOURS = 6;
 
+// Directories never descended into, at any depth, for every rule.
+// Load-bearing — see the note above before touching this.
+const SKIP_DIRS = new Set(['memory']);
+
 const RULES = [
   { dir: path.join(CLAUDE, 'projects'), maxDays: 30, label: 'projects' },
   { dir: path.join(CLAUDE, 'file-history'), maxDays: 14, label: 'file-history' },
@@ -44,6 +61,7 @@ function walkPrune(dir, cutoffMs) {
     const full = path.join(dir, e.name);
     try {
       if (e.isDirectory()) {
+        if (SKIP_DIRS.has(e.name)) continue;
         removed += walkPrune(full, cutoffMs);
         try {
           if (fs.readdirSync(full).length === 0) fs.rmdirSync(full);
